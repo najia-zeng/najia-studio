@@ -158,7 +158,7 @@
         </footer>
     </div>
 
-    <!-- Coze Chat SDK -->
+    <!-- Coze Chat SDK - 正确的CDN地址 -->
     <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.10/libs/cn/index.js"></script>
     <script>
         var debugEl = document.getElementById('debug-log');
@@ -169,6 +169,7 @@
             debugEl.textContent += msg + '\n';
         }
 
+        // 检查SDK是否加载
         if (typeof CozeWebSDK === 'undefined') {
             debugLog('ERROR: CozeWebSDK 未加载，SDK脚本可能加载失败');
         } else {
@@ -177,7 +178,7 @@
             try {
                 var client = new CozeWebSDK.WebChatClient({
                     config: {
-                        bot_id: '7648485634986115106',
+                        botId: '7648485634986115106',
                     },
                     auth: {
                         type: 'token',
