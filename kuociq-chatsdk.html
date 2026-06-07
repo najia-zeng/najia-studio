@@ -159,7 +159,7 @@
     </div>
 
     <!-- Coze Chat SDK -->
-    <script src="https://lf-cdn-tos.bytescm.com/obj/static/xforce_plugin/coze-chat-sdk.js"></script>
+    <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.10/libs/cn/index.js"></script>
     <script>
         var debugEl = document.getElementById('debug-log');
 
@@ -169,12 +169,10 @@
             debugEl.textContent += msg + '\n';
         }
 
-        // 检查SDK是否加载
         if (typeof CozeWebSDK === 'undefined') {
-            debugLog('ERROR: CozeWebSDK 未加载，SDK脚本可能被墙或加载失败');
+            debugLog('ERROR: CozeWebSDK 未加载，SDK脚本可能加载失败');
         } else {
-            debugLog('CozeWebSDK 已加载，版本信息: ' + (CozeWebSDK.version || '未知'));
-            debugLog('WebChatClient 可用: ' + (typeof CozeWebSDK.WebChatClient === 'function'));
+            debugLog('CozeWebSDK 已加载');
 
             try {
                 var client = new CozeWebSDK.WebChatClient({
@@ -204,9 +202,8 @@
                         },
                     },
                 });
-                debugLog('Chat SDK 初始化成功！');
+                debugLog('Chat SDK 初始化成功！右下角应出现悬浮球');
 
-                // "开始使用"按钮打开聊天窗口
                 document.getElementById('openChatBtn').addEventListener('click', function() {
                     try {
                         client.showChatBot();
@@ -216,7 +213,6 @@
                 });
             } catch(e) {
                 debugLog('Chat SDK 初始化失败: ' + e.message);
-                debugLog('错误堆栈: ' + e.stack);
             }
         }
     </script>
