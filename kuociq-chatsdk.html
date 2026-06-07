@@ -166,22 +166,29 @@
     <!-- Coze Chat SDK -->
     <script src="https://lf-cdn-tos.bytescm.com/obj/static/xforce_plugin/coze-chat-sdk.js"></script>
     <script>
+        const PAT_TOKEN = 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum';
+        const BOT_ID = '7648485634986115106';
+
         let cozeClient = null;
 
         function initChat() {
             if (cozeClient) {
-                cozeClient.show();
                 return;
             }
             
             try {
                 cozeClient = new CozeWebSDK.WebChatClient({
                     config: {
-                        bot_id: '7648485634986115106',
+                        bot_id: BOT_ID,
                     },
                     auth: {
-                        type: 'pat',
-                        token: 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum',
+                        type: 'token',
+                        token: PAT_TOKEN,
+                        onRefreshToken: async () => PAT_TOKEN,
+                    },
+                    userInfo: {
+                        id: 'web_user',
+                        nickname: '用户',
                     },
                     ui: {
                         asstBtn: {
@@ -201,7 +208,6 @@
                 });
             } catch(e) {
                 console.error('Chat SDK初始化失败:', e);
-                alert('聊天窗口加载失败，请刷新页面重试');
             }
         }
 
@@ -209,36 +215,9 @@
             initChat();
         });
 
-        // 页面加载后自动初始化SDK（显示悬浮球）
+        // 页面加载后自动初始化SDK
         window.addEventListener('load', function() {
-            try {
-                cozeClient = new CozeWebSDK.WebChatClient({
-                    config: {
-                        bot_id: '7648485634986115106',
-                    },
-                    auth: {
-                        type: 'pat',
-                        token: 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum',
-                    },
-                    ui: {
-                        asstBtn: {
-                            isNeed: true,
-                        },
-                        base: {
-                            lang: 'zh-CN',
-                        },
-                        chatBot: {
-                            title: '娜家扩词器',
-                            uploadable: true,
-                        },
-                        footer: {
-                            isShow: false,
-                        },
-                    },
-                });
-            } catch(e) {
-                console.error('Chat SDK初始化失败:', e);
-            }
+            initChat();
         });
     </script>
 </body>
