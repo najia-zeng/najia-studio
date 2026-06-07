@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>娜家扩词器 - AI生图提示词生成</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #f7f6f3;
+            color: #333;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px 24px 100px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: 3px;
+        }
+        .subtitle {
+            margin-top: 12px;
+            font-size: 16px;
+            color: #888;
+        }
+        .tagline {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.8;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 40px 0;
+        }
+        .feature-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e8e5e0;
+        }
+        .feature-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+        .feature-card p {
+            font-size: 13px;
+            color: #888;
+            line-height: 1.6;
+        }
+        .cta-section {
+            text-align: center;
+            margin: 40px 0;
+            padding: 40px;
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid #e8e5e0;
+        }
+        .cta-section p {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+        .cta-btn {
+            display: inline-block;
+            padding: 14px 40px;
+            background: #1a1a1a;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cta-btn:hover { background: #333; }
+        .hint {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #bbb;
+        }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 24px;
+            border-top: 1px solid #e8e5e0;
+            font-size: 13px;
+            color: #bbb;
+        }
+        @media (max-width: 480px) {
+            .features { grid-template-columns: 1fr; }
+            header h1 { font-size: 24px; }
+            .container { padding: 40px 16px 80px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>娜家扩词器</h1>
+            <p class="subtitle">产品信息 → 专业AI生图提示词</p>
+            <p class="tagline">
+                不用学摄影，也能生成能卖货的产品图提示词。<br>
+                上传产品图，一键生成专业级AI生图提示词。
+            </p>
+        </header>
+
+        <div class="features">
+            <div class="feature-card">
+                <h3>模式一：只给产品图</h3>
+                <p>上传一张产品图，自动生成3个不同场景的完整提示词，直接复制使用</p>
+            </div>
+            <div class="feature-card">
+                <h3>模式二：产品图+参考图</h3>
+                <p>上传产品图和喜欢的风格参考图，生成1个融合参考风格的定制提示词</p>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <p>点击右下角对话按钮，开始生成提示词</p>
+            <button class="cta-btn" id="openChatBtn">开始使用</button>
+            <p class="hint">支持上传图片 · 六段式专业提示词 · 一键复制</p>
+        </div>
+
+        <footer>
+            娜家 · 专业级产品图解决方案
+        </footer>
+    </div>
+
+    <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.10/libs/cn/index.js"></script>
+    <script>
+        if (typeof CozeWebSDK !== 'undefined') {
+            var client = new CozeWebSDK.WebChatClient({
+                config: {
+                    botId: '7648485634986115106',
+                },
+                auth: {
+                    type: 'token',
+                    token: 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum',
+                    onRefreshToken: async function() {
+                        return 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum';
+                    },
+                },
+                ui: {
+                    asstBtn: {
+                        isNeed: true,
+                    },
+                    base: {
+                        lang: 'zh-CN',
+                    },
+                    chatBot: {
+                        title: '娜家扩词器',
+                        uploadable: true,
+                    },
+                    footer: {
+                        isShow: false,
+                    },
+                },
+            });
+
+            document.getElementById('openChatBtn').addEventListener('click', function() {
+                client.showChatBot();
+            });
+        }
+    </script>
+</body>
+</html>
