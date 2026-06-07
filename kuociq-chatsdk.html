@@ -154,7 +154,7 @@
 
         <div class="cta-section">
             <p>点击右下角对话按钮，开始生成提示词</p>
-            <button class="cta-btn" onclick="openChat()">开始使用</button>
+            <button class="cta-btn" id="openChatBtn">开始使用</button>
             <p class="hint">支持上传图片 · 六段式专业提示词 · 一键复制</p>
         </div>
 
@@ -166,30 +166,80 @@
     <!-- Coze Chat SDK -->
     <script src="https://lf-cdn-tos.bytescm.com/obj/static/xforce_plugin/coze-chat-sdk.js"></script>
     <script>
-        const cozeClient = new CozeWebSDK.WebChatClient({
-            config: {
-                bot_id: '7648485634986115106',
-            },
-            ui: {
-                asstBtn: {
-                    isNeed: true,
-                },
-                base: {
-                    lang: 'zh-CN',
-                },
-                chatBot: {
-                    title: '娜家扩词器',
-                    uploadable: true,
-                },
-                footer: {
-                    isShow: false,
-                },
-            },
+        let cozeClient = null;
+
+        function initChat() {
+            if (cozeClient) {
+                cozeClient.show();
+                return;
+            }
+            
+            try {
+                cozeClient = new CozeWebSDK.WebChatClient({
+                    config: {
+                        bot_id: '7648485634986115106',
+                    },
+                    auth: {
+                        type: 'pat',
+                        token: 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum',
+                    },
+                    ui: {
+                        asstBtn: {
+                            isNeed: true,
+                        },
+                        base: {
+                            lang: 'zh-CN',
+                        },
+                        chatBot: {
+                            title: '娜家扩词器',
+                            uploadable: true,
+                        },
+                        footer: {
+                            isShow: false,
+                        },
+                    },
+                });
+            } catch(e) {
+                console.error('Chat SDK初始化失败:', e);
+                alert('聊天窗口加载失败，请刷新页面重试');
+            }
+        }
+
+        document.getElementById('openChatBtn').addEventListener('click', function() {
+            initChat();
         });
 
-        function openChat() {
-            cozeClient.show();
-        }
+        // 页面加载后自动初始化SDK（显示悬浮球）
+        window.addEventListener('load', function() {
+            try {
+                cozeClient = new CozeWebSDK.WebChatClient({
+                    config: {
+                        bot_id: '7648485634986115106',
+                    },
+                    auth: {
+                        type: 'pat',
+                        token: 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum',
+                    },
+                    ui: {
+                        asstBtn: {
+                            isNeed: true,
+                        },
+                        base: {
+                            lang: 'zh-CN',
+                        },
+                        chatBot: {
+                            title: '娜家扩词器',
+                            uploadable: true,
+                        },
+                        footer: {
+                            isShow: false,
+                        },
+                    },
+                });
+            } catch(e) {
+                console.error('Chat SDK初始化失败:', e);
+            }
+        });
     </script>
 </body>
 </html>
