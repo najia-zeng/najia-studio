@@ -6,38 +6,32 @@
     <title>娜家扩词器 - AI生图提示词生成</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         body {
             font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
             background: #f7f6f3;
             color: #333;
             min-height: 100vh;
         }
-        
         .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 60px 24px 100px;
         }
-        
         header {
             text-align: center;
             margin-bottom: 48px;
         }
-        
         header h1 {
             font-size: 32px;
             font-weight: 700;
             color: #1a1a1a;
             letter-spacing: 3px;
         }
-        
         .subtitle {
             margin-top: 12px;
             font-size: 16px;
             color: #888;
         }
-        
         .tagline {
             margin-top: 20px;
             font-size: 14px;
@@ -47,34 +41,29 @@
             margin-left: auto;
             margin-right: auto;
         }
-        
         .features {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
             margin: 40px 0;
         }
-        
         .feature-card {
             background: #fff;
             border-radius: 12px;
             padding: 24px;
             border: 1px solid #e8e5e0;
         }
-        
         .feature-card h3 {
             font-size: 15px;
             font-weight: 600;
             margin-bottom: 8px;
             color: #1a1a1a;
         }
-        
         .feature-card p {
             font-size: 13px;
             color: #888;
             line-height: 1.6;
         }
-        
         .cta-section {
             text-align: center;
             margin: 40px 0;
@@ -83,13 +72,11 @@
             border-radius: 16px;
             border: 1px solid #e8e5e0;
         }
-        
         .cta-section p {
             font-size: 14px;
             color: #888;
             margin-bottom: 20px;
         }
-        
         .cta-btn {
             display: inline-block;
             padding: 14px 40px;
@@ -103,17 +90,25 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        
-        .cta-btn:hover {
-            background: #333;
-        }
-        
+        .cta-btn:hover { background: #333; }
         .hint {
             margin-top: 16px;
             font-size: 12px;
             color: #bbb;
         }
-        
+        #debug-log {
+            display: none;
+            margin-top: 20px;
+            padding: 16px;
+            background: #fff3f3;
+            border: 1px solid #ffcccc;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #cc0000;
+            white-space: pre-wrap;
+            text-align: left;
+        }
         footer {
             text-align: center;
             margin-top: 60px;
@@ -122,7 +117,6 @@
             font-size: 13px;
             color: #bbb;
         }
-        
         @media (max-width: 480px) {
             .features { grid-template-columns: 1fr; }
             header h1 { font-size: 24px; }
@@ -156,6 +150,7 @@
             <p>点击右下角对话按钮，开始生成提示词</p>
             <button class="cta-btn" id="openChatBtn">开始使用</button>
             <p class="hint">支持上传图片 · 六段式专业提示词 · 一键复制</p>
+            <div id="debug-log"></div>
         </div>
 
         <footer>
@@ -166,29 +161,32 @@
     <!-- Coze Chat SDK -->
     <script src="https://lf-cdn-tos.bytescm.com/obj/static/xforce_plugin/coze-chat-sdk.js"></script>
     <script>
-        const PAT_TOKEN = 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum';
-        const BOT_ID = '7648485634986115106';
+        var debugEl = document.getElementById('debug-log');
 
-        let cozeClient = null;
+        function debugLog(msg) {
+            console.log('[扩词器]', msg);
+            debugEl.style.display = 'block';
+            debugEl.textContent += msg + '\n';
+        }
 
-        function initChat() {
-            if (cozeClient) {
-                return;
-            }
-            
+        // 检查SDK是否加载
+        if (typeof CozeWebSDK === 'undefined') {
+            debugLog('ERROR: CozeWebSDK 未加载，SDK脚本可能被墙或加载失败');
+        } else {
+            debugLog('CozeWebSDK 已加载，版本信息: ' + (CozeWebSDK.version || '未知'));
+            debugLog('WebChatClient 可用: ' + (typeof CozeWebSDK.WebChatClient === 'function'));
+
             try {
-                cozeClient = new CozeWebSDK.WebChatClient({
+                var client = new CozeWebSDK.WebChatClient({
                     config: {
-                        bot_id: BOT_ID,
+                        bot_id: '7648485634986115106',
                     },
                     auth: {
                         type: 'token',
-                        token: PAT_TOKEN,
-                        onRefreshToken: async () => PAT_TOKEN,
-                    },
-                    userInfo: {
-                        id: 'web_user',
-                        nickname: '用户',
+                        token: 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum',
+                        onRefreshToken: async function() {
+                            return 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum';
+                        },
                     },
                     ui: {
                         asstBtn: {
@@ -206,19 +204,21 @@
                         },
                     },
                 });
+                debugLog('Chat SDK 初始化成功！');
+
+                // "开始使用"按钮打开聊天窗口
+                document.getElementById('openChatBtn').addEventListener('click', function() {
+                    try {
+                        client.showChatBot();
+                    } catch(e) {
+                        debugLog('showChatBot 报错: ' + e.message);
+                    }
+                });
             } catch(e) {
-                console.error('Chat SDK初始化失败:', e);
+                debugLog('Chat SDK 初始化失败: ' + e.message);
+                debugLog('错误堆栈: ' + e.stack);
             }
         }
-
-        document.getElementById('openChatBtn').addEventListener('click', function() {
-            initChat();
-        });
-
-        // 页面加载后自动初始化SDK
-        window.addEventListener('load', function() {
-            initChat();
-        });
     </script>
 </body>
 </html>
