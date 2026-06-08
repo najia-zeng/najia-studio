@@ -532,8 +532,6 @@ function renderResult(text) {
     const container = $('resBody');
     container.innerHTML = '';
 
-    // Strategy: split by "场景" headings like **场景一：XXX** or 场景一：XXX
-    // Find all scene positions
     const sceneRegex = /\*{0,2}场景[一二三四五六七八九十]+[：:·]/g;
     const scenes = [];
     let m;
@@ -543,7 +541,6 @@ function renderResult(text) {
     }
 
     if (scenes.length === 0) {
-        // No scene headings found — check for code blocks
         const codeBlockRegex = /```[\w]*\n([\s\S]*?)```/g;
         const codePrompts = [];
         let cm;
@@ -563,12 +560,11 @@ function renderResult(text) {
             st.style.cssText = 'font-size:16px;font-weight:700;margin:28px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border)';
             st.textContent = '提示词';
             container.appendChild(st);
-codePrompts.forEach((prompt, idx) => {
+            codePrompts.forEach((prompt, idx) => {
                 let cleanPrompt = prompt.replace(/```[\w]*\n?/g, '').replace(/```/g, '').trim();
                 addPromptCard(container, `场景 ${idx + 1}`, cleanPrompt);
             });
         } else {
-            // No scenes, no code blocks — render all as markdown
             const div = document.createElement('div');
             div.className = 'md-body';
             div.innerHTML = marked.parse(text);
@@ -577,7 +573,6 @@ codePrompts.forEach((prompt, idx) => {
         return;
     }
 
-    // Split into analysis part + scene parts
     const analysisText = text.substring(0, scenes[0].start).trim();
 
     if (analysisText) {
@@ -587,13 +582,11 @@ codePrompts.forEach((prompt, idx) => {
         container.appendChild(div);
     }
 
-    // Section title
     const st = document.createElement('div');
     st.style.cssText = 'font-size:16px;font-weight:700;margin:28px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border)';
     st.textContent = '提示词';
     container.appendChild(st);
 
-    // Each scene as a card
     scenes.forEach((scene, idx) => {
         const nextStart = idx + 1 < scenes.length ? scenes[idx + 1].start : text.length;
         let sceneText = text.substring(scene.start, nextStart).trim();
@@ -601,12 +594,10 @@ codePrompts.forEach((prompt, idx) => {
         // Strip code fence markers (```python, ```, etc.)
         sceneText = sceneText.replace(/```[\w]*\n?/g, '').replace(/```/g, '').trim();
 
-        // Extract scene title (first line until newline)
         const firstNewline = sceneText.indexOf('\n');
         const titleLine = firstNewline > -1 ? sceneText.substring(0, firstNewline) : sceneText;
         const bodyText = firstNewline > -1 ? sceneText.substring(firstNewline + 1).trim() : '';
 
-        // Clean title from markdown bold markers
         let cleanTitle = titleLine.replace(/\*+/g, '').trim();
 
         addPromptCard(container, cleanTitle, bodyText);
