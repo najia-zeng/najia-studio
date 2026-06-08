@@ -3,23 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>娜家扩词器 - AI产品摄影提示词</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <title>娜家扩词器</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg: #f5f5f7;
+            --bg: #ffffff;
             --card: #ffffff;
-            --border: #e5e5e5;
+            --border: #e8e8ed;
             --text: #1d1d1f;
             --text-sec: #86868b;
-            --accent: #e85d3a;
-            --accent-h: #d04e2d;
-            --accent-bg: rgba(232,93,58,0.06);
-            --radius: 14px;
+            --text-tri: #c7c7cc;
+            --field-bg: #f9f9fb;
+            --radius: 16px;
             --radius-s: 10px;
         }
 
@@ -27,349 +25,474 @@
             font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg);
             color: var(--text);
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
+        }
+
+        .outer {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 48px;
         }
 
         /* ===== Header ===== */
         .hdr {
-            height: 56px;
-            background: var(--card);
+            padding: 28px 0 20px;
             border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 28px;
-            gap: 12px;
         }
-        .hdr-logo {
-            width: 34px; height: 34px;
-            background: var(--accent);
-            border-radius: 9px;
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; font-weight: 700; font-size: 15px;
+        .hdr-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
-        .hdr-name { font-weight: 600; font-size: 16px; }
-        .hdr-sub { font-size: 12px; color: var(--text-sec); margin-left: 4px; }
+        .hdr-sub {
+            font-size: 13px;
+            color: var(--text-sec);
+            margin-top: 4px;
+            font-weight: 400;
+        }
 
         /* ===== Layout ===== */
-        .wrap { display: flex; height: calc(100vh - 56px); }
+        .wrap {
+            display: flex;
+            gap: 40px;
+            padding: 32px 0 48px;
+            min-height: calc(100vh - 110px);
+        }
 
         /* ===== Left ===== */
         .left {
-            width: 400px; min-width: 400px;
-            background: var(--card);
-            border-right: 1px solid var(--border);
-            padding: 24px;
-            overflow-y: auto;
-            display: flex; flex-direction: column; gap: 14px;
+            width: 340px;
+            min-width: 340px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
         }
-        .left::-webkit-scrollbar { width: 4px; }
-        .left::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
 
-        .sec-label {
-            font-size: 12px; font-weight: 600;
-            color: var(--text-sec);
-            letter-spacing: 1px;
-            text-transform: uppercase;
+        .sec-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+            margin-bottom: 10px;
         }
 
         /* Mode cards */
         .m-card {
-            border: 2px solid var(--border);
+            border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 16px;
+            padding: 16px 20px;
             cursor: pointer;
             transition: all .2s;
+            background: var(--bg);
         }
-        .m-card:hover { border-color: #ccc; }
-        .m-card.on { border-color: var(--accent); background: var(--accent-bg); }
-        .m-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .m-badge {
-            font-size: 11px; font-weight: 600;
-            color: #fff; background: var(--accent);
-            padding: 2px 10px; border-radius: 5px;
+        .m-card:hover { border-color: #b8b8bf; }
+        .m-card.on { border-color: var(--text); }
+        .m-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
         }
-        .m-title { font-weight: 500; font-size: 14px; }
-        .m-desc { font-size: 12px; color: var(--text-sec); line-height: 1.5; }
+        .m-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-sec);
+            letter-spacing: 0.5px;
+        }
+        .m-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .m-desc {
+            font-size: 12px;
+            color: var(--text-sec);
+            line-height: 1.5;
+        }
 
         /* Upload */
         .up-area {
-            border: 2px dashed var(--border);
-            border-radius: var(--radius-s);
-            padding: 24px 16px;
+            border: 1px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 32px 16px;
             text-align: center;
             cursor: pointer;
             transition: all .2s;
-            position: relative;
-            background: #fafafa;
-            min-height: 100px;
-            display: flex; align-items: center; justify-content: center;
+            background: var(--field-bg);
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .up-area:hover { border-color: var(--accent); background: var(--accent-bg); }
-        .up-area.has { border-style: solid; border-color: var(--accent); padding: 8px; background: #fff; }
-        .up-ico { font-size: 28px; margin-bottom: 6px; }
-        .up-txt { font-size: 13px; color: var(--text-sec); }
-        .up-txt b { color: var(--accent); }
-        .up-prev { max-width: 100%; max-height: 180px; border-radius: 6px; object-fit: contain; }
+        .up-area:hover { border-color: var(--text-sec); background: #f3f3f6; }
+        .up-area.has {
+            border-style: solid;
+            border-color: var(--border);
+            padding: 10px;
+            background: var(--bg);
+        }
+        .up-ico {
+            font-size: 20px;
+            color: var(--text-tri);
+            margin-bottom: 8px;
+        }
+        .up-txt {
+            font-size: 13px;
+            color: var(--text-sec);
+        }
+        .up-hint {
+            font-size: 11px;
+            color: var(--text-tri);
+            margin-top: 4px;
+        }
+        .up-prev {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: 8px;
+            object-fit: contain;
+        }
         .up-rm {
-            position: absolute; top: 6px; right: 6px;
-            width: 26px; height: 26px;
-            background: rgba(0,0,0,.45); color: #fff;
-            border: none; border-radius: 50%;
-            cursor: pointer; font-size: 16px;
-            display: flex; align-items: center; justify-content: center;
-            transition: background .15s;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 22px;
+            height: 22px;
+            background: rgba(0,0,0,.3);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .up-rm:hover { background: rgba(0,0,0,.7); }
+        .up-rm:hover { background: rgba(0,0,0,.55); }
 
-        .inp-label { font-size: 12px; font-weight: 500; color: var(--text-sec); margin-bottom: 6px; display: block; }
+        .field-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-sec);
+            margin-bottom: 8px;
+            display: block;
+        }
         .inp-textarea {
-            width: 100%; padding: 10px 12px;
-            border: 1px solid var(--border); border-radius: var(--radius-s);
-            font-size: 13px; font-family: inherit;
-            resize: vertical; min-height: 56px;
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-s);
+            font-size: 13px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 48px;
+            background: var(--field-bg);
             transition: border-color .2s;
         }
-        .inp-textarea:focus { outline: none; border-color: var(--accent); }
-        .inp-textarea::placeholder { color: #bbb; }
-
-        /* Tips */
-        .tips {
-            background: #fef9ee; border: 1px solid #fde68a;
-            border-radius: var(--radius-s);
-            padding: 12px; font-size: 12px; color: #92400e; line-height: 1.7;
+        .inp-textarea:focus {
+            outline: none;
+            border-color: var(--text);
+            background: var(--bg);
         }
-        .tips b { display: block; margin-bottom: 2px; }
+        .inp-textarea::placeholder { color: var(--text-tri); }
 
         /* Generate button */
         .gen-btn {
-            width: 100%; padding: 14px;
-            background: var(--accent); color: #fff;
-            border: none; border-radius: var(--radius-s);
-            font-size: 15px; font-weight: 600;
-            cursor: pointer; font-family: inherit;
-            transition: all .2s;
+            width: 100%;
+            padding: 12px;
+            background: var(--text);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-s);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .15s;
             margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
-        .gen-btn:hover { background: var(--accent-h); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,93,58,.25); }
-        .gen-btn:active { transform: translateY(0); }
-        .gen-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .gen-btn:hover { background: #3a3a3c; }
+        .gen-btn:active { transform: scale(.98); }
+        .gen-btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
 
         /* ===== Right ===== */
         .right {
-            flex: 1; padding: 32px; overflow-y: auto;
-            display: flex; flex-direction: column;
+            flex: 1;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
         }
-        .right::-webkit-scrollbar { width: 6px; }
-        .right::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
 
-        /* Empty */
-        .empty {
-            flex: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; text-align: center;
+        .right-inner {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg);
         }
-        .empty-ico {
-            width: 88px; height: 88px;
-            background: var(--accent-bg); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 40px; margin-bottom: 20px;
-        }
-        .empty-t { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
-        .empty-d { font-size: 14px; color: var(--text-sec); max-width: 420px; line-height: 1.7; }
 
-        /* Loading */
-        .ldg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .spin {
-            width: 44px; height: 44px;
-            border: 3px solid var(--border); border-top-color: var(--accent);
-            border-radius: 50%; animation: sp .7s linear infinite;
-        }
-        @keyframes sp { to { transform: rotate(360deg); } }
-        .ldg-txt { margin-top: 18px; font-size: 14px; color: var(--text-sec); }
-
-        /* Result */
-        .res-wrap { max-width: 720px; margin: 0 auto; width: 100%; }
-        .res-wrap .top-bar {
-            display: flex; align-items: center; justify-content: space-between;
-            margin-bottom: 20px; padding-bottom: 16px;
+        .right-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
             border-bottom: 1px solid var(--border);
         }
-        .res-wrap .top-bar h2 { font-size: 18px; font-weight: 600; }
-        .new-btn {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 16px; background: var(--card);
-            border: 1px solid var(--border); border-radius: var(--radius-s);
-            font-size: 13px; cursor: pointer; font-family: inherit;
-            transition: all .15s; color: var(--text);
+        .right-title {
+            font-size: 14px;
+            font-weight: 600;
         }
-        .new-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .right-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .act-btn {
+            padding: 5px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            color: var(--text-sec);
+            transition: all .15s;
+        }
+        .act-btn:hover { border-color: var(--text); color: var(--text); }
 
-        /* Markdown content */
-        .md-body { line-height: 1.8; font-size: 14px; }
-        .md-body h2 { font-size: 17px; margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-        .md-body h3 { font-size: 15px; margin: 20px 0 8px; }
+        .right-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px;
+        }
+        .right-body::-webkit-scrollbar { width: 4px; }
+        .right-body::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+        /* Empty state */
+        .empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--text-tri);
+        }
+        .empty-ico { font-size: 48px; margin-bottom: 16px; opacity: .5; }
+        .empty-t { font-size: 16px; font-weight: 600; color: var(--text-sec); margin-bottom: 6px; }
+        .empty-d { font-size: 13px; color: var(--text-tri); max-width: 300px; line-height: 1.7; }
+
+        /* Loading */
+        .ldg {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .spin {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--border);
+            border-top-color: var(--text);
+            border-radius: 50%;
+            animation: sp .8s linear infinite;
+        }
+        @keyframes sp { to { transform: rotate(360deg); } }
+        .ldg-txt { margin-top: 16px; font-size: 13px; color: var(--text-sec); }
+
+        /* Result */
+        .res-wrap { max-width: 100%; }
+
+        /* Markdown */
+        .md-body { line-height: 1.85; font-size: 13.5px; color: #333; }
+        .md-body h2 { font-size: 16px; font-weight: 700; margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); color: var(--text); }
+        .md-body h3 { font-size: 14px; font-weight: 600; margin: 20px 0 8px; color: var(--text); }
         .md-body p { margin-bottom: 12px; }
-        .md-body strong { color: var(--accent); }
-        .md-body ul, .md-body ol { padding-left: 20px; margin-bottom: 12px; }
-        .md-body li { margin-bottom: 4px; }
+        .md-body strong { color: var(--text); font-weight: 600; }
+        .md-body ul, .md-body ol { padding-left: 18px; margin-bottom: 12px; }
+        .md-body li { margin-bottom: 3px; }
         .md-body hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
-        .md-body blockquote { border-left: 3px solid var(--accent); padding-left: 14px; color: var(--text-sec); margin: 12px 0; }
-        .md-body code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+        .md-body blockquote { border-left: 2px solid var(--text-tri); padding-left: 14px; color: var(--text-sec); margin: 12px 0; }
+        .md-body code { background: var(--field-bg); padding: 2px 6px; border-radius: 4px; font-size: 12.5px; }
 
-        /* Code block with copy */
         .md-body pre {
-            background: #1e1e1e; color: #d4d4d4;
-            padding: 16px; border-radius: 10px;
-            overflow-x: auto; margin: 14px 0;
-            font-size: 13px; line-height: 1.7;
+            background: #1d1d1f;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 14px 0;
+            font-size: 12px;
+            line-height: 1.7;
             position: relative;
         }
-        .md-body pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+        .md-body pre code { background: none; padding: 0; color: inherit; font-size: 12px; }
+
         .copy-btn {
-            position: absolute; top: 8px; right: 8px;
-            padding: 4px 10px; background: rgba(255,255,255,.12);
-            color: #ccc; border: none; border-radius: 5px;
-            font-size: 11px; cursor: pointer;
-            transition: all .15s; font-family: inherit;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 3px 10px;
+            background: rgba(255,255,255,.08);
+            color: #888;
+            border: none;
+            border-radius: 5px;
+            font-size: 11px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .15s;
         }
-        .copy-btn:hover { background: rgba(255,255,255,.22); color: #fff; }
+        .copy-btn:hover { background: rgba(255,255,255,.18); color: #ccc; }
 
         /* Error */
-        .err { text-align: center; padding: 40px; }
-        .err-ico { font-size: 48px; margin-bottom: 16px; }
-        .err-t { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
-        .err-d { font-size: 14px; color: var(--text-sec); line-height: 1.7; max-width: 400px; margin: 0 auto; }
+        .err {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .err-ico { font-size: 40px; margin-bottom: 12px; opacity: .5; }
+        .err-t { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+        .err-d { font-size: 13px; color: var(--text-sec); max-width: 320px; line-height: 1.7; }
         .retry-btn {
-            margin-top: 16px; padding: 10px 28px;
-            background: var(--accent); color: #fff;
-            border: none; border-radius: var(--radius-s);
-            cursor: pointer; font-size: 14px; font-family: inherit;
+            margin-top: 16px;
+            padding: 8px 24px;
+            background: var(--text);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: inherit;
         }
 
         /* Responsive */
         @media (max-width: 860px) {
-            .wrap { flex-direction: column; height: auto; }
-            .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
-            .right { min-height: 50vh; }
+            .outer { padding: 0 20px; }
+            .wrap { flex-direction: column; gap: 24px; }
+            .left { width: 100%; min-width: 0; }
+            .right { min-height: 400px; }
         }
     </style>
 </head>
 <body>
 
-<!-- Header -->
-<div class="hdr">
-    <div class="hdr-logo">扩</div>
-    <span class="hdr-name">娜家扩词器</span>
-    <span class="hdr-sub">AI产品摄影提示词生成</span>
-</div>
-
-<!-- Main -->
-<div class="wrap">
-    <!-- Left Panel -->
-    <div class="left">
-        <div class="sec-label">选择模式</div>
-
-        <div class="m-card on" id="m1" onclick="setMode(1)">
-            <div class="m-head">
-                <span class="m-badge">模式一</span>
-                <span class="m-title">只上传产品图</span>
-            </div>
-            <div class="m-desc">上传一张产品图，生成3个不同场景风格的专业提示词</div>
-        </div>
-
-        <div class="m-card" id="m2" onclick="setMode(2)">
-            <div class="m-head">
-                <span class="m-badge">模式二</span>
-                <span class="m-title">产品图 + 参考图</span>
-            </div>
-            <div class="m-desc">上传产品图和参考风格图，生成1个融合参考风格的提示词</div>
-        </div>
-
-        <div class="sec-label">上传图片</div>
-
-        <!-- Product upload -->
-        <div>
-            <span class="inp-label">📸 产品图（必填）</span>
-            <div class="up-area" id="pArea" onclick="$('pFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'p')">
-                <input type="file" id="pFile" accept="image/*" style="display:none" onchange="fSel(event,'p')">
-                <div id="pContent">
-                    <div class="up-ico">📁</div>
-                    <div class="up-txt"><b>点击上传</b>或拖拽图片至此</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Reference upload -->
-        <div id="refSec" style="display:none">
-            <span class="inp-label">🎨 参考风格图（必填）</span>
-            <div class="up-area" id="rArea" onclick="$('rFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'r')">
-                <input type="file" id="rFile" accept="image/*" style="display:none" onchange="fSel(event,'r')">
-                <div id="rContent">
-                    <div class="up-ico">🖼️</div>
-                    <div class="up-txt"><b>点击上传</b>或拖拽参考图至此</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Product desc -->
-        <div>
-            <label class="inp-label">✏️ 补充说明（选填）</label>
-            <textarea class="inp-textarea" id="desc" placeholder='告诉我产品是什么，比如"白色釉面陶瓷咖啡杯"，或你想要的感觉'></textarea>
-        </div>
-
-        <!-- Tips -->
-        <div class="tips">
-            <b>💡 小贴士</b>
-            模式一：产品图越清晰，提示词越精准<br>
-            模式二：参考图决定风格走向，选你喜欢的调性
-        </div>
-
-        <button class="gen-btn" id="genBtn" onclick="generate()">生成提示词</button>
+<div class="outer">
+    <!-- Header -->
+    <div class="hdr">
+        <div class="hdr-title">提示词生成</div>
+        <div class="hdr-sub">上传产品图片，生成专业AI摄影提示词</div>
     </div>
 
-    <!-- Right Panel -->
-    <div class="right" id="right">
-        <div class="empty" id="vEmpty">
-            <div class="empty-ico">🎯</div>
-            <div class="empty-t">准备好开始了吗？</div>
-            <div class="empty-d">上传您的产品图片，娜家扩词器帮你翻译成专业AI生图提示词，直接复制就能用</div>
-        </div>
-
-        <div class="ldg" id="vLoad" style="display:none">
-            <div class="spin"></div>
-            <div class="ldg-txt" id="ldgTxt">正在上传图片...</div>
-        </div>
-
-        <div class="res-wrap" id="vRes" style="display:none">
-            <div class="top-bar">
-                <h2>生成结果</h2>
-                <button class="new-btn" onclick="resetAll()">🔄 重新开始</button>
+    <!-- Main -->
+    <div class="wrap">
+        <!-- Left -->
+        <div class="left">
+            <div>
+                <div class="sec-title">创作模式</div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                    <div class="m-card on" id="m1" onclick="setMode(1)">
+                        <div class="m-head">
+                            <span class="m-label">模式一</span>
+                            <span class="m-name">仅产品图</span>
+                        </div>
+                        <div class="m-desc">上传一张产品图，生成3个不同场景的提示词</div>
+                    </div>
+                    <div class="m-card" id="m2" onclick="setMode(2)">
+                        <div class="m-head">
+                            <span class="m-label">模式二</span>
+                            <span class="m-name">产品图 + 参考图</span>
+                        </div>
+                        <div class="m-desc">上传产品图和参考风格图，生成融合风格的提示词</div>
+                    </div>
+                </div>
             </div>
-            <div class="md-body" id="resBody"></div>
+
+            <div>
+                <div class="sec-title">上传图片</div>
+                <div style="display:flex;flex-direction:column;gap:10px">
+                    <div>
+                        <span class="field-label">产品图</span>
+                        <div class="up-area" id="pArea" onclick="$('pFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'p')">
+                            <input type="file" id="pFile" accept="image/*" style="display:none" onchange="fSel(event,'p')">
+                            <div id="pContent">
+                                <div class="up-ico">↑</div>
+                                <div class="up-txt">点击上传产品图</div>
+                                <div class="up-hint">拖拽图片至此或点击浏览</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="refSec" style="display:none">
+                        <span class="field-label">参考风格图</span>
+                        <div class="up-area" id="rArea" onclick="$('rFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'r')">
+                            <input type="file" id="rFile" accept="image/*" style="display:none" onchange="fSel(event,'r')">
+                            <div id="rContent">
+                                <div class="up-ico">↑</div>
+                                <div class="up-txt">点击上传参考图</div>
+                                <div class="up-hint">拖拽图片至此或点击浏览</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <span class="field-label">补充说明（选填）</span>
+                <textarea class="inp-textarea" id="desc" placeholder='例如：白色釉面陶瓷咖啡杯'></textarea>
+            </div>
+
+            <button class="gen-btn" id="genBtn" onclick="generate()">生成提示词</button>
         </div>
 
-        <div class="err" id="vErr" style="display:none">
-            <div class="err-ico">😵</div>
-            <div class="err-t">生成失败</div>
-            <div class="err-d" id="errTxt">请稍后重试</div>
-            <button class="retry-btn" onclick="generate()">重新生成</button>
+        <!-- Right -->
+        <div class="right">
+            <div class="right-inner">
+                <div class="right-top">
+                    <span class="right-title" id="rTitle">生成结果</span>
+                    <div class="right-actions" id="rActions" style="display:none">
+                        <button class="act-btn" onclick="resetAll()">重新开始</button>
+                    </div>
+                </div>
+                <div class="right-body" id="rBody">
+                    <div class="empty" id="vEmpty">
+                        <div class="empty-ico">◇</div>
+                        <div class="empty-t">准备开始</div>
+                        <div class="empty-d">上传产品图片，生成可直接使用的AI摄影提示词</div>
+                    </div>
+                    <div class="ldg" id="vLoad" style="display:none">
+                        <div class="spin"></div>
+                        <div class="ldg-txt" id="ldgTxt">正在上传图片...</div>
+                    </div>
+                    <div class="res-wrap" id="vRes" style="display:none">
+                        <div class="md-body" id="resBody"></div>
+                    </div>
+                    <div class="err" id="vErr" style="display:none">
+                        <div class="err-ico">✕</div>
+                        <div class="err-t">生成失败</div>
+                        <div class="err-d" id="errTxt">请稍后重试</div>
+                        <button class="retry-btn" onclick="generate()">重新生成</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-// ===== Config =====
 const BOT_ID = '7648485634986115106';
 const API = 'https://api.coze.cn';
 const PAT = 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum';
 
-// ===== State =====
 let mode = 1, pFile = null, rFile = null, busy = false;
 let uid = 'u_' + Math.random().toString(36).slice(2, 11);
 
 const $ = id => document.getElementById(id);
 
-// ===== Mode =====
 function setMode(m) {
     mode = m;
     $('m1').classList.toggle('on', m === 1);
@@ -378,11 +501,9 @@ function setMode(m) {
     if (m === 1) { rFile = null; resetArea('r'); }
 }
 
-// ===== Drag & Drop =====
-function dOver(e, el) { e.preventDefault(); el.style.borderColor = 'var(--accent)'; el.style.background = 'var(--accent-bg)'; }
+function dOver(e, el) { e.preventDefault(); el.style.borderColor = 'var(--text-sec)'; el.style.background = '#f3f3f6'; }
 function dLeave(e, el) { if (!el.classList.contains('has')) { el.style.borderColor = ''; el.style.background = ''; } }
 function dDrop(e, el, t) { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) showFile(f, t); }
-
 function fSel(e, t) { const f = e.target.files[0]; if (f) showFile(f, t); }
 
 function showFile(file, t) {
@@ -407,20 +528,18 @@ function resetArea(t) {
     const content = $(t === 'p' ? 'pContent' : 'rContent');
     area.classList.remove('has');
     area.style.borderColor = ''; area.style.background = '';
-    const ico = t === 'p' ? '📁' : '🖼️';
-    const lbl = t === 'p' ? '产品' : '参考图';
-    content.innerHTML = `<div class="up-ico">${ico}</div><div class="up-txt"><b>点击上传</b>或拖拽${lbl}至此</div>`;
+    const lbl = t === 'p' ? '产品图' : '参考图';
+    content.innerHTML = `<div class="up-ico">↑</div><div class="up-txt">点击上传${lbl}</div><div class="up-hint">拖拽图片至此或点击浏览</div>`;
 }
 
-// ===== Views =====
 function showV(v) {
     $('vEmpty').style.display = v === 'e' ? 'flex' : 'none';
     $('vLoad').style.display  = v === 'l' ? 'flex' : 'none';
     $('vRes').style.display   = v === 'r' ? 'block' : 'none';
-    $('vErr').style.display   = v === 'x' ? 'block' : 'none';
+    $('vErr').style.display   = v === 'x' ? 'flex' : 'none';
+    $('rActions').style.display = v === 'r' ? 'flex' : 'none';
 }
 
-// ===== Generate =====
 async function generate() {
     if (busy) return;
     if (!pFile) return alert('请先上传产品图');
@@ -431,20 +550,16 @@ async function generate() {
     showV('l');
 
     try {
-        // Upload files
         $('ldgTxt').textContent = '正在上传图片...';
         const pId = await uploadFile(pFile);
         let rId = null;
         if (mode === 2 && rFile) rId = await uploadFile(rFile);
 
-        // Create chat
         $('ldgTxt').textContent = '正在生成提示词...';
         const answer = await doChat(pId, rId);
 
-        // Render
         showV('r');
         renderMD(answer);
-
     } catch (err) {
         console.error(err);
         showV('x');
@@ -455,7 +570,6 @@ async function generate() {
     }
 }
 
-// ===== API: Upload =====
 async function uploadFile(file) {
     const fd = new FormData();
     fd.append('file', file);
@@ -469,7 +583,6 @@ async function uploadFile(file) {
     return d.data.id;
 }
 
-// ===== API: Chat =====
 async function doChat(pId, rId) {
     const desc = $('desc').value.trim();
     const parts = [];
@@ -513,41 +626,34 @@ async function doChat(pId, rId) {
     const chatId = cd.data.id;
     const convId = cd.data.conversation_id;
 
-    // Poll
     for (let i = 0; i < 90; i++) {
         await sleep(2000);
-        $('ldgTxt').textContent = `正在生成提示词... (${(i + 1) * 2}s)`;
-
+        $('ldgTxt').textContent = `正在生成... (${(i + 1) * 2}s)`;
         const sr = await fetch(`${API}/v3/chat/retrieve?chat_id=${chatId}&conversation_id=${convId}`, {
             headers: { 'Authorization': `Bearer ${PAT}` }
         });
         const sd = await sr.json();
         if (sd.code !== 0) throw new Error(`状态查询失败: ${sd.msg}`);
-
         if (sd.data.status === 'completed') return await getMsgs(convId, chatId);
         if (sd.data.status === 'failed') throw new Error('生成失败，请重试');
     }
     throw new Error('生成超时，请重试');
 }
 
-// ===== API: Messages =====
 async function getMsgs(convId, chatId) {
     const r = await fetch(`${API}/v3/chat/message/list?chat_id=${chatId}&conversation_id=${convId}`, {
         headers: { 'Authorization': `Bearer ${PAT}` }
     });
     const d = await r.json();
     if (d.code !== 0) throw new Error(`获取结果失败: ${d.msg}`);
-
     for (const m of (d.data || [])) {
         if (m.role === 'assistant' && m.type === 'answer') return m.content;
     }
     throw new Error('未获取到有效回复');
 }
 
-// ===== Render Markdown =====
 function renderMD(text) {
     $('resBody').innerHTML = marked.parse(text);
-    // Add copy buttons to code blocks
     $('resBody').querySelectorAll('pre').forEach(pre => {
         const btn = document.createElement('button');
         btn.className = 'copy-btn';
@@ -555,7 +661,7 @@ function renderMD(text) {
         btn.onclick = () => {
             const code = pre.querySelector('code');
             navigator.clipboard.writeText(code ? code.textContent : pre.textContent).then(() => {
-                btn.textContent = '已复制 ✓';
+                btn.textContent = '已复制';
                 setTimeout(() => btn.textContent = '复制', 1500);
             });
         };
@@ -564,7 +670,6 @@ function renderMD(text) {
     });
 }
 
-// ===== Reset =====
 function resetAll() {
     uid = 'u_' + Math.random().toString(36).slice(2, 11);
     clearF('p');
