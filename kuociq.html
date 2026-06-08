@@ -150,7 +150,14 @@
             var client = new CozeWebSDK.WebChatClient({
                 config: {
                     botId: '7648485634986115106',
-                },                
+                },
+                auth: {
+                    type: 'token',
+                    token: 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum',
+                    onRefreshToken: async function() {
+                        return 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum';
+                    },
+                },
                 ui: {
                     asstBtn: {
                         isNeed: true,
