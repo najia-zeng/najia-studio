@@ -563,8 +563,9 @@ function renderResult(text) {
             st.style.cssText = 'font-size:16px;font-weight:700;margin:28px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border)';
             st.textContent = '提示词';
             container.appendChild(st);
-            codePrompts.forEach((prompt, idx) => {
-                addPromptCard(container, `场景 ${idx + 1}`, prompt);
+codePrompts.forEach((prompt, idx) => {
+                let cleanPrompt = prompt.replace(/```[\w]*\n?/g, '').replace(/```/g, '').trim();
+                addPromptCard(container, `场景 ${idx + 1}`, cleanPrompt);
             });
         } else {
             // No scenes, no code blocks — render all as markdown
@@ -595,7 +596,10 @@ function renderResult(text) {
     // Each scene as a card
     scenes.forEach((scene, idx) => {
         const nextStart = idx + 1 < scenes.length ? scenes[idx + 1].start : text.length;
-        const sceneText = text.substring(scene.start, nextStart).trim();
+        let sceneText = text.substring(scene.start, nextStart).trim();
+
+        // Strip code fence markers (```python, ```, etc.)
+        sceneText = sceneText.replace(/```[\w]*\n?/g, '').replace(/```/g, '').trim();
 
         // Extract scene title (first line until newline)
         const firstNewline = sceneText.indexOf('\n');
