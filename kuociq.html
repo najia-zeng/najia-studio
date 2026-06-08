@@ -527,58 +527,97 @@ async function getMsgs(convId, chatId) {
     throw new Error('未获取到有效回复');
 }
 
-// ===== Parse result: extract analysis + prompt blocks =====
+// ===== Parse result: split by scene headings =====
 function renderResult(text) {
     const container = $('resBody');
     container.innerHTML = '';
 
-    // Extract all code blocks (the actual prompts)
-    const codeBlockRegex = /```[\w]*\n([\s\S]*?)```/g;
-    const prompts = [];
-    let match;
-    while ((match = codeBlockRegex.exec(text)) !== null) {
-        prompts.push(match[1].trim());
+    // Strategy: split by "场景" headings like **场景一：XXX** or 场景一：XXX
+    // Find all scene positions
+    const sceneRegex = /\*{0,2}场景[一二三四五六七八九十]+[：:·]/g;
+    const scenes = [];
+    let m;
+
+    while ((m = sceneRegex.exec(text)) !== null) {
+        scenes.push({ start: m.index, matchLen: m[0].length });
     }
 
-    // Remove code blocks from text to get the analysis part
-    const analysisText = text.replace(/```[\w]*\n[\s\S]*?```/g, '').trim();
+    if (scenes.length === 0) {
+        // No scene headings found — check for code blocks
+        const codeBlockRegex = /```[\w]*\n([\s\S]*?)```/g;
+        const codePrompts = [];
+        let cm;
+        while ((cm = codeBlockRegex.exec(text)) !== null) {
+            codePrompts.push(cm[1].trim());
+        }
 
-    // Render analysis as markdown
-    const analysisDiv = document.createElement('div');
-    analysisDiv.className = 'md-body';
-    analysisDiv.innerHTML = marked.parse(analysisText);
-    container.appendChild(analysisDiv);
-
-    // Render each prompt as a separate card
-    if (prompts.length > 0) {
-        const sectionTitle = document.createElement('div');
-        sectionTitle.style.cssText = 'font-size:16px;font-weight:700;margin:28px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border)';
-        sectionTitle.textContent = prompts.length === 1 ? '提示词' : '提示词';
-        container.appendChild(sectionTitle);
-
-        prompts.forEach((prompt, idx) => {
-            const card = document.createElement('div');
-            card.className = 'prompt-card';
-
-            // Extract title from first line if it looks like a scene label
-            const lines = prompt.split('\n');
-            let title = `场景 ${idx + 1}`;
-            let body = prompt;
-
-            // Try to extract scene title from patterns like "场景一：XXX" or "**场景一：XXX**"
-            const titleMatch = prompt.match(/[*]*场景[一二三四三]+[：:]\s*([^*\n]+)/);
-            if (titleMatch) {
-                title = titleMatch[1].trim();
+        if (codePrompts.length > 0) {
+            const analysisText = text.replace(/```[\w]*\n[\s\S]*?```/g, '').trim();
+            if (analysisText) {
+                const div = document.createElement('div');
+                div.className = 'md-body';
+                div.innerHTML = marked.parse(analysisText);
+                container.appendChild(div);
             }
-
-            card.innerHTML = `
-                <div class="prompt-card-title">${title}</div>
-                <div class="prompt-card-body">${escapeHtml(body)}</div>
-                <button class="prompt-copy" onclick="copyPrompt(this)">复制</button>
-            `;
-            container.appendChild(card);
-        });
+            const st = document.createElement('div');
+            st.style.cssText = 'font-size:16px;font-weight:700;margin:28px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border)';
+            st.textContent = '提示词';
+            container.appendChild(st);
+            codePrompts.forEach((prompt, idx) => {
+                addPromptCard(container, `场景 ${idx + 1}`, prompt);
+            });
+        } else {
+            // No scenes, no code blocks — render all as markdown
+            const div = document.createElement('div');
+            div.className = 'md-body';
+            div.innerHTML = marked.parse(text);
+            container.appendChild(div);
+        }
+        return;
     }
+
+    // Split into analysis part + scene parts
+    const analysisText = text.substring(0, scenes[0].start).trim();
+
+    if (analysisText) {
+        const div = document.createElement('div');
+        div.className = 'md-body';
+        div.innerHTML = marked.parse(analysisText);
+        container.appendChild(div);
+    }
+
+    // Section title
+    const st = document.createElement('div');
+    st.style.cssText = 'font-size:16px;font-weight:700;margin:28px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border)';
+    st.textContent = '提示词';
+    container.appendChild(st);
+
+    // Each scene as a card
+    scenes.forEach((scene, idx) => {
+        const nextStart = idx + 1 < scenes.length ? scenes[idx + 1].start : text.length;
+        const sceneText = text.substring(scene.start, nextStart).trim();
+
+        // Extract scene title (first line until newline)
+        const firstNewline = sceneText.indexOf('\n');
+        const titleLine = firstNewline > -1 ? sceneText.substring(0, firstNewline) : sceneText;
+        const bodyText = firstNewline > -1 ? sceneText.substring(firstNewline + 1).trim() : '';
+
+        // Clean title from markdown bold markers
+        let cleanTitle = titleLine.replace(/\*+/g, '').trim();
+
+        addPromptCard(container, cleanTitle, bodyText);
+    });
+}
+
+function addPromptCard(container, title, body) {
+    const card = document.createElement('div');
+    card.className = 'prompt-card';
+    card.innerHTML = `
+        <div class="prompt-card-title">${escapeHtml(title)}</div>
+        <div class="prompt-card-body">${escapeHtml(body)}</div>
+        <button class="prompt-copy" onclick="copyPrompt(this)">复制</button>
+    `;
+    container.appendChild(card);
 }
 
 function escapeHtml(text) {
