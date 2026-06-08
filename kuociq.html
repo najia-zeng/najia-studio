@@ -151,13 +151,13 @@
                 config: {
                     botId: '7648485634986115106',
                 },
-                auth: {
-                    type: 'token',
-                    token: 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum',
-                    onRefreshToken: async function() {
-                        return 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum';
-                    },
-                },
+                const cozeWebSDK = new CozeWebSDK.WebChatClient({
+  config: {
+    botId: '7648485634986115106',
+    isIframe: false,
+  },
+  // auth 整段去掉，先测试无鉴权模式
+});
                 ui: {
                     asstBtn: {
                         isNeed: true,
