@@ -3,171 +3,577 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>娜家扩词器 - AI生图提示词生成</title>
+    <title>娜家扩词器 - AI产品摄影提示词</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #f5f5f7;
+            --card: #ffffff;
+            --border: #e5e5e5;
+            --text: #1d1d1f;
+            --text-sec: #86868b;
+            --accent: #e85d3a;
+            --accent-h: #d04e2d;
+            --accent-bg: rgba(232,93,58,0.06);
+            --radius: 14px;
+            --radius-s: 10px;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-            background: #f5f4f1;
-            color: #333;
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             height: 100vh;
             overflow: hidden;
         }
-        .top-bar {
-            background: #1a1a1a;
-            color: #fff;
-            padding: 14px 32px;
+
+        /* ===== Header ===== */
+        .hdr {
+            height: 56px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            height: 50px;
+            padding: 0 28px;
+            gap: 12px;
         }
-        .top-bar h1 { font-size: 16px; font-weight: 700; letter-spacing: 2px; }
-        .top-bar .tag { font-size: 12px; color: #888; letter-spacing: 1px; }
-        .main { display: flex; height: calc(100vh - 50px); }
-        .left-panel {
-            width: 340px; min-width: 340px; background: #fff;
-            border-right: 1px solid #e8e5e0; padding: 24px 20px;
-            overflow-y: auto; display: flex; flex-direction: column; gap: 18px;
+        .hdr-logo {
+            width: 34px; height: 34px;
+            background: var(--accent);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 700; font-size: 15px;
         }
-        .section-title {
-            font-size: 12px; font-weight: 600; color: #999;
-            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+        .hdr-name { font-weight: 600; font-size: 16px; }
+        .hdr-sub { font-size: 12px; color: var(--text-sec); margin-left: 4px; }
+
+        /* ===== Layout ===== */
+        .wrap { display: flex; height: calc(100vh - 56px); }
+
+        /* ===== Left ===== */
+        .left {
+            width: 400px; min-width: 400px;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 24px;
+            overflow-y: auto;
+            display: flex; flex-direction: column; gap: 14px;
         }
-        .mode-cards { display: flex; flex-direction: column; gap: 8px; }
-        .mode-card {
-            padding: 12px 14px; background: #faf9f7; border: 1.5px solid #e8e5e0;
-            border-radius: 10px; cursor: pointer; transition: all 0.15s;
+        .left::-webkit-scrollbar { width: 4px; }
+        .left::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+        .sec-label {
+            font-size: 12px; font-weight: 600;
+            color: var(--text-sec);
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
-        .mode-card:hover { border-color: #aaa; }
-        .mode-card.active { border-color: #1a1a1a; background: #1a1a1a; color: #fff; }
-        .mode-card.active p { opacity: 0.7; }
-        .mode-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
-        .mode-card p { font-size: 11px; opacity: 0.5; line-height: 1.4; }
-        .steps { list-style: none; counter-reset: step; padding-top: 4px; }
-        .steps li {
-            counter-increment: step; position: relative; padding-left: 30px;
-            margin-bottom: 12px; font-size: 12px; color: #666; line-height: 1.7;
+
+        /* Mode cards */
+        .m-card {
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            cursor: pointer;
+            transition: all .2s;
         }
-        .steps li::before {
-            content: counter(step); position: absolute; left: 0; top: 1px;
-            width: 20px; height: 20px; background: #1a1a1a; color: #fff;
-            border-radius: 50%; font-size: 10px; font-weight: 600;
+        .m-card:hover { border-color: #ccc; }
+        .m-card.on { border-color: var(--accent); background: var(--accent-bg); }
+        .m-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .m-badge {
+            font-size: 11px; font-weight: 600;
+            color: #fff; background: var(--accent);
+            padding: 2px 10px; border-radius: 5px;
+        }
+        .m-title { font-weight: 500; font-size: 14px; }
+        .m-desc { font-size: 12px; color: var(--text-sec); line-height: 1.5; }
+
+        /* Upload */
+        .up-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-s);
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s;
+            position: relative;
+            background: #fafafa;
+            min-height: 100px;
             display: flex; align-items: center; justify-content: center;
         }
-        .steps li strong { color: #1a1a1a; }
-        .divider { height: 1px; background: #eee; margin: 4px 0; }
-        .tip-box {
-            background: #faf9f7; border-radius: 8px; padding: 12px 14px;
-            font-size: 11px; color: #999; line-height: 1.7;
+        .up-area:hover { border-color: var(--accent); background: var(--accent-bg); }
+        .up-area.has { border-style: solid; border-color: var(--accent); padding: 8px; background: #fff; }
+        .up-ico { font-size: 28px; margin-bottom: 6px; }
+        .up-txt { font-size: 13px; color: var(--text-sec); }
+        .up-txt b { color: var(--accent); }
+        .up-prev { max-width: 100%; max-height: 180px; border-radius: 6px; object-fit: contain; }
+        .up-rm {
+            position: absolute; top: 6px; right: 6px;
+            width: 26px; height: 26px;
+            background: rgba(0,0,0,.45); color: #fff;
+            border: none; border-radius: 50%;
+            cursor: pointer; font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .15s;
         }
-        .tip-box strong { color: #666; }
-        .right-panel {
-            flex: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; background: #f5f4f1;
-            background-image: radial-gradient(#e0ddd8 0.5px, transparent 0.5px);
-            background-size: 20px 20px; position: relative;
+        .up-rm:hover { background: rgba(0,0,0,.7); }
+
+        .inp-label { font-size: 12px; font-weight: 500; color: var(--text-sec); margin-bottom: 6px; display: block; }
+        .inp-textarea {
+            width: 100%; padding: 10px 12px;
+            border: 1px solid var(--border); border-radius: var(--radius-s);
+            font-size: 13px; font-family: inherit;
+            resize: vertical; min-height: 56px;
+            transition: border-color .2s;
         }
-        .placeholder { text-align: center; color: #ccc; }
-        .placeholder .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.5; }
-        .placeholder p { font-size: 14px; margin-bottom: 4px; }
-        .placeholder .sub { font-size: 12px; color: #ccc; }
-        .start-btn {
-            margin-top: 24px; padding: 10px 28px; background: #1a1a1a; color: #fff;
-            border: none; border-radius: 8px; font-size: 13px; font-weight: 600;
-            letter-spacing: 1px; cursor: pointer; transition: all 0.15s;
+        .inp-textarea:focus { outline: none; border-color: var(--accent); }
+        .inp-textarea::placeholder { color: #bbb; }
+
+        /* Tips */
+        .tips {
+            background: #fef9ee; border: 1px solid #fde68a;
+            border-radius: var(--radius-s);
+            padding: 12px; font-size: 12px; color: #92400e; line-height: 1.7;
         }
-        .start-btn:hover { background: #333; }
-        @media (max-width: 768px) {
-            .main { flex-direction: column; height: auto; }
-            body { overflow: auto; }
-            .left-panel { width: 100%; min-width: auto; border-right: none; border-bottom: 1px solid #e8e5e0; }
-            .right-panel { min-height: 60vh; }
+        .tips b { display: block; margin-bottom: 2px; }
+
+        /* Generate button */
+        .gen-btn {
+            width: 100%; padding: 14px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: var(--radius-s);
+            font-size: 15px; font-weight: 600;
+            cursor: pointer; font-family: inherit;
+            transition: all .2s;
+            margin-top: auto;
+        }
+        .gen-btn:hover { background: var(--accent-h); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,93,58,.25); }
+        .gen-btn:active { transform: translateY(0); }
+        .gen-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* ===== Right ===== */
+        .right {
+            flex: 1; padding: 32px; overflow-y: auto;
+            display: flex; flex-direction: column;
+        }
+        .right::-webkit-scrollbar { width: 6px; }
+        .right::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+        /* Empty */
+        .empty {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+        }
+        .empty-ico {
+            width: 88px; height: 88px;
+            background: var(--accent-bg); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 40px; margin-bottom: 20px;
+        }
+        .empty-t { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+        .empty-d { font-size: 14px; color: var(--text-sec); max-width: 420px; line-height: 1.7; }
+
+        /* Loading */
+        .ldg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spin {
+            width: 44px; height: 44px;
+            border: 3px solid var(--border); border-top-color: var(--accent);
+            border-radius: 50%; animation: sp .7s linear infinite;
+        }
+        @keyframes sp { to { transform: rotate(360deg); } }
+        .ldg-txt { margin-top: 18px; font-size: 14px; color: var(--text-sec); }
+
+        /* Result */
+        .res-wrap { max-width: 720px; margin: 0 auto; width: 100%; }
+        .res-wrap .top-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .res-wrap .top-bar h2 { font-size: 18px; font-weight: 600; }
+        .new-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; background: var(--card);
+            border: 1px solid var(--border); border-radius: var(--radius-s);
+            font-size: 13px; cursor: pointer; font-family: inherit;
+            transition: all .15s; color: var(--text);
+        }
+        .new-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Markdown content */
+        .md-body { line-height: 1.8; font-size: 14px; }
+        .md-body h2 { font-size: 17px; margin: 28px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+        .md-body h3 { font-size: 15px; margin: 20px 0 8px; }
+        .md-body p { margin-bottom: 12px; }
+        .md-body strong { color: var(--accent); }
+        .md-body ul, .md-body ol { padding-left: 20px; margin-bottom: 12px; }
+        .md-body li { margin-bottom: 4px; }
+        .md-body hr { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+        .md-body blockquote { border-left: 3px solid var(--accent); padding-left: 14px; color: var(--text-sec); margin: 12px 0; }
+        .md-body code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+
+        /* Code block with copy */
+        .md-body pre {
+            background: #1e1e1e; color: #d4d4d4;
+            padding: 16px; border-radius: 10px;
+            overflow-x: auto; margin: 14px 0;
+            font-size: 13px; line-height: 1.7;
+            position: relative;
+        }
+        .md-body pre code { background: none; padding: 0; color: inherit; font-size: 13px; }
+        .copy-btn {
+            position: absolute; top: 8px; right: 8px;
+            padding: 4px 10px; background: rgba(255,255,255,.12);
+            color: #ccc; border: none; border-radius: 5px;
+            font-size: 11px; cursor: pointer;
+            transition: all .15s; font-family: inherit;
+        }
+        .copy-btn:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+        /* Error */
+        .err { text-align: center; padding: 40px; }
+        .err-ico { font-size: 48px; margin-bottom: 16px; }
+        .err-t { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .err-d { font-size: 14px; color: var(--text-sec); line-height: 1.7; max-width: 400px; margin: 0 auto; }
+        .retry-btn {
+            margin-top: 16px; padding: 10px 28px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: var(--radius-s);
+            cursor: pointer; font-size: 14px; font-family: inherit;
+        }
+
+        /* Responsive */
+        @media (max-width: 860px) {
+            .wrap { flex-direction: column; height: auto; }
+            .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
+            .right { min-height: 50vh; }
         }
     </style>
 </head>
 <body>
-    <div class="top-bar">
-        <h1>娜家扩词器</h1>
-        <span class="tag">产品信息 → 专业AI生图提示词</span>
-    </div>
-    <div class="main">
-        <div class="left-panel">
-            <div>
-                <div class="section-title">选择模式</div>
-                <div class="mode-cards">
-                    <div class="mode-card active" id="mode1Card" onclick="switchMode(1)">
-                        <h3>模式一：只给产品图</h3>
-                        <p>生成3个不同场景的提示词</p>
-                    </div>
-                    <div class="mode-card" id="mode2Card" onclick="switchMode(2)">
-                        <h3>模式二：产品图 + 参考风格图</h3>
-                        <p>生成1个融合风格的提示词</p>
-                    </div>
+
+<!-- Header -->
+<div class="hdr">
+    <div class="hdr-logo">扩</div>
+    <span class="hdr-name">娜家扩词器</span>
+    <span class="hdr-sub">AI产品摄影提示词生成</span>
+</div>
+
+<!-- Main -->
+<div class="wrap">
+    <!-- Left Panel -->
+    <div class="left">
+        <div class="sec-label">选择模式</div>
+
+        <div class="m-card on" id="m1" onclick="setMode(1)">
+            <div class="m-head">
+                <span class="m-badge">模式一</span>
+                <span class="m-title">只上传产品图</span>
+            </div>
+            <div class="m-desc">上传一张产品图，生成3个不同场景风格的专业提示词</div>
+        </div>
+
+        <div class="m-card" id="m2" onclick="setMode(2)">
+            <div class="m-head">
+                <span class="m-badge">模式二</span>
+                <span class="m-title">产品图 + 参考图</span>
+            </div>
+            <div class="m-desc">上传产品图和参考风格图，生成1个融合参考风格的提示词</div>
+        </div>
+
+        <div class="sec-label">上传图片</div>
+
+        <!-- Product upload -->
+        <div>
+            <span class="inp-label">📸 产品图（必填）</span>
+            <div class="up-area" id="pArea" onclick="$('pFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'p')">
+                <input type="file" id="pFile" accept="image/*" style="display:none" onchange="fSel(event,'p')">
+                <div id="pContent">
+                    <div class="up-ico">📁</div>
+                    <div class="up-txt"><b>点击上传</b>或拖拽图片至此</div>
                 </div>
             </div>
-            <div class="divider"></div>
-            <div>
-                <div class="section-title">操作步骤</div>
-                <ul class="steps" id="stepsGuide">
-                    <li>点击右下角 <strong>💬 对话按钮</strong> 打开聊天</li>
-                    <li>点击 <strong>📎 附件</strong> 上传产品图</li>
-                    <li>输入 <strong>"生成提示词"</strong> 发送</li>
-                    <li>等待30-60秒，复制提示词</li>
-                </ul>
-            </div>
-            <div class="divider"></div>
-            <div class="tip-box" id="tipBox">
-                <strong>💡 小贴士</strong><br>
-                上传清晰的产品图效果更好。可以加一句话指定方向，比如"帮我生成清新自然风格的"。
+        </div>
+
+        <!-- Reference upload -->
+        <div id="refSec" style="display:none">
+            <span class="inp-label">🎨 参考风格图（必填）</span>
+            <div class="up-area" id="rArea" onclick="$('rFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'r')">
+                <input type="file" id="rFile" accept="image/*" style="display:none" onchange="fSel(event,'r')">
+                <div id="rContent">
+                    <div class="up-ico">🖼️</div>
+                    <div class="up-txt"><b>点击上传</b>或拖拽参考图至此</div>
+                </div>
             </div>
         </div>
-        <div class="right-panel">
-            <div class="placeholder">
-                <div class="icon">✨</div>
-                <p>点击右下角开始对话</p>
-                <p class="sub">上传产品图，生成专业AI生图提示词</p>
-                <button class="start-btn" onclick="openChat()">开始使用</button>
+
+        <!-- Product desc -->
+        <div>
+            <label class="inp-label">✏️ 补充说明（选填）</label>
+            <textarea class="inp-textarea" id="desc" placeholder='告诉我产品是什么，比如"白色釉面陶瓷咖啡杯"，或你想要的感觉'></textarea>
+        </div>
+
+        <!-- Tips -->
+        <div class="tips">
+            <b>💡 小贴士</b>
+            模式一：产品图越清晰，提示词越精准<br>
+            模式二：参考图决定风格走向，选你喜欢的调性
+        </div>
+
+        <button class="gen-btn" id="genBtn" onclick="generate()">生成提示词</button>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right" id="right">
+        <div class="empty" id="vEmpty">
+            <div class="empty-ico">🎯</div>
+            <div class="empty-t">准备好开始了吗？</div>
+            <div class="empty-d">上传您的产品图片，娜家扩词器帮你翻译成专业AI生图提示词，直接复制就能用</div>
+        </div>
+
+        <div class="ldg" id="vLoad" style="display:none">
+            <div class="spin"></div>
+            <div class="ldg-txt" id="ldgTxt">正在上传图片...</div>
+        </div>
+
+        <div class="res-wrap" id="vRes" style="display:none">
+            <div class="top-bar">
+                <h2>生成结果</h2>
+                <button class="new-btn" onclick="resetAll()">🔄 重新开始</button>
             </div>
+            <div class="md-body" id="resBody"></div>
+        </div>
+
+        <div class="err" id="vErr" style="display:none">
+            <div class="err-ico">😵</div>
+            <div class="err-t">生成失败</div>
+            <div class="err-d" id="errTxt">请稍后重试</div>
+            <button class="retry-btn" onclick="generate()">重新生成</button>
         </div>
     </div>
-    <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.10/libs/cn/index.js"></script>
-    <script>
-        var chatClient = null;
-        if (typeof CozeWebSDK !== 'undefined') {
-            chatClient = new CozeWebSDK.WebChatClient({
-                config: { botId: '7648485634986115106' },
-                auth: {
-                    type: 'token',
-                    token: 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum',
-                    onRefreshToken: async function() {
-                        return 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum';
-                    },
-                },
-                ui: {
-                    asstBtn: { isNeed: true },
-                    base: { lang: 'zh-CN' },
-                    chatBot: { title: '娜家扩词器', uploadable: true },
-                    footer: { isShow: false },
-                },
+</div>
+
+<script>
+// ===== Config =====
+const BOT_ID = '7648485634986115106';
+const API = 'https://api.coze.cn';
+const PAT = 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum';
+
+// ===== State =====
+let mode = 1, pFile = null, rFile = null, busy = false;
+let uid = 'u_' + Math.random().toString(36).slice(2, 11);
+
+const $ = id => document.getElementById(id);
+
+// ===== Mode =====
+function setMode(m) {
+    mode = m;
+    $('m1').classList.toggle('on', m === 1);
+    $('m2').classList.toggle('on', m === 2);
+    $('refSec').style.display = m === 2 ? 'block' : 'none';
+    if (m === 1) { rFile = null; resetArea('r'); }
+}
+
+// ===== Drag & Drop =====
+function dOver(e, el) { e.preventDefault(); el.style.borderColor = 'var(--accent)'; el.style.background = 'var(--accent-bg)'; }
+function dLeave(e, el) { if (!el.classList.contains('has')) { el.style.borderColor = ''; el.style.background = ''; } }
+function dDrop(e, el, t) { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) showFile(f, t); }
+
+function fSel(e, t) { const f = e.target.files[0]; if (f) showFile(f, t); }
+
+function showFile(file, t) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        if (t === 'p') pFile = file; else rFile = file;
+        const area = $(t === 'p' ? 'pArea' : 'rArea');
+        const content = $(t === 'p' ? 'pContent' : 'rContent');
+        area.classList.add('has');
+        content.innerHTML = `<img src="${e.target.result}" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();clearF('${t}')">×</button>`;
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearF(t) {
+    if (t === 'p') { pFile = null; $('pFile').value = ''; } else { rFile = null; $('rFile').value = ''; }
+    resetArea(t);
+}
+
+function resetArea(t) {
+    const area = $(t === 'p' ? 'pArea' : 'rArea');
+    const content = $(t === 'p' ? 'pContent' : 'rContent');
+    area.classList.remove('has');
+    area.style.borderColor = ''; area.style.background = '';
+    const ico = t === 'p' ? '📁' : '🖼️';
+    const lbl = t === 'p' ? '产品' : '参考图';
+    content.innerHTML = `<div class="up-ico">${ico}</div><div class="up-txt"><b>点击上传</b>或拖拽${lbl}至此</div>`;
+}
+
+// ===== Views =====
+function showV(v) {
+    $('vEmpty').style.display = v === 'e' ? 'flex' : 'none';
+    $('vLoad').style.display  = v === 'l' ? 'flex' : 'none';
+    $('vRes').style.display   = v === 'r' ? 'block' : 'none';
+    $('vErr').style.display   = v === 'x' ? 'block' : 'none';
+}
+
+// ===== Generate =====
+async function generate() {
+    if (busy) return;
+    if (!pFile) return alert('请先上传产品图');
+    if (mode === 2 && !rFile) return alert('请上传参考风格图');
+
+    busy = true;
+    $('genBtn').disabled = true;
+    showV('l');
+
+    try {
+        // Upload files
+        $('ldgTxt').textContent = '正在上传图片...';
+        const pId = await uploadFile(pFile);
+        let rId = null;
+        if (mode === 2 && rFile) rId = await uploadFile(rFile);
+
+        // Create chat
+        $('ldgTxt').textContent = '正在生成提示词...';
+        const answer = await doChat(pId, rId);
+
+        // Render
+        showV('r');
+        renderMD(answer);
+
+    } catch (err) {
+        console.error(err);
+        showV('x');
+        $('errTxt').textContent = err.message || '请稍后重试';
+    } finally {
+        busy = false;
+        $('genBtn').disabled = false;
+    }
+}
+
+// ===== API: Upload =====
+async function uploadFile(file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    const r = await fetch(`${API}/v1/files/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${PAT}` },
+        body: fd
+    });
+    const d = await r.json();
+    if (d.code !== 0) throw new Error(`上传失败: ${d.msg || JSON.stringify(d)}`);
+    return d.data.id;
+}
+
+// ===== API: Chat =====
+async function doChat(pId, rId) {
+    const desc = $('desc').value.trim();
+    const parts = [];
+
+    if (mode === 1) {
+        let txt = '请根据我上传的产品图';
+        if (desc) txt += `（${desc}）`;
+        txt += '，生成3个不同场景的AI生图提示词。';
+        parts.push({ type: 'text', text: txt });
+        parts.push({ type: 'image', file_id: pId });
+    } else {
+        let txt = '第一张是产品图，第二张是参考风格图';
+        if (desc) txt += `（产品：${desc}）`;
+        txt += '。请生成融合参考图风格的AI生图提示词。';
+        parts.push({ type: 'text', text: txt });
+        parts.push({ type: 'image', file_id: pId });
+        if (rId) parts.push({ type: 'image', file_id: rId });
+    }
+
+    const cr = await fetch(`${API}/v3/chat`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${PAT}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            bot_id: BOT_ID,
+            user_id: uid,
+            stream: false,
+            auto_save_history: true,
+            additional_messages: [{
+                role: 'user',
+                content: JSON.stringify(parts),
+                content_type: 'object_string'
+            }]
+        })
+    });
+    const cd = await cr.json();
+    if (cd.code !== 0) throw new Error(`对话失败: ${cd.msg || JSON.stringify(cd)}`);
+
+    const chatId = cd.data.id;
+    const convId = cd.data.conversation_id;
+
+    // Poll
+    for (let i = 0; i < 90; i++) {
+        await sleep(2000);
+        $('ldgTxt').textContent = `正在生成提示词... (${(i + 1) * 2}s)`;
+
+        const sr = await fetch(`${API}/v3/chat/retrieve?chat_id=${chatId}&conversation_id=${convId}`, {
+            headers: { 'Authorization': `Bearer ${PAT}` }
+        });
+        const sd = await sr.json();
+        if (sd.code !== 0) throw new Error(`状态查询失败: ${sd.msg}`);
+
+        if (sd.data.status === 'completed') return await getMsgs(convId, chatId);
+        if (sd.data.status === 'failed') throw new Error('生成失败，请重试');
+    }
+    throw new Error('生成超时，请重试');
+}
+
+// ===== API: Messages =====
+async function getMsgs(convId, chatId) {
+    const r = await fetch(`${API}/v3/chat/message/list?chat_id=${chatId}&conversation_id=${convId}`, {
+        headers: { 'Authorization': `Bearer ${PAT}` }
+    });
+    const d = await r.json();
+    if (d.code !== 0) throw new Error(`获取结果失败: ${d.msg}`);
+
+    for (const m of (d.data || [])) {
+        if (m.role === 'assistant' && m.type === 'answer') return m.content;
+    }
+    throw new Error('未获取到有效回复');
+}
+
+// ===== Render Markdown =====
+function renderMD(text) {
+    $('resBody').innerHTML = marked.parse(text);
+    // Add copy buttons to code blocks
+    $('resBody').querySelectorAll('pre').forEach(pre => {
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.textContent = '复制';
+        btn.onclick = () => {
+            const code = pre.querySelector('code');
+            navigator.clipboard.writeText(code ? code.textContent : pre.textContent).then(() => {
+                btn.textContent = '已复制 ✓';
+                setTimeout(() => btn.textContent = '复制', 1500);
             });
-        }
-        function switchMode(mode) {
-            var card1 = document.getElementById('mode1Card');
-            var card2 = document.getElementById('mode2Card');
-            var steps = document.getElementById('stepsGuide');
-            var tip = document.getElementById('tipBox');
-            if (mode === 1) {
-                card1.classList.add('active'); card2.classList.remove('active');
-                steps.innerHTML = '<li>点击右下角 <strong>💬 对话按钮</strong> 打开聊天</li><li>点击 <strong>📎 附件</strong> 上传产品图</li><li>输入 <strong>"生成提示词"</strong> 发送</li><li>等待30-60秒，复制提示词</li>';
-                tip.innerHTML = '<strong>💡 小贴士</strong><br>上传清晰的产品图效果更好。可以加一句话指定方向，比如"帮我生成清新自然风格的"。';
-            } else {
-                card1.classList.remove('active'); card2.classList.add('active');
-                steps.innerHTML = '<li>点击右下角 <strong>💬 对话按钮</strong> 打开聊天</li><li>点击 <strong>📎 附件</strong> 上传产品图，输入 <strong>"这是产品图"</strong></li><li>再次点击 <strong>📎 附件</strong> 上传风格参考图，输入 <strong>"这是参考风格，请融合生成"</strong></li><li>等待30-60秒，获取融合风格提示词</li>';
-                tip.innerHTML = '<strong>💡 小贴士</strong><br>模式二需要分两步发送：先发产品图说"这是产品图"，再发风格图说"参考风格"，扩词器会自动结合两张图生成提示词。';
-            }
-        }
-        function openChat() { if (chatClient) chatClient.showChatBot(); }
-    </script>
+        };
+        pre.style.position = 'relative';
+        pre.appendChild(btn);
+    });
+}
+
+// ===== Reset =====
+function resetAll() {
+    uid = 'u_' + Math.random().toString(36).slice(2, 11);
+    clearF('p');
+    if (mode === 2) clearF('r');
+    $('desc').value = '';
+    showV('e');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
 </body>
 </html>
