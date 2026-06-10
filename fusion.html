@@ -329,6 +329,9 @@ const ARK_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
 const MODEL = 'doubao-seedream-4-0-250828';
 const FUSION_PROMPT = '商业产品摄影，将带白色边框/悬浮状态的产品自然融入原背景环境中，不改变产品本身细节与外观。赋予产品与环境一致的自然光影，产品反射周围环境光与材质，消除悬浮感与白色边框，产品与背景完美融合，画面真实自然，高级精致，符合商业广告质感';
 
+// imgbb图床（免费，base64→URL，和扣子插件流程一致）
+const IMGBB_KEY = '0c5d7267f4b427acda525454bd2230d6';
+
 // ===== State =====
 let fFile = null, busy = false;
 
@@ -371,6 +374,55 @@ function showV(v) {
     $('vErr').style.display   = v === 'x' ? 'block' : 'none';
 }
 
+// ===== Compress & Base64 =====
+function compressAndBase64(file) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            const MAX = 2048;
+            let w = img.width, h = img.height;
+            if (w > MAX || h > MAX) {
+                if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                else { w = Math.round(w * MAX / h); h = MAX; }
+            }
+            const cvs = document.createElement('canvas');
+            cvs.width = w; cvs.height = h;
+            const ctx = cvs.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = cvs.toDataURL('image/jpeg', 0.92);
+            resolve(dataUrl);
+        };
+        img.onerror = reject;
+        img.src = url;
+    });
+}
+
+// ===== Upload to imgbb → get URL =====
+async function uploadToImgbb(base64DataUrl) {
+    const base64Pure = base64DataUrl.split(',')[1];
+    const formData = new FormData();
+    formData.append('image', base64Pure);
+    formData.append('expiration', '3600'); // 1小时后自动删除
+
+    const res = await fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_KEY, {
+        method: 'POST',
+        body: formData
+    });
+
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error('图床上传失败: ' + text);
+    }
+
+    const data = await res.json();
+    if (!data.data || !data.data.url) {
+        throw new Error('图床未返回图片URL');
+    }
+    return data.data.url;
+}
+
 // ===== Generate =====
 async function generate() {
     if (busy) return;
@@ -381,12 +433,17 @@ async function generate() {
     showV('l');
 
     try {
-        // Convert image to base64
+        // Step 1: 压缩图片
         $('ldgTxt').textContent = '正在处理图片...';
         $('ldgSub').textContent = '';
         const base64 = await compressAndBase64(fFile);
 
-        // Call Seedream API directly
+        // Step 2: 上传到imgbb获取URL（和扣子插件一样用URL调API）
+        $('ldgTxt').textContent = '正在上传图片...';
+        $('ldgSub').textContent = '获取图片链接中';
+        const imageUrl = await uploadToImgbb(base64);
+
+        // Step 3: 用URL调用Seedream API（和扣子插件完全一致）
         $('ldgTxt').textContent = '正在融合图片...';
         $('ldgSub').textContent = '融合大约需要15-30秒';
 
@@ -399,7 +456,7 @@ async function generate() {
             body: JSON.stringify({
                 model: MODEL,
                 prompt: FUSION_PROMPT,
-                image: base64,
+                image: imageUrl,
                 size: '2K',
                 sequential_image_generation: 'disabled',
                 stream: false,
@@ -439,31 +496,6 @@ async function generate() {
         busy = false;
         $('genBtn').disabled = false;
     }
-}
-
-// ===== Compress & Base64 =====
-function compressAndBase64(file) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        const url = URL.createObjectURL(file);
-        img.onload = () => {
-            URL.revokeObjectURL(url);
-            const MAX = 2048;
-            let w = img.width, h = img.height;
-            if (w > MAX || h > MAX) {
-                if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-                else { w = Math.round(w * MAX / h); h = MAX; }
-            }
-            const cvs = document.createElement('canvas');
-            cvs.width = w; cvs.height = h;
-            const ctx = cvs.getContext('2d');
-            ctx.drawImage(img, 0, 0, w, h);
-            const dataUrl = cvs.toDataURL('image/png');
-            resolve(dataUrl);
-        };
-        img.onerror = reject;
-        img.src = url;
-    });
 }
 
 // ===== Reset =====
