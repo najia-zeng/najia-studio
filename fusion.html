@@ -401,7 +401,6 @@ async function generate() {
                 prompt: FUSION_PROMPT,
                 image: base64,
                 size: '2K',
-                denoising_strength: 0.3,
                 sequential_image_generation: 'disabled',
                 stream: false,
                 response_format: 'url',
@@ -459,7 +458,7 @@ function compressAndBase64(file) {
             cvs.width = w; cvs.height = h;
             const ctx = cvs.getContext('2d');
             ctx.drawImage(img, 0, 0, w, h);
-            const dataUrl = cvs.toDataURL('image/jpeg', 0.9);
+            const dataUrl = cvs.toDataURL('image/png');
             resolve(dataUrl);
         };
         img.onerror = reject;
