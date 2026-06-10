@@ -384,7 +384,7 @@ async function generate() {
         // Convert image to base64
         $('ldgTxt').textContent = '正在处理图片...';
         $('ldgSub').textContent = '';
-        const base64 = await fileToBase64(fFile);
+        const base64 = await compressAndBase64(fFile);
 
         // Call Seedream API directly
         $('ldgTxt').textContent = '正在融合图片...';
@@ -401,6 +401,7 @@ async function generate() {
                 prompt: FUSION_PROMPT,
                 image: base64,
                 size: '2K',
+                denoising_strength: 0.3,
                 sequential_image_generation: 'disabled',
                 stream: false,
                 response_format: 'url',
@@ -441,13 +442,28 @@ async function generate() {
     }
 }
 
-// ===== File to Base64 =====
-function fileToBase64(file) {
+// ===== Compress & Base64 =====
+function compressAndBase64(file) {
     return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            const MAX = 2048;
+            let w = img.width, h = img.height;
+            if (w > MAX || h > MAX) {
+                if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                else { w = Math.round(w * MAX / h); h = MAX; }
+            }
+            const cvs = document.createElement('canvas');
+            cvs.width = w; cvs.height = h;
+            const ctx = cvs.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = cvs.toDataURL('image/jpeg', 0.9);
+            resolve(dataUrl);
+        };
+        img.onerror = reject;
+        img.src = url;
     });
 }
 
