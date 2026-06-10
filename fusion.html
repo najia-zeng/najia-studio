@@ -326,8 +326,9 @@
 // ===== Config =====
 const ARK_API_KEY = 'ark-32e3cca5-30ab-4d17-91c1-5024b1c57850-5bda0';
 const ARK_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
-const MODEL = 'doubao-seedream-4-0-250828';
-const FUSION_PROMPT = '商业产品摄影，将带白色边框/悬浮状态的产品自然融入原背景环境中，不改变产品本身细节与外观。赋予产品与环境一致的自然光影，产品反射周围环境光与材质，消除悬浮感与白色边框，产品与背景完美融合，画面真实自然，高级精致，符合商业广告质感';
+const MODEL = 'doubao-seededit-3-0-i2i-250628';
+const FUSION_PROMPT = '赋予产品与环境一致的自然光影，产品反射周围环境光与材质，消除悬浮感与白色边框，产品与背景自然融合，画面真实自然，高级精致，符合商业广告质感';
+const GUIDANCE_SCALE = 5.5; // 编辑强度，越大文本指令越强，1-10
 
 // imgbb图床（免费，base64→URL，和扣子插件流程一致）
 const IMGBB_KEY = '0c5d7267f4b427acda525454bd2230d6';
@@ -427,8 +428,8 @@ async function generate() {
                 model: MODEL,
                 prompt: FUSION_PROMPT,
                 image: imageUrl,
-                size: '2K',
-                sequential_image_generation: 'disabled',
+                size: 'adaptive',
+                guidance_scale: GUIDANCE_SCALE,
                 stream: false,
                 response_format: 'url',
                 watermark: false
