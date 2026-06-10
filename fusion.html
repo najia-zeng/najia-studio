@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>娜家光影融合 - AI产品场景融合</title>
+    <title>光影融合 - AI产品场景融合</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -15,9 +15,8 @@
             --border: #e5e5e5;
             --text: #1d1d1f;
             --text-sec: #86868b;
-            --accent: #e85d3a;
-            --accent-h: #d04e2d;
-            --accent-bg: rgba(232,93,58,0.06);
+            --accent: #1d1d1f;
+            --accent-h: #333;
             --radius: 14px;
             --radius-s: 10px;
         }
@@ -32,35 +31,27 @@
 
         /* ===== Header ===== */
         .hdr {
-            height: 56px;
-            background: var(--card);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 28px;
-            gap: 12px;
+            padding: 40px 32px 24px;
+            text-align: center;
         }
-        .hdr-logo {
-            width: 34px; height: 34px;
-            background: var(--accent);
-            border-radius: 9px;
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; font-weight: 700; font-size: 15px;
+        .hdr-title {
+            font-size: 22px; font-weight: 600; margin-bottom: 6px;
         }
-        .hdr-name { font-weight: 600; font-size: 16px; }
-        .hdr-sub { font-size: 12px; color: var(--text-sec); margin-left: 4px; }
+        .hdr-sub {
+            font-size: 13px; color: var(--text-sec);
+        }
 
         /* ===== Layout ===== */
-        .wrap { display: flex; height: calc(100vh - 56px); }
+        .wrap { display: flex; height: calc(100vh - 100px); }
 
         /* ===== Left ===== */
         .left {
-            width: 400px; min-width: 400px;
+            width: 380px; min-width: 380px;
             background: var(--card);
             border-right: 1px solid var(--border);
-            padding: 24px;
+            padding: 28px 24px;
             overflow-y: auto;
-            display: flex; flex-direction: column; gap: 16px;
+            display: flex; flex-direction: column; gap: 20px;
         }
         .left::-webkit-scrollbar { width: 4px; }
         .left::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
@@ -69,34 +60,33 @@
             font-size: 12px; font-weight: 600;
             color: var(--text-sec);
             letter-spacing: 1px;
-            text-transform: uppercase;
         }
 
         /* Upload */
         .up-area {
-            border: 2px dashed var(--border);
+            border: 1px solid var(--border);
             border-radius: var(--radius-s);
-            padding: 32px 16px;
+            padding: 28px 16px;
             text-align: center;
             cursor: pointer;
             transition: all .2s;
             position: relative;
             background: #fafafa;
-            min-height: 140px;
-            display: flex; align-items: center; justify-content: center;
+            min-height: 120px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .up-area:hover { border-color: var(--accent); background: var(--accent-bg); }
-        .up-area.has { border-style: solid; border-color: var(--accent); padding: 8px; background: #fff; }
-        .up-ico { font-size: 36px; margin-bottom: 8px; }
+        .up-area:hover { border-color: #999; }
+        .up-area.has { border-color: var(--accent); padding: 8px; background: #fff; }
+        .up-ico { font-size: 24px; margin-bottom: 8px; color: #bbb; }
         .up-txt { font-size: 13px; color: var(--text-sec); line-height: 1.6; }
-        .up-txt b { color: var(--accent); }
-        .up-prev { max-width: 100%; max-height: 220px; border-radius: 6px; object-fit: contain; }
+        .up-hint { font-size: 11px; color: #bbb; margin-top: 4px; }
+        .up-prev { max-width: 100%; max-height: 200px; border-radius: 6px; object-fit: contain; }
         .up-rm {
             position: absolute; top: 6px; right: 6px;
-            width: 26px; height: 26px;
-            background: rgba(0,0,0,.45); color: #fff;
+            width: 24px; height: 24px;
+            background: rgba(0,0,0,.4); color: #fff;
             border: none; border-radius: 50%;
-            cursor: pointer; font-size: 16px;
+            cursor: pointer; font-size: 14px;
             display: flex; align-items: center; justify-content: center;
             transition: background .15s;
         }
@@ -106,42 +96,32 @@
         .steps {
             background: #f8f8fa;
             border-radius: var(--radius-s);
-            padding: 16px;
-            font-size: 13px;
-            line-height: 1.8;
+            padding: 14px 16px;
+            font-size: 12px;
+            line-height: 2;
             color: var(--text-sec);
         }
-        .steps b { color: var(--text); display: block; margin-bottom: 4px; font-size: 13px; }
+        .steps b { color: var(--text); display: block; margin-bottom: 2px; font-size: 13px; }
         .step-num {
             display: inline-flex; align-items: center; justify-content: center;
-            width: 20px; height: 20px;
+            width: 18px; height: 18px;
             background: var(--accent); color: #fff;
-            border-radius: 50%; font-size: 11px; font-weight: 600;
+            border-radius: 50%; font-size: 10px; font-weight: 600;
             margin-right: 6px; vertical-align: middle;
         }
-        .step-item { margin-bottom: 4px; }
-
-        /* Tips */
-        .tips {
-            background: #fef9ee; border: 1px solid #fde68a;
-            border-radius: var(--radius-s);
-            padding: 12px; font-size: 12px; color: #92400e; line-height: 1.7;
-        }
-        .tips b { display: block; margin-bottom: 2px; }
 
         /* Generate button */
         .gen-btn {
-            width: 100%; padding: 14px;
+            width: 100%; padding: 13px;
             background: var(--accent); color: #fff;
             border: none; border-radius: var(--radius-s);
-            font-size: 15px; font-weight: 600;
+            font-size: 14px; font-weight: 500;
             cursor: pointer; font-family: inherit;
             transition: all .2s;
             margin-top: auto;
         }
-        .gen-btn:hover { background: var(--accent-h); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,93,58,.25); }
-        .gen-btn:active { transform: translateY(0); }
-        .gen-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .gen-btn:hover { background: var(--accent-h); }
+        .gen-btn:disabled { opacity: .4; cursor: not-allowed; }
 
         /* ===== Right ===== */
         .right {
@@ -157,24 +137,27 @@
             align-items: center; justify-content: center; text-align: center;
         }
         .empty-ico {
-            width: 88px; height: 88px;
-            background: var(--accent-bg); border-radius: 50%;
+            width: 72px; height: 72px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 40px; margin-bottom: 20px;
+            transform: rotate(45deg);
+            margin-bottom: 24px;
         }
-        .empty-t { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
-        .empty-d { font-size: 14px; color: var(--text-sec); max-width: 420px; line-height: 1.7; }
+        .empty-ico span { transform: rotate(-45deg); font-size: 24px; color: #ccc; }
+        .empty-t { font-size: 18px; font-weight: 500; margin-bottom: 8px; }
+        .empty-d { font-size: 13px; color: var(--text-sec); max-width: 360px; line-height: 1.7; }
 
         /* Loading */
         .ldg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .spin {
-            width: 44px; height: 44px;
-            border: 3px solid var(--border); border-top-color: var(--accent);
+            width: 40px; height: 40px;
+            border: 2px solid var(--border); border-top-color: var(--accent);
             border-radius: 50%; animation: sp .7s linear infinite;
         }
         @keyframes sp { to { transform: rotate(360deg); } }
-        .ldg-txt { margin-top: 18px; font-size: 14px; color: var(--text-sec); }
-        .ldg-sub { margin-top: 6px; font-size: 12px; color: #bbb; }
+        .ldg-txt { margin-top: 16px; font-size: 14px; color: var(--text-sec); }
+        .ldg-sub { margin-top: 4px; font-size: 12px; color: #bbb; }
 
         /* Result */
         .res-wrap {
@@ -187,15 +170,15 @@
             margin-bottom: 20px; padding-bottom: 16px;
             border-bottom: 1px solid var(--border);
         }
-        .res-top h2 { font-size: 18px; font-weight: 600; }
+        .res-top h2 { font-size: 16px; font-weight: 500; }
         .new-btn {
             display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 16px; background: var(--card);
+            padding: 7px 14px; background: var(--card);
             border: 1px solid var(--border); border-radius: var(--radius-s);
-            font-size: 13px; cursor: pointer; font-family: inherit;
-            transition: all .15s; color: var(--text);
+            font-size: 12px; cursor: pointer; font-family: inherit;
+            transition: all .15s; color: var(--text-sec);
         }
-        .new-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .new-btn:hover { border-color: #999; color: var(--text); }
 
         .res-img-wrap {
             width: 100%; background: var(--card);
@@ -204,7 +187,7 @@
         }
         .res-img {
             max-width: 100%; max-height: 70vh;
-            border-radius: 8px; object-fit: contain;
+            border-radius: 6px; object-fit: contain;
         }
 
         .res-actions {
@@ -215,7 +198,7 @@
             padding: 10px 24px;
             background: var(--accent); color: #fff;
             border: none; border-radius: var(--radius-s);
-            font-size: 14px; font-weight: 500;
+            font-size: 13px; font-weight: 500;
             cursor: pointer; font-family: inherit;
             transition: all .2s;
             text-decoration: none;
@@ -224,23 +207,23 @@
         .retry-btn2 {
             display: inline-flex; align-items: center; gap: 6px;
             padding: 10px 24px;
-            background: var(--card); color: var(--text);
+            background: var(--card); color: var(--text-sec);
             border: 1px solid var(--border); border-radius: var(--radius-s);
-            font-size: 14px; cursor: pointer; font-family: inherit;
+            font-size: 13px; cursor: pointer; font-family: inherit;
             transition: all .15s;
         }
-        .retry-btn2:hover { border-color: var(--accent); color: var(--accent); }
+        .retry-btn2:hover { border-color: #999; color: var(--text); }
 
         /* Error */
         .err { text-align: center; padding: 40px; }
-        .err-ico { font-size: 48px; margin-bottom: 16px; }
-        .err-t { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
-        .err-d { font-size: 14px; color: var(--text-sec); line-height: 1.7; max-width: 400px; margin: 0 auto; }
+        .err-ico { font-size: 40px; margin-bottom: 16px; }
+        .err-t { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+        .err-d { font-size: 13px; color: var(--text-sec); line-height: 1.7; max-width: 400px; margin: 0 auto; }
         .retry-btn {
             margin-top: 16px; padding: 10px 28px;
             background: var(--accent); color: #fff;
             border: none; border-radius: var(--radius-s);
-            cursor: pointer; font-size: 14px; font-family: inherit;
+            cursor: pointer; font-size: 13px; font-family: inherit;
         }
 
         /* Responsive */
@@ -255,9 +238,8 @@
 
 <!-- Header -->
 <div class="hdr">
-    <div class="hdr-logo">融</div>
-    <span class="hdr-name">娜家光影融合</span>
-    <span class="hdr-sub">AI产品场景融合</span>
+    <div class="hdr-title">光影融合</div>
+    <div class="hdr-sub">上传拼合图，AI消除白边与悬浮感，输出自然融合的商业产品场景图</div>
 </div>
 
 <!-- Main -->
@@ -269,24 +251,18 @@
         <div class="up-area" id="fArea" onclick="$('fFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this)">
             <input type="file" id="fFile" accept="image/*" style="display:none" onchange="fSel(event)">
             <div id="fContent">
-                <div class="up-ico">📁</div>
-                <div class="up-txt"><b>点击上传</b>或拖拽拼合图至此<br>产品贴在背景上的PS拼合图</div>
+                <div class="up-ico">⬆</div>
+                <div class="up-txt">点击上传拼合图</div>
+                <div class="up-hint">拖拽图片至此或点击浏览</div>
             </div>
         </div>
 
         <div class="steps">
             <b>使用步骤</b>
-            <div class="step-item"><span class="step-num">1</span>用扩词器生成背景图</div>
-            <div class="step-item"><span class="step-num">2</span>PS把产品贴到背景上</div>
-            <div class="step-item"><span class="step-num">3</span>上传拼合图，点击融合</div>
-            <div class="step-item"><span class="step-num">4</span>获得自然融合的成品图</div>
-        </div>
-
-        <div class="tips">
-            <b>💡 小贴士</b>
-            拼合图越精细，融合效果越好<br>
-            产品尽量贴合背景透视和光影方向<br>
-            白边和悬浮感AI会自动消除
+            <div><span class="step-num">1</span>用扩词器生成背景图</div>
+            <div><span class="step-num">2</span>PS把产品贴到背景上</div>
+            <div><span class="step-num">3</span>上传拼合图，点击融合</div>
+            <div><span class="step-num">4</span>获得自然融合的成品图</div>
         </div>
 
         <button class="gen-btn" id="genBtn" onclick="generate()">开始融合</button>
@@ -295,9 +271,9 @@
     <!-- Right Panel -->
     <div class="right" id="right">
         <div class="empty" id="vEmpty">
-            <div class="empty-ico">🎨</div>
-            <div class="empty-t">上传拼合图，开始融合</div>
-            <div class="empty-d">把产品贴到背景上，AI帮你消除白边和悬浮感，加上环境光影，输出自然融合的商业产品场景图</div>
+            <div class="empty-ico"><span>◇</span></div>
+            <div class="empty-t">准备开始</div>
+            <div class="empty-d">上传产品与背景的拼合图，AI帮你消除白边和悬浮感，加上环境光影，输出自然融合的商业场景图</div>
         </div>
 
         <div class="ldg" id="vLoad" style="display:none">
@@ -309,19 +285,19 @@
         <div class="res-wrap" id="vRes" style="display:none">
             <div class="res-top">
                 <h2>融合结果</h2>
-                <button class="new-btn" onclick="resetAll()">🔄 重新开始</button>
+                <button class="new-btn" onclick="resetAll()">重新开始</button>
             </div>
             <div class="res-img-wrap">
                 <img id="resImg" class="res-img" src="" alt="融合结果">
             </div>
             <div class="res-actions">
                 <a id="dlLink" class="dl-btn" href="#" download="fusion-result.png">⬇ 下载图片</a>
-                <button class="retry-btn2" onclick="generate()">🔄 再融合一次</button>
+                <button class="retry-btn2" onclick="generate()">再融合一次</button>
             </div>
         </div>
 
         <div class="err" id="vErr" style="display:none">
-            <div class="err-ico">😵</div>
+            <div class="err-ico">✕</div>
             <div class="err-t">融合失败</div>
             <div class="err-d" id="errTxt">请稍后重试</div>
             <button class="retry-btn" onclick="generate()">重新融合</button>
@@ -342,8 +318,8 @@ let uid = 'u_' + Math.random().toString(36).slice(2, 11);
 const $ = id => document.getElementById(id);
 
 // ===== Drag & Drop =====
-function dOver(e, el) { e.preventDefault(); el.style.borderColor = 'var(--accent)'; el.style.background = 'var(--accent-bg)'; }
-function dLeave(e, el) { if (!el.classList.contains('has')) { el.style.borderColor = ''; el.style.background = ''; } }
+function dOver(e, el) { e.preventDefault(); el.style.borderColor = '#999'; }
+function dLeave(e, el) { if (!el.classList.contains('has')) { el.style.borderColor = ''; } }
 function dDrop(e, el) { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) showFile(f); }
 
 function fSel(e) { const f = e.target.files[0]; if (f) showFile(f); }
@@ -366,8 +342,8 @@ function clearF() {
     const area = $('fArea');
     const content = $('fContent');
     area.classList.remove('has');
-    area.style.borderColor = ''; area.style.background = '';
-    content.innerHTML = `<div class="up-ico">📁</div><div class="up-txt"><b>点击上传</b>或拖拽拼合图至此<br>产品贴在背景上的PS拼合图</div>`;
+    area.style.borderColor = '';
+    content.innerHTML = `<div class="up-ico">⬆</div><div class="up-txt">点击上传拼合图</div><div class="up-hint">拖拽图片至此或点击浏览</div>`;
 }
 
 // ===== Views =====
@@ -388,17 +364,14 @@ async function generate() {
     showV('l');
 
     try {
-        // Upload file
         $('ldgTxt').textContent = '正在上传图片...';
         $('ldgSub').textContent = '';
         const fId = await uploadFile(fFile);
 
-        // Create chat
         $('ldgTxt').textContent = '正在融合图片...';
         $('ldgSub').textContent = '融合大约需要15-30秒';
         const answer = await doChat(fId);
 
-        // Extract image URL from answer
         const imgUrl = extractImageUrl(answer);
 
         if (imgUrl) {
@@ -406,7 +379,6 @@ async function generate() {
             $('resImg').src = imgUrl;
             $('dlLink').href = imgUrl;
         } else {
-            // No image URL found, show answer as text
             showV('x');
             $('errTxt').textContent = answer || '未获取到融合结果';
         }
@@ -425,15 +397,15 @@ async function generate() {
 function extractImageUrl(text) {
     if (!text) return null;
 
-    // Try to find markdown image: ![...](url)
+    // Try markdown image
     const mdMatch = text.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/);
     if (mdMatch) return mdMatch[1];
 
-    // Try to find plain URL ending with image extension
+    // Try URL with image extension
     const urlMatch = text.match(/(https?:\/\/[^\s"'<>]+\.(?:png|jpg|jpeg|webp)[^\s"'<>]*)/i);
     if (urlMatch) return urlMatch[1];
 
-    // Try to find any https URL from volces/ark (API result)
+    // Try volces/ark URL
     const arkMatch = text.match(/(https?:\/\/[^\s"'<>]*volces[^\s"'<>]*|https?:\/\/[^\s"'<>]*ark[^\s"'<>]*)/i);
     if (arkMatch) return arkMatch[1];
 
@@ -489,7 +461,6 @@ async function doChat(fId) {
     const chatId = cd.data.id;
     const convId = cd.data.conversation_id;
 
-    // Poll
     for (let i = 0; i < 90; i++) {
         await sleep(2000);
         $('ldgTxt').textContent = `正在融合图片... (${(i + 1) * 2}s)`;
@@ -514,7 +485,6 @@ async function getMsgs(convId, chatId) {
     const d = await r.json();
     if (d.code !== 0) throw new Error(`获取结果失败: ${d.msg}`);
 
-    // Collect all content: text answers + image messages
     let fullText = '';
     let imageUrl = null;
 
@@ -523,23 +493,18 @@ async function getMsgs(convId, chatId) {
             if (m.type === 'answer') {
                 fullText += m.content;
             }
-            // Check for image type messages
             if (m.type === 'image' && m.content) {
                 try {
                     const imgData = JSON.parse(m.content);
                     if (imgData.url) imageUrl = imgData.url;
                 } catch(e) {
-                    // Not JSON, might be a direct URL
                     if (m.content.startsWith('http')) imageUrl = m.content;
                 }
             }
         }
     }
 
-    // If we found an image message, return it directly
     if (imageUrl) return imageUrl;
-
-    // Otherwise return text (extractImageUrl will parse it)
     return fullText;
 }
 
