@@ -37,18 +37,26 @@
 
         /* ===== Header ===== */
         .hdr {
-            padding: 40px 32px 24px;
-            text-align: center;
+            height: 56px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            gap: 12px;
         }
-        .hdr-title {
-            font-size: 22px; font-weight: 600; margin-bottom: 6px;
+        .hdr-logo {
+            width: 34px; height: 34px;
+            background: var(--accent);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 700; font-size: 15px;
         }
-        .hdr-sub {
-            font-size: 13px; color: var(--text-sec);
-        }
+        .hdr-title { font-weight: 600; font-size: 16px; }
+        .hdr-sub { font-size: 12px; color: var(--text-sec); margin-left: 4px; }
 
         /* ===== Layout ===== */
-        .wrap { display: flex; height: calc(100vh - 100px); }
+        .wrap { display: flex; height: calc(100vh - 56px); }
 
         /* ===== Left ===== */
         .left {
@@ -245,8 +253,9 @@
 <div class="page">
 <!-- Header -->
 <div class="hdr">
-    <div class="hdr-title">光影融合</div>
-    <div class="hdr-sub">上传拼合图，AI消除白边与悬浮感，输出自然融合的商业产品场景图</div>
+    <div class="hdr-logo">融</div>
+    <span class="hdr-title">光影融合</span>
+    <span class="hdr-sub">AI产品场景融合</span>
 </div>
 
 <!-- Main -->
