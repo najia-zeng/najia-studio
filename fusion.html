@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>娜家光影融合 - AI产品场景融合</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #f5f5f7;
+            --card: #ffffff;
+            --border: #e5e5e5;
+            --text: #1d1d1f;
+            --text-sec: #86868b;
+            --accent: #e85d3a;
+            --accent-h: #d04e2d;
+            --accent-bg: rgba(232,93,58,0.06);
+            --radius: 14px;
+            --radius-s: 10px;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== Header ===== */
+        .hdr {
+            height: 56px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+            gap: 12px;
+        }
+        .hdr-logo {
+            width: 34px; height: 34px;
+            background: var(--accent);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 700; font-size: 15px;
+        }
+        .hdr-name { font-weight: 600; font-size: 16px; }
+        .hdr-sub { font-size: 12px; color: var(--text-sec); margin-left: 4px; }
+
+        /* ===== Layout ===== */
+        .wrap { display: flex; height: calc(100vh - 56px); }
+
+        /* ===== Left ===== */
+        .left {
+            width: 400px; min-width: 400px;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 24px;
+            overflow-y: auto;
+            display: flex; flex-direction: column; gap: 16px;
+        }
+        .left::-webkit-scrollbar { width: 4px; }
+        .left::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+        .sec-label {
+            font-size: 12px; font-weight: 600;
+            color: var(--text-sec);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Upload */
+        .up-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-s);
+            padding: 32px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s;
+            position: relative;
+            background: #fafafa;
+            min-height: 140px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .up-area:hover { border-color: var(--accent); background: var(--accent-bg); }
+        .up-area.has { border-style: solid; border-color: var(--accent); padding: 8px; background: #fff; }
+        .up-ico { font-size: 36px; margin-bottom: 8px; }
+        .up-txt { font-size: 13px; color: var(--text-sec); line-height: 1.6; }
+        .up-txt b { color: var(--accent); }
+        .up-prev { max-width: 100%; max-height: 220px; border-radius: 6px; object-fit: contain; }
+        .up-rm {
+            position: absolute; top: 6px; right: 6px;
+            width: 26px; height: 26px;
+            background: rgba(0,0,0,.45); color: #fff;
+            border: none; border-radius: 50%;
+            cursor: pointer; font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .15s;
+        }
+        .up-rm:hover { background: rgba(0,0,0,.7); }
+
+        /* Steps */
+        .steps {
+            background: #f8f8fa;
+            border-radius: var(--radius-s);
+            padding: 16px;
+            font-size: 13px;
+            line-height: 1.8;
+            color: var(--text-sec);
+        }
+        .steps b { color: var(--text); display: block; margin-bottom: 4px; font-size: 13px; }
+        .step-num {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 20px; height: 20px;
+            background: var(--accent); color: #fff;
+            border-radius: 50%; font-size: 11px; font-weight: 600;
+            margin-right: 6px; vertical-align: middle;
+        }
+        .step-item { margin-bottom: 4px; }
+
+        /* Tips */
+        .tips {
+            background: #fef9ee; border: 1px solid #fde68a;
+            border-radius: var(--radius-s);
+            padding: 12px; font-size: 12px; color: #92400e; line-height: 1.7;
+        }
+        .tips b { display: block; margin-bottom: 2px; }
+
+        /* Generate button */
+        .gen-btn {
+            width: 100%; padding: 14px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: var(--radius-s);
+            font-size: 15px; font-weight: 600;
+            cursor: pointer; font-family: inherit;
+            transition: all .2s;
+            margin-top: auto;
+        }
+        .gen-btn:hover { background: var(--accent-h); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(232,93,58,.25); }
+        .gen-btn:active { transform: translateY(0); }
+        .gen-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* ===== Right ===== */
+        .right {
+            flex: 1; padding: 32px; overflow-y: auto;
+            display: flex; flex-direction: column;
+        }
+        .right::-webkit-scrollbar { width: 6px; }
+        .right::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+        /* Empty */
+        .empty {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+        }
+        .empty-ico {
+            width: 88px; height: 88px;
+            background: var(--accent-bg); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 40px; margin-bottom: 20px;
+        }
+        .empty-t { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+        .empty-d { font-size: 14px; color: var(--text-sec); max-width: 420px; line-height: 1.7; }
+
+        /* Loading */
+        .ldg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spin {
+            width: 44px; height: 44px;
+            border: 3px solid var(--border); border-top-color: var(--accent);
+            border-radius: 50%; animation: sp .7s linear infinite;
+        }
+        @keyframes sp { to { transform: rotate(360deg); } }
+        .ldg-txt { margin-top: 18px; font-size: 14px; color: var(--text-sec); }
+        .ldg-sub { margin-top: 6px; font-size: 12px; color: #bbb; }
+
+        /* Result */
+        .res-wrap {
+            max-width: 800px; margin: 0 auto; width: 100%;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .res-top {
+            width: 100%;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .res-top h2 { font-size: 18px; font-weight: 600; }
+        .new-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; background: var(--card);
+            border: 1px solid var(--border); border-radius: var(--radius-s);
+            font-size: 13px; cursor: pointer; font-family: inherit;
+            transition: all .15s; color: var(--text);
+        }
+        .new-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        .res-img-wrap {
+            width: 100%; background: var(--card);
+            border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 16px; display: flex; align-items: center; justify-content: center;
+        }
+        .res-img {
+            max-width: 100%; max-height: 70vh;
+            border-radius: 8px; object-fit: contain;
+        }
+
+        .res-actions {
+            margin-top: 16px; display: flex; gap: 12px;
+        }
+        .dl-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 24px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: var(--radius-s);
+            font-size: 14px; font-weight: 500;
+            cursor: pointer; font-family: inherit;
+            transition: all .2s;
+            text-decoration: none;
+        }
+        .dl-btn:hover { background: var(--accent-h); }
+        .retry-btn2 {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 24px;
+            background: var(--card); color: var(--text);
+            border: 1px solid var(--border); border-radius: var(--radius-s);
+            font-size: 14px; cursor: pointer; font-family: inherit;
+            transition: all .15s;
+        }
+        .retry-btn2:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Error */
+        .err { text-align: center; padding: 40px; }
+        .err-ico { font-size: 48px; margin-bottom: 16px; }
+        .err-t { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .err-d { font-size: 14px; color: var(--text-sec); line-height: 1.7; max-width: 400px; margin: 0 auto; }
+        .retry-btn {
+            margin-top: 16px; padding: 10px 28px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: var(--radius-s);
+            cursor: pointer; font-size: 14px; font-family: inherit;
+        }
+
+        /* Responsive */
+        @media (max-width: 860px) {
+            .wrap { flex-direction: column; height: auto; }
+            .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
+            .right { min-height: 50vh; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="hdr">
+    <div class="hdr-logo">融</div>
+    <span class="hdr-name">娜家光影融合</span>
+    <span class="hdr-sub">AI产品场景融合</span>
+</div>
+
+<!-- Main -->
+<div class="wrap">
+    <!-- Left Panel -->
+    <div class="left">
+        <div class="sec-label">上传拼合图</div>
+
+        <div class="up-area" id="fArea" onclick="$('fFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this)">
+            <input type="file" id="fFile" accept="image/*" style="display:none" onchange="fSel(event)">
+            <div id="fContent">
+                <div class="up-ico">📁</div>
+                <div class="up-txt"><b>点击上传</b>或拖拽拼合图至此<br>产品贴在背景上的PS拼合图</div>
+            </div>
+        </div>
+
+        <div class="steps">
+            <b>使用步骤</b>
+            <div class="step-item"><span class="step-num">1</span>用扩词器生成背景图</div>
+            <div class="step-item"><span class="step-num">2</span>PS把产品贴到背景上</div>
+            <div class="step-item"><span class="step-num">3</span>上传拼合图，点击融合</div>
+            <div class="step-item"><span class="step-num">4</span>获得自然融合的成品图</div>
+        </div>
+
+        <div class="tips">
+            <b>💡 小贴士</b>
+            拼合图越精细，融合效果越好<br>
+            产品尽量贴合背景透视和光影方向<br>
+            白边和悬浮感AI会自动消除
+        </div>
+
+        <button class="gen-btn" id="genBtn" onclick="generate()">开始融合</button>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right" id="right">
+        <div class="empty" id="vEmpty">
+            <div class="empty-ico">🎨</div>
+            <div class="empty-t">上传拼合图，开始融合</div>
+            <div class="empty-d">把产品贴到背景上，AI帮你消除白边和悬浮感，加上环境光影，输出自然融合的商业产品场景图</div>
+        </div>
+
+        <div class="ldg" id="vLoad" style="display:none">
+            <div class="spin"></div>
+            <div class="ldg-txt" id="ldgTxt">正在上传图片...</div>
+            <div class="ldg-sub" id="ldgSub">融合大约需要15-30秒</div>
+        </div>
+
+        <div class="res-wrap" id="vRes" style="display:none">
+            <div class="res-top">
+                <h2>融合结果</h2>
+                <button class="new-btn" onclick="resetAll()">🔄 重新开始</button>
+            </div>
+            <div class="res-img-wrap">
+                <img id="resImg" class="res-img" src="" alt="融合结果">
+            </div>
+            <div class="res-actions">
+                <a id="dlLink" class="dl-btn" href="#" download="fusion-result.png">⬇ 下载图片</a>
+                <button class="retry-btn2" onclick="generate()">🔄 再融合一次</button>
+            </div>
+        </div>
+
+        <div class="err" id="vErr" style="display:none">
+            <div class="err-ico">😵</div>
+            <div class="err-t">融合失败</div>
+            <div class="err-d" id="errTxt">请稍后重试</div>
+            <button class="retry-btn" onclick="generate()">重新融合</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===== Config =====
+const BOT_ID = '7649192806208208942';
+const API = 'https://api.coze.cn';
+const PAT = 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum';
+
+// ===== State =====
+let fFile = null, busy = false;
+let uid = 'u_' + Math.random().toString(36).slice(2, 11);
+
+const $ = id => document.getElementById(id);
+
+// ===== Drag & Drop =====
+function dOver(e, el) { e.preventDefault(); el.style.borderColor = 'var(--accent)'; el.style.background = 'var(--accent-bg)'; }
+function dLeave(e, el) { if (!el.classList.contains('has')) { el.style.borderColor = ''; el.style.background = ''; } }
+function dDrop(e, el) { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) showFile(f); }
+
+function fSel(e) { const f = e.target.files[0]; if (f) showFile(f); }
+
+function showFile(file) {
+    fFile = file;
+    const reader = new FileReader();
+    reader.onload = e => {
+        const area = $('fArea');
+        const content = $('fContent');
+        area.classList.add('has');
+        content.innerHTML = `<img src="${e.target.result}" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();clearF()">×</button>`;
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearF() {
+    fFile = null;
+    $('fFile').value = '';
+    const area = $('fArea');
+    const content = $('fContent');
+    area.classList.remove('has');
+    area.style.borderColor = ''; area.style.background = '';
+    content.innerHTML = `<div class="up-ico">📁</div><div class="up-txt"><b>点击上传</b>或拖拽拼合图至此<br>产品贴在背景上的PS拼合图</div>`;
+}
+
+// ===== Views =====
+function showV(v) {
+    $('vEmpty').style.display = v === 'e' ? 'flex' : 'none';
+    $('vLoad').style.display  = v === 'l' ? 'flex' : 'none';
+    $('vRes').style.display   = v === 'r' ? 'block' : 'none';
+    $('vErr').style.display   = v === 'x' ? 'block' : 'none';
+}
+
+// ===== Generate =====
+async function generate() {
+    if (busy) return;
+    if (!fFile) return alert('请先上传拼合图');
+
+    busy = true;
+    $('genBtn').disabled = true;
+    showV('l');
+
+    try {
+        // Upload file
+        $('ldgTxt').textContent = '正在上传图片...';
+        $('ldgSub').textContent = '';
+        const fId = await uploadFile(fFile);
+
+        // Create chat
+        $('ldgTxt').textContent = '正在融合图片...';
+        $('ldgSub').textContent = '融合大约需要15-30秒';
+        const answer = await doChat(fId);
+
+        // Extract image URL from answer
+        const imgUrl = extractImageUrl(answer);
+
+        if (imgUrl) {
+            showV('r');
+            $('resImg').src = imgUrl;
+            $('dlLink').href = imgUrl;
+        } else {
+            // No image URL found, show answer as text
+            showV('x');
+            $('errTxt').textContent = answer || '未获取到融合结果';
+        }
+
+    } catch (err) {
+        console.error(err);
+        showV('x');
+        $('errTxt').textContent = err.message || '请稍后重试';
+    } finally {
+        busy = false;
+        $('genBtn').disabled = false;
+    }
+}
+
+// ===== Extract image URL from bot response =====
+function extractImageUrl(text) {
+    if (!text) return null;
+
+    // Try to find markdown image: ![...](url)
+    const mdMatch = text.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/);
+    if (mdMatch) return mdMatch[1];
+
+    // Try to find plain URL ending with image extension
+    const urlMatch = text.match(/(https?:\/\/[^\s"'<>]+\.(?:png|jpg|jpeg|webp)[^\s"'<>]*)/i);
+    if (urlMatch) return urlMatch[1];
+
+    // Try to find any https URL from volces/ark (API result)
+    const arkMatch = text.match(/(https?:\/\/[^\s"'<>]*volces[^\s"'<>]*|https?:\/\/[^\s"'<>]*ark[^\s"'<>]*)/i);
+    if (arkMatch) return arkMatch[1];
+
+    // Try any URL
+    const anyMatch = text.match(/(https?:\/\/[^\s"'<>]+)/);
+    if (anyMatch) return anyMatch[1];
+
+    return null;
+}
+
+// ===== API: Upload =====
+async function uploadFile(file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    const r = await fetch(`${API}/v1/files/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${PAT}` },
+        body: fd
+    });
+    const d = await r.json();
+    if (d.code !== 0) throw new Error(`上传失败: ${d.msg || JSON.stringify(d)}`);
+    return d.data.id;
+}
+
+// ===== API: Chat =====
+async function doChat(fId) {
+    const parts = [
+        { type: 'text', text: '请融合这张拼合图，消除白边和悬浮感' },
+        { type: 'image', file_id: fId }
+    ];
+
+    const cr = await fetch(`${API}/v3/chat`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${PAT}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            bot_id: BOT_ID,
+            user_id: uid,
+            stream: false,
+            auto_save_history: true,
+            additional_messages: [{
+                role: 'user',
+                content: JSON.stringify(parts),
+                content_type: 'object_string'
+            }]
+        })
+    });
+    const cd = await cr.json();
+    if (cd.code !== 0) throw new Error(`对话失败: ${cd.msg || JSON.stringify(cd)}`);
+
+    const chatId = cd.data.id;
+    const convId = cd.data.conversation_id;
+
+    // Poll
+    for (let i = 0; i < 90; i++) {
+        await sleep(2000);
+        $('ldgTxt').textContent = `正在融合图片... (${(i + 1) * 2}s)`;
+
+        const sr = await fetch(`${API}/v3/chat/retrieve?chat_id=${chatId}&conversation_id=${convId}`, {
+            headers: { 'Authorization': `Bearer ${PAT}` }
+        });
+        const sd = await sr.json();
+        if (sd.code !== 0) throw new Error(`状态查询失败: ${sd.msg}`);
+
+        if (sd.data.status === 'completed') return await getMsgs(convId, chatId);
+        if (sd.data.status === 'failed') throw new Error('融合失败，请重试');
+    }
+    throw new Error('融合超时，请重试');
+}
+
+// ===== API: Messages =====
+async function getMsgs(convId, chatId) {
+    const r = await fetch(`${API}/v3/chat/message/list?chat_id=${chatId}&conversation_id=${convId}`, {
+        headers: { 'Authorization': `Bearer ${PAT}` }
+    });
+    const d = await r.json();
+    if (d.code !== 0) throw new Error(`获取结果失败: ${d.msg}`);
+
+    // Collect all content: text answers + image messages
+    let fullText = '';
+    let imageUrl = null;
+
+    for (const m of (d.data || [])) {
+        if (m.role === 'assistant') {
+            if (m.type === 'answer') {
+                fullText += m.content;
+            }
+            // Check for image type messages
+            if (m.type === 'image' && m.content) {
+                try {
+                    const imgData = JSON.parse(m.content);
+                    if (imgData.url) imageUrl = imgData.url;
+                } catch(e) {
+                    // Not JSON, might be a direct URL
+                    if (m.content.startsWith('http')) imageUrl = m.content;
+                }
+            }
+        }
+    }
+
+    // If we found an image message, return it directly
+    if (imageUrl) return imageUrl;
+
+    // Otherwise return text (extractImageUrl will parse it)
+    return fullText;
+}
+
+// ===== Reset =====
+function resetAll() {
+    uid = 'u_' + Math.random().toString(36).slice(2, 11);
+    clearF();
+    showV('e');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+</script>
+</body>
+</html>
