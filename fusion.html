@@ -374,7 +374,17 @@ function showV(v) {
     $('vErr').style.display   = v === 'x' ? 'block' : 'none';
 }
 
-// ===== Upload original file to imgbb → get URL（不做压缩，保留原图质量）=====
+// ===== File → data URI（不走图床，直接编码）=====
+function fileToDataUri(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// ===== Upload original file to imgbb → get URL（备用，暂不用）=====
 async function uploadToImgbb(file) {
     // 原文件直传，不经过Canvas压缩
     const formData = new FormData();
@@ -408,12 +418,12 @@ async function generate() {
     showV('l');
 
     try {
-        // Step 1: 原文件上传到imgbb获取URL（不做压缩，和扣子插件一样用原图URL调API）
-        $('ldgTxt').textContent = '正在上传图片...';
-        $('ldgSub').textContent = '获取图片链接中';
-        const imageUrl = await uploadToImgbb(fFile);
+        // Step 1: 图片转data URI，不走图床，避免海外CDN超时
+        $('ldgTxt').textContent = '正在准备图片...';
+        $('ldgSub').textContent = '转换图片格式';
+        const imageDataUri = await fileToDataUri(fFile);
 
-        // Step 3: 用URL调用Seedream API（和扣子插件完全一致）
+        // Step 2: 用data URI调用Seedream API
         $('ldgTxt').textContent = '正在融合图片...';
         $('ldgSub').textContent = '融合大约需要15-30秒';
 
@@ -426,7 +436,7 @@ async function generate() {
             body: JSON.stringify({
                 model: MODEL,
                 prompt: FUSION_PROMPT,
-                image: imageUrl,
+                image: imageDataUri,
                 size: '2k',
                 stream: false,
                 response_format: 'url',
