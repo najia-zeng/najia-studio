@@ -294,7 +294,7 @@
 
         <div class="ldg" id="vLoad" style="display:none">
             <div class="spin"></div>
-            <div class="ldg-txt" id="ldgTxt">正在上传图片...</div>
+            <div class="ldg-txt" id="ldgTxt">正在处理图片...</div>
             <div class="ldg-sub" id="ldgSub">融合大约需要15-30秒</div>
         </div>
 
@@ -324,13 +324,13 @@
 
 <script>
 // ===== Config =====
-const BOT_ID = '7649192806208208942';
-const API = 'https://api.coze.cn';
-const PAT = 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum';
+const ARK_API_KEY = 'ark-32e3cca5-30ab-4d17-91c1-5024b1c57850-5bda0';
+const ARK_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
+const MODEL = 'doubao-seedream-4-0-250828';
+const FUSION_PROMPT = '商业产品摄影，将带白色边框/悬浮状态的产品自然融入原背景环境中，不改变产品本身细节与外观。赋予产品与环境一致的自然光影，产品反射周围环境光与材质，消除悬浮感与白色边框，产品与背景完美融合，画面真实自然，高级精致，符合商业广告质感';
 
 // ===== State =====
 let fFile = null, busy = false;
-let uid = 'u_' + Math.random().toString(36).slice(2, 11);
 
 const $ = id => document.getElementById(id);
 
@@ -381,23 +381,55 @@ async function generate() {
     showV('l');
 
     try {
-        $('ldgTxt').textContent = '正在上传图片...';
+        // Convert image to base64
+        $('ldgTxt').textContent = '正在处理图片...';
         $('ldgSub').textContent = '';
-        const fId = await uploadFile(fFile);
+        const base64 = await fileToBase64(fFile);
 
+        // Call Seedream API directly
         $('ldgTxt').textContent = '正在融合图片...';
         $('ldgSub').textContent = '融合大约需要15-30秒';
-        const answer = await doChat(fId);
 
-        const imgUrl = extractImageUrl(answer);
+        const res = await fetch(ARK_API, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + ARK_API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: MODEL,
+                prompt: FUSION_PROMPT,
+                image: base64,
+                size: '2K',
+                denoising_strength: 0.3,
+                sequential_image_generation: 'disabled',
+                stream: false,
+                response_format: 'url',
+                watermark: false
+            })
+        });
 
-        if (imgUrl) {
-            showV('r');
-            $('resImg').src = imgUrl;
-            $('dlLink').href = imgUrl;
+        const data = await res.json();
+
+        if (res.status !== 200) {
+            const errMsg = data.error ? data.error.message : JSON.stringify(data);
+            throw new Error('API调用失败: ' + errMsg);
+        }
+
+        if (data.data && data.data.length > 0) {
+            const item = data.data[0];
+            if (item.error) {
+                throw new Error('图片生成失败: ' + (item.error.message || '未知错误'));
+            }
+            if (item.url) {
+                showV('r');
+                $('resImg').src = item.url;
+                $('dlLink').href = item.url;
+            } else {
+                throw new Error('未获取到图片结果');
+            }
         } else {
-            showV('x');
-            $('errTxt').textContent = answer || '未获取到融合结果';
+            throw new Error('未获取到图片结果');
         }
 
     } catch (err) {
@@ -410,129 +442,21 @@ async function generate() {
     }
 }
 
-// ===== Extract image URL from bot response =====
-function extractImageUrl(text) {
-    if (!text) return null;
-
-    // Try markdown image
-    const mdMatch = text.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/);
-    if (mdMatch) return mdMatch[1];
-
-    // Try URL with image extension
-    const urlMatch = text.match(/(https?:\/\/[^\s"'<>]+\.(?:png|jpg|jpeg|webp)[^\s"'<>]*)/i);
-    if (urlMatch) return urlMatch[1];
-
-    // Try volces/ark URL
-    const arkMatch = text.match(/(https?:\/\/[^\s"'<>]*volces[^\s"'<>]*|https?:\/\/[^\s"'<>]*ark[^\s"'<>]*)/i);
-    if (arkMatch) return arkMatch[1];
-
-    // Try any URL
-    const anyMatch = text.match(/(https?:\/\/[^\s"'<>]+)/);
-    if (anyMatch) return anyMatch[1];
-
-    return null;
-}
-
-// ===== API: Upload =====
-async function uploadFile(file) {
-    const fd = new FormData();
-    fd.append('file', file);
-    const r = await fetch(`${API}/v1/files/upload`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${PAT}` },
-        body: fd
+// ===== File to Base64 =====
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
     });
-    const d = await r.json();
-    if (d.code !== 0) throw new Error(`上传失败: ${d.msg || JSON.stringify(d)}`);
-    return d.data.id;
-}
-
-// ===== API: Chat =====
-async function doChat(fId) {
-    const parts = [
-        { type: 'text', text: '请融合这张拼合图，消除白边和悬浮感' },
-        { type: 'image', file_id: fId }
-    ];
-
-    const cr = await fetch(`${API}/v3/chat`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${PAT}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            bot_id: BOT_ID,
-            user_id: uid,
-            stream: false,
-            auto_save_history: true,
-            additional_messages: [{
-                role: 'user',
-                content: JSON.stringify(parts),
-                content_type: 'object_string'
-            }]
-        })
-    });
-    const cd = await cr.json();
-    if (cd.code !== 0) throw new Error(`对话失败: ${cd.msg || JSON.stringify(cd)}`);
-
-    const chatId = cd.data.id;
-    const convId = cd.data.conversation_id;
-
-    for (let i = 0; i < 90; i++) {
-        await sleep(2000);
-        $('ldgTxt').textContent = `正在融合图片... (${(i + 1) * 2}s)`;
-
-        const sr = await fetch(`${API}/v3/chat/retrieve?chat_id=${chatId}&conversation_id=${convId}`, {
-            headers: { 'Authorization': `Bearer ${PAT}` }
-        });
-        const sd = await sr.json();
-        if (sd.code !== 0) throw new Error(`状态查询失败: ${sd.msg}`);
-
-        if (sd.data.status === 'completed') return await getMsgs(convId, chatId);
-        if (sd.data.status === 'failed') throw new Error('融合失败，请重试');
-    }
-    throw new Error('融合超时，请重试');
-}
-
-// ===== API: Messages =====
-async function getMsgs(convId, chatId) {
-    const r = await fetch(`${API}/v3/chat/message/list?chat_id=${chatId}&conversation_id=${convId}`, {
-        headers: { 'Authorization': `Bearer ${PAT}` }
-    });
-    const d = await r.json();
-    if (d.code !== 0) throw new Error(`获取结果失败: ${d.msg}`);
-
-    let fullText = '';
-    let imageUrl = null;
-
-    for (const m of (d.data || [])) {
-        if (m.role === 'assistant') {
-            if (m.type === 'answer') {
-                fullText += m.content;
-            }
-            if (m.type === 'image' && m.content) {
-                try {
-                    const imgData = JSON.parse(m.content);
-                    if (imgData.url) imageUrl = imgData.url;
-                } catch(e) {
-                    if (m.content.startsWith('http')) imageUrl = m.content;
-                }
-            }
-        }
-    }
-
-    if (imageUrl) return imageUrl;
-    return fullText;
 }
 
 // ===== Reset =====
 function resetAll() {
-    uid = 'u_' + Math.random().toString(36).slice(2, 11);
     clearF();
     showV('e');
 }
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 </script>
 </body>
 </html>
