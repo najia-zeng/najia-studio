@@ -577,21 +577,21 @@ function autoCrop(imgSrc, threshold) {
                 if (found) break;
             }
 
-            // Add small padding (2px) so product isn't touching edge
-            const pad = 2;
-            top = Math.max(0, top - pad);
-            left = Math.max(0, left - pad);
-            bottom = Math.min(h - 1, bottom + pad);
-            right = Math.min(w - 1, right + pad);
-
+            // Crop tight first (no padding)
             const cropW = right - left + 1;
             const cropH = bottom - top + 1;
 
+            // Add white border padding so AI has enough white area to blend
+            const pad = 20;
             const cc = document.createElement('canvas');
-            cc.width = cropW;
-            cc.height = cropH;
+            cc.width = cropW + pad * 2;
+            cc.height = cropH + pad * 2;
             const cctx = cc.getContext('2d');
-            cctx.drawImage(img, left, top, cropW, cropH, 0, 0, cropW, cropH);
+            // Fill white background
+            cctx.fillStyle = '#FFFFFF';
+            cctx.fillRect(0, 0, cc.width, cc.height);
+            // Draw product in center with padding
+            cctx.drawImage(img, left, top, cropW, cropH, pad, pad, cropW, cropH);
 
             resolve(cc.toDataURL('image/png'));
         };
