@@ -71,23 +71,10 @@
         .new-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-s); font-size: 13px; cursor: pointer; font-family: inherit; transition: all .15s; color: var(--text-sec); }
         .new-btn:hover { border-color: #999; color: var(--text); }
 
-        .scene-group { margin-bottom: 24px; }
-        .scene-label { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text); }
-        .scene-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        @media (max-width: 768px) { .scene-pair { grid-template-columns: 1fr; } }
-
         .res-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-        .res-card-label { padding: 10px 14px; font-size: 12px; font-weight: 600; color: var(--text-sec); letter-spacing: .5px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
-        .tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 500; }
-        .tag-effect { background: #e8f5e9; color: #2e7d32; }
-        .tag-bg { background: #e3f2fd; color: #1565c0; }
         .res-card-img { padding: 12px; display: flex; align-items: center; justify-content: center; background: #fafafa; }
         .res-card-img img { max-width: 100%; max-height: 270px; object-fit: contain; border-radius: 4px; }
         .res-card-actions { padding: 14px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-        .dl-btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-s); font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .2s; text-decoration: none; }
-        .dl-btn:hover { background: var(--accent-h); }
-        .dl-btn-outline { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; background: var(--card); color: var(--text); border: 1px solid var(--accent); border-radius: var(--radius-s); font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .2s; text-decoration: none; }
-        .dl-btn-outline:hover { background: #f5f5f7; }
 
         .err { text-align: center; padding: 40px; }
         .err-ico { font-size: 40px; margin-bottom: 16px; }
@@ -108,7 +95,7 @@
 <div class="hdr">
     <div class="hdr-logo">景</div>
     <span class="hdr-title">AI创意生图</span>
-    <span class="hdr-sub">上传产品+参考，AI生成新场景</span>
+    <span class="hdr-sub">上传产品+参考，AI一步生成场景图</span>
 </div>
 <div class="wrap">
     <div class="left">
@@ -132,16 +119,15 @@
         <div class="empty" id="vEmpty">
             <div class="empty-ico"><span>◇</span></div>
             <div class="empty-t">准备开始</div>
-            <div class="empty-d">上传产品白底图和参考风格图，AI分析风格后生成全新场景效果图</div>
+            <div class="empty-d">上传产品白底图和参考风格图，AI一步生成产品融入场景的完整效果图</div>
         </div>
         <div class="ldg" id="vLoad" style="display:none">
             <div class="spin"></div>
             <div class="ldg-txt" id="ldgTxt">正在生成场景...</div>
-            <div class="ldg-sub" id="ldgSub">大约需要30-60秒</div>
+            <div class="ldg-sub" id="ldgSub">大约需要20-40秒</div>
             <div class="ldg-steps">
-                <div class="ldg-step" id="step1"><div class="step-ico wait">1</div>分析参考图风格</div>
-                <div class="ldg-step" id="step2"><div class="step-ico wait">2</div>生成场景背景</div>
-                <div class="ldg-step" id="step3"><div class="step-ico wait">3</div>融合产品到场景</div>
+                <div class="ldg-step" id="step1"><div class="step-ico wait">1</div>分析图片生成提示词</div>
+                <div class="ldg-step" id="step2"><div class="step-ico wait">2</div>一步生成场景图</div>
             </div>
         </div>
         <div class="res-wrap" id="vRes" style="display:none">
@@ -175,7 +161,6 @@ const IMAGE_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
 const VISION_MODEL = 'doubao-seed-1-6-vision-250815';
 const IMAGE_MODEL = 'doubao-seedream-4-0-250828';
 const IMAGE_SIZE = '1080x1920';
-const FUSION_PROMPT = '专业商业产品场景摄影，产品完全融入周围环境场景，产品表面呈现真实的环境反射：环境主光源在产品边缘形成自然高光，环境色调映射在产品表面，产品底部有柔和接触阴影，产品与背景之间自然过渡无白色边缘，整体画面光影和谐统一，画面真实自然，8K高清，商业广告级质感';
 const CROP_THRESHOLD = 240;
 const CROP_PADDING = 20;
 
@@ -241,75 +226,67 @@ function resizeForAPI(dataUri, maxDim = 1024) {
     });
 }
 
-function composeProductOnBg(bgDataUri, productDataUri) {
-    return new Promise(resolve => {
-        const bgImg = new Image(); bgImg.onload = () => {
-            const pdImg = new Image(); pdImg.onload = () => {
-                const c = document.createElement('canvas'); c.width = bgImg.width; c.height = bgImg.height;
-                const ctx = c.getContext('2d');
-                ctx.drawImage(bgImg, 0, 0);
-                const targetW = c.width * 0.35;
-                const scale = targetW / pdImg.width;
-                const pdW = pdImg.width * scale, pdH = pdImg.height * scale;
-                const x = (c.width - pdW) / 2, y = (c.height - pdH) / 2;
-                ctx.drawImage(pdImg, x, y, pdW, pdH);
-                resolve(c.toDataURL('image/png'));
-            }; pdImg.src = productDataUri;
-        }; bgImg.src = bgDataUri;
-    });
-}
-
 async function analyzeImages() {
     const [product, ref] = await Promise.all([resizeForAPI(productSrc), resizeForAPI(refSrc)]);
-    const systemPrompt = `你是专业产品摄影提示词工程师。你的核心能力是把参考风格图的视觉元素，翻译成AI能读懂的专业产品场景提示词。你的背后是十几年产品摄影实战经验。
+
+    const systemPrompt = `你是专业产品摄影提示词工程师。你的核心能力是把产品特征和参考风格图的视觉元素，翻译成AI生图模型能读懂的专业产品场景提示词。你的背后是十几年产品摄影实战经验。
 
 用户会给你两张图：第一张是产品白底图，第二张是参考风格图。
 
-【第一步：识别参考图元素】
+【第一步：识别产品特征】
+仔细观察产品白底图，逐一识别：产品类型、外形轮廓、材质类型、颜色、表面质感、反光特性。
+
+【第二步：识别参考图元素】
 仔细观察参考图，逐一清点画面中每个可见元素：台面/地面材质、所有道具物品、背景环境、光影类型、色调倾向。
 
-【第二步：材质→摄影语言翻译】
-根据参考图中出现的材质，选择对应的光线表达方式：
+【第三步：材质→摄影语言翻译】
+根据产品和场景中出现的材质，选择对应的光线表达方式：
 - 反光材质（金属、玻璃、陶瓷釉面）→ 柔光、漫射光、控制高光和反光
 - 吸光材质（布料、哑光塑料、木质）→ 侧光、增加质感和纹理表现
 - 透明/半透明材质（香水、玻璃瓶、水体）→ 逆光、通透感、液体光泽
 - 粗糙材质（石材、海盐、沙地）→ 侧光、强调表面肌理和凹凸感
+- 小体积产品→微距特写、背景虚化
+- 大体积产品→场景化、比例参照、空间感
 
-【第三步：生成六段式场景提示词】
+【第四步：生成六段式完整提示词】
 严格按以下结构输出，六段缺一不可，每段只讲该段的重点：
 
 场景提示词：
-① 场景构图：空场景无产品，预留产品放置空间。[用参考图同类型元素全新设计的构图，每个元素的具体位置、角度、远近、与画面的空间关系。只写位置布局，不写材质和光影]
-② 场景材质：场景中每个元素的材质类型、表面纹理、颜色、光泽度、触感的详细描述。根据材质类型使用对应的摄影语言描述质感。只写材质质感，不写位置和光影
-③ 光影质感：根据材质选择光线类型和方向。描述光源方向、角度、光线类型（柔光/逆光/侧光/漫射光）、照射效果、明暗层次、高光位置、阴影形态。加质控：无脏影、无杂光、无过曝、无死黑。只写光影，不写构图和材质
+① 主体还原：精确描述产品的外观特征——产品类型、外形轮廓、材质、颜色、表面质感、反光特性。让AI能从这段描述准确还原产品外观。只写产品本身，不写场景
+② 场景构图：产品放置在画面中的位置，用参考图同类型元素全新设计的构图，每个元素的具体位置、角度、远近、与产品的空间关系。只写位置布局，不写材质和光影
+③ 光影质感：根据产品材质和场景材质选择光线类型和方向。描述光源方向、角度、光线类型（柔光/逆光/侧光/漫射光）、照射效果、明暗层次、高光位置、阴影形态。产品上的光影必须与场景光源一致。质控：无脏影、无杂光、无过曝、无死黑。只写光影，不写构图和材质
 ④ 色彩氛围：主色调、2-4个核心色彩、整体氛围感受和情绪传达。只写色彩和氛围
 ⑤ 画质参数：8K超写实，专业商业产品摄影，细节清晰锐利，色彩还原准确，边缘轮廓分明
-⑥ 负面避坑：禁止添加参考图中不存在的元素，禁止场景杂乱，禁止色调偏差，禁止光影不均，禁止出现多余物品，禁止产品出现
+⑥ 负面避坑：禁止添加参考图中不存在的元素，禁止场景杂乱，禁止色调偏差，禁止光影不均，禁止出现多余物品
 
 【段落分工原则】
-- ①只写构图（位置/角度/远近），不写材质和光影
-- ②只写材质（纹理/颜色/质感），不写位置和光影
+- ①只写产品本身（外形/材质/颜色/质感），不写场景
+- ②只写构图（位置/角度/远近），不写材质和光影
 - ③只写光影（光源/明暗/阴影），不写构图和材质
 - ④只写色彩和氛围，不写其他
 每段各司其职，不要交叉重叠
 
 【核心规则】
-1. 元素类型必须与参考图完全一致：参考图有海盐台面→必须写海盐台面。绝不能替换成其他东西（禁止把海盐台面换成木质托盘，禁止把海水换成玻璃容器）
-2. 绝不发明参考图中没有的元素
-3. 色调严格保留
-4. 构图必须重新设计，元素位置角度与参考图不同
-5. 语言简洁专业，不用模糊描述（如"好看的光"、"漂亮的颜色"）
-6. 每段都要非常详细具体，像专业摄影师在精确描述布景`;
+1. ①主体还原必须非常精确，这是AI还原产品外观的关键
+2. 产品必须出现在画面中，且光影与场景一致
+3. 元素类型必须与参考图完全一致：参考图有海盐台面→必须写海盐台面，绝不替换
+4. 绝不发明参考图中没有的元素
+5. 色调严格保留参考图
+6. 构图必须重新设计，元素位置角度与参考图不同
+7. 语言简洁专业，不用模糊描述
+8. 每段都要非常详细具体，像专业摄影师在精确描述布景`;
 
-    const userPrompt = `请仔细观察第二张参考图，先在脑中清点每个可见元素，然后严格按六段式结构生成详细的场景提示词。
+    const userPrompt = `请仔细观察两张图，先识别产品特征和参考图元素，然后严格按六段式结构生成完整的场景提示词。
 
 关键要求：
-1. 每一段只讲该段的重点：①只写构图位置，②只写材质质感，③只写光影，④只写色彩氛围
-2. 根据材质选择对应的光线表达方式（反光材质用柔光控制高光，吸光材质用侧光增加质感，水体用通透感）
-3. 只使用参考图中实际存在的元素类型，绝不添加不存在的东西，也不替换
-4. 色调必须与参考图一致
-5. 构图重新设计但元素类型保留
-6. 语言专业精确，不能笼统`;
+1. ①主体还原必须精确描述第一张图中的产品外观（类型、外形、材质、颜色、质感）
+2. 产品必须出现在画面中，且光影与场景一致
+3. 每一段只讲该段的重点，不交叉
+4. 根据产品材质选择对应的光线表达方式（反光材质用柔光控制高光，吸光材质用侧光增加质感，透明材质用逆光通透感）
+5. 只使用参考图中实际存在的元素类型，绝不添加不存在的东西，也不替换
+6. 色调必须与参考图一致
+7. 构图重新设计但元素类型保留
+8. 语言专业精确，不能笼统`;
 
     const response = await fetch(CHAT_API, {
         method: 'POST',
@@ -330,36 +307,28 @@ async function analyzeImages() {
     if (!response.ok) { const ed = await response.json().catch(() => ({})); throw new Error('风格分析失败: ' + (ed.error?.message || response.status)); }
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || '';
-    // 解析六段式输出
     const m = content.match(/场景提示词[：:]\s*([\s\S]+?)$/);
     if (m) {
         scenePrompt = m[1].trim();
     } else {
-        // 如果格式不匹配，尝试直接使用内容
         scenePrompt = content.trim();
     }
-    // 存储原始分段内容用于UI显示
     window._promptSegments = scenePrompt;
     return scenePrompt;
 }
 
-async function generateBg(prompt, refImageDataUri) {
-    const fullPrompt = prompt + '，严格只包含上述描述的元素，不添加任何额外的物品或装饰';
+async function generateSceneImage(prompt) {
     const bodyObj = {
         model: IMAGE_MODEL,
-        prompt: fullPrompt,
+        prompt: prompt,
         size: IMAGE_SIZE,
         stream: false,
         response_format: 'b64_json',
         watermark: false
     };
-    // Pass reference image so the model can see the actual color tone and style
-    if (refImageDataUri) {
-        bodyObj.image = refImageDataUri;
-    }
     const r = await fetch(IMAGE_API, { method: 'POST', headers: { 'Authorization': 'Bearer ' + ARK_API_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify(bodyObj) });
-    if (!r.ok) { const ed = await r.json().catch(() => ({})); throw new Error('背景生成失败: ' + (ed.error?.message || r.status)); }
+    if (!r.ok) { const ed = await r.json().catch(() => ({})); throw new Error('场景图生成失败: ' + (ed.error?.message || r.status)); }
     const data = await r.json();
     if (data.data?.[0]?.b64_json) return 'data:image/png;base64,' + data.data[0].b64_json;
     if (data.data?.[0]?.url) return data.data[0].url;
@@ -367,19 +336,8 @@ async function generateBg(prompt, refImageDataUri) {
     throw new Error('未获取到图片结果');
 }
 
-async function fusionProduct(compositeDataUri) {
-    const r = await fetch(IMAGE_API, { method: 'POST', headers: { 'Authorization': 'Bearer ' + ARK_API_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: IMAGE_MODEL, prompt: FUSION_PROMPT, image: compositeDataUri, size: IMAGE_SIZE, stream: false, response_format: 'b64_json', watermark: false }) });
-    if (!r.ok) { const ed = await r.json().catch(() => ({})); throw new Error('融合失败: ' + (ed.error?.message || r.status)); }
-    const data = await r.json();
-    if (data.data?.[0]?.b64_json) return 'data:image/png;base64,' + data.data[0].b64_json;
-    if (data.data?.[0]?.url) return data.data[0].url;
-    if (data.data?.[0]?.error) throw new Error('融合错误: ' + data.data[0].error.message);
-    throw new Error('未获取到融合结果');
-}
-
 function setStep(n) {
-    for (let i = 1; i <= 3; i++) {
+    for (let i = 1; i <= 2; i++) {
         const ico = $('step' + i).querySelector('.step-ico');
         ico.className = 'step-ico';
         ico.classList.add(i < n ? 'done' : i === n ? 'active' : 'wait');
@@ -391,54 +349,37 @@ async function generate() {
     busy = true; $('genBtn').disabled = true;
     try {
         showView('l');
-        setStep(1); $('ldgTxt').textContent = '正在分析参考图风格...'; $('ldgSub').textContent = '大约需要5-10秒';
+        setStep(1); $('ldgTxt').textContent = '正在分析图片生成提示词...'; $('ldgSub').textContent = '大约需要5-10秒';
         await analyzeImages();
 
-        setStep(2); $('ldgTxt').textContent = '正在生成场景背景...'; $('ldgSub').textContent = '大约需要15-30秒';
-        const resizedRef = await resizeForAPI(refSrc, 1024);
-        const bgDataUris = await Promise.all([generateBg(scenePrompt, resizedRef), generateBg(scenePrompt, resizedRef)]);
+        setStep(2); $('ldgTxt').textContent = '正在生成场景图...'; $('ldgSub').textContent = '大约需要15-30秒';
+        const imageDataUris = await Promise.all([
+            generateSceneImage(scenePrompt),
+            generateSceneImage(scenePrompt)
+        ]);
 
-        setStep(3); $('ldgTxt').textContent = '正在融合产品到场景...'; $('ldgSub').textContent = '大约需要15-30秒';
-        const results = [];
-        for (let i = 0; i < bgDataUris.length; i++) {
-            try {
-                const composite = await composeProductOnBg(bgDataUris[i], productCroppedSrc);
-                const effectDataUri = await fusionProduct(composite);
-                results.push({ bgSrc: bgDataUris[i], effectSrc: effectDataUri });
-            } catch (err) {
-                console.error('Scene ' + (i+1) + ' fusion failed:', err);
-                results.push({ bgSrc: bgDataUris[i], effectSrc: null, error: err.message });
-            }
-        }
-        showResults(results);
+        showResults(imageDataUris);
     } catch (err) {
         console.error(err); showView('x'); $('errTxt').textContent = err.message || '请稍后重试';
     } finally { busy = false; updateGenBtn(); }
 }
 
-function showResults(results) {
+function showResults(imageDataUris) {
     showView('r');
     const container = $('resContent');
     container.innerHTML = '';
-    // 横向并列显示所有效果图
     const pairDiv = document.createElement('div');
     pairDiv.style.cssText = 'display:flex;gap:16px;justify-content:center;flex-wrap:wrap;';
-    results.forEach((r, idx) => {
+    imageDataUris.forEach((src, idx) => {
         const card = document.createElement('div');
         card.className = 'res-card';
-        if (r.effectSrc) {
-            card.innerHTML = `<div class="res-card-img"><img src="${r.effectSrc}" alt="效果图${idx+1}"></div>
-                <div style="padding:10px 14px;display:flex;gap:16px;justify-content:center;align-items:center;">
-                    <a href="${r.effectSrc}" download="scene-effect-${idx+1}.png" style="font-size:13px;color:var(--text);text-decoration:none;cursor:pointer;">下载效果图</a>
-                    <a href="${r.bgSrc}" download="scene-bg-${idx+1}.png" style="font-size:13px;color:var(--text-sec);text-decoration:none;cursor:pointer;">下载背景图</a>
-                </div>`;
-        } else {
-            card.innerHTML = `<div class="res-card-img" style="padding:40px;color:var(--text-sec);font-size:14px;">融合失败：${r.error||'请重试'}</div>`;
-        }
+        card.innerHTML = `<div class="res-card-img"><img src="${src}" alt="场景图${idx+1}"></div>
+            <div style="padding:10px 14px;text-align:center;">
+                <a href="${src}" download="scene-${idx+1}.png" style="font-size:13px;color:var(--text);text-decoration:none;cursor:pointer;">下载场景图</a>
+            </div>`;
         pairDiv.appendChild(card);
     });
     container.appendChild(pairDiv);
-    // 分段显示提示词
     if (window._promptSegments) {
         $('promptDebug').style.display = 'block';
         renderPromptSegments(window._promptSegments);
@@ -448,17 +389,11 @@ function showResults(results) {
 function renderPromptSegments(fullText) {
     const container = $('promptText');
     container.innerHTML = '';
-    // 整段显示，右上角复制按钮
     const wrap = document.createElement('div');
     wrap.style.cssText = 'position:relative;padding:12px;background:#fff;border:1px solid var(--border);border-radius:8px;';
     wrap.innerHTML = `<button onclick="copyAllPrompt(this)" style="position:absolute;top:8px;right:8px;font-size:12px;color:var(--text-sec);background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:3px 10px;">复制</button>
         <div style="font-size:12px;color:#444;line-height:1.8;white-space:pre-wrap;padding-right:50px;">${fullText}</div>`;
     container.appendChild(wrap);
-}
-
-function copySegment(btn) {
-    const content = btn.closest('div').parentElement.querySelector('.seg-content').textContent;
-    navigator.clipboard.writeText(content).then(() => { btn.textContent = '已复制'; setTimeout(() => btn.textContent = '复制', 1500); });
 }
 
 function copyAllPrompt(btn) {
