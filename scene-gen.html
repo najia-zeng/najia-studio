@@ -413,27 +413,24 @@ function showResults(results) {
         $('promptDebug').style.display = 'block';
         $('promptText').textContent = scenePrompt;
     }
+    // 横向并列显示所有效果图
+    const pairDiv = document.createElement('div');
+    pairDiv.style.cssText = 'display:flex;gap:16px;justify-content:center;flex-wrap:wrap;';
     results.forEach((r, idx) => {
-        const group = document.createElement('div');
-        group.className = 'scene-group';
-        let html = `<div class="scene-label">场景 ${idx + 1}</div><div class="scene-pair">`;
+        const card = document.createElement('div');
+        card.className = 'res-card';
         if (r.effectSrc) {
-            html += `<div class="res-card" style="max-width:400px;">
-                <div class="res-card-label">效果图 <span class="tag tag-effect">带产品</span></div>
-                <div class="res-card-img"><img src="${r.effectSrc}" alt="效果图${idx+1}"></div>
+            card.innerHTML = `<div class="res-card-img"><img src="${r.effectSrc}" alt="效果图${idx+1}"></div>
                 <div class="res-card-actions">
                     <a href="${r.effectSrc}" class="dl-btn" download="scene-effect-${idx+1}.png">⬇ 下载效果图</a>
                     <a href="${r.bgSrc}" class="dl-btn-outline" download="scene-bg-${idx+1}.png">⬇ 下载背景图</a>
-                </div>
-            </div>`;
+                </div>`;
         } else {
-            html += `<div class="res-card" style="max-width:400px;"><div class="res-card-label">效果图 <span class="tag tag-effect">带产品</span></div>
-                <div class="res-card-img" style="padding:40px;color:var(--text-sec);font-size:14px;">融合失败：${r.error||'请重试'}</div></div>`;
+            card.innerHTML = `<div class="res-card-img" style="padding:40px;color:var(--text-sec);font-size:14px;">融合失败：${r.error||'请重试'}</div>`;
         }
-        html += '</div>';
-        group.innerHTML = html;
-        container.appendChild(group);
+        pairDiv.appendChild(card);
     });
+    container.appendChild(pairDiv);
 }
 
 function showView(v) {
