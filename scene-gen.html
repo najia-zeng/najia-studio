@@ -445,26 +445,12 @@ function showResults(results) {
 function renderPromptSegments(fullText) {
     const container = $('promptText');
     container.innerHTML = '';
-    const segments = fullText.split(/(?=①|②|③|④|⑤|⑥)/).filter(s => s.trim());
-    segments.forEach(seg => {
-        const trimmed = seg.trim();
-        const titleMatch = trimmed.match(/^[①②③④⑤⑥]\s*(.+?)[：:]/);
-        const title = titleMatch ? titleMatch[1] : '';
-        const content = titleMatch ? trimmed.substring(trimmed.indexOf('：') > -1 ? trimmed.indexOf('：') + 1 : trimmed.indexOf(':') + 1).trim() : trimmed;
-        const segDiv = document.createElement('div');
-        segDiv.style.cssText = 'margin-bottom:12px;padding:10px 12px;background:#fff;border:1px solid var(--border);border-radius:8px;position:relative;';
-        segDiv.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-            <span style="font-size:12px;font-weight:600;color:var(--text);">${trimmed.substring(0,trimmed.indexOf(' ')>0?trimmed.indexOf(' '):2)}</span>
-            <button onclick="copySegment(this)" style="font-size:11px;color:var(--text-sec);background:none;border:none;cursor:pointer;padding:2px 6px;">复制</button>
-        </div>
-        <div class="seg-content" style="font-size:12px;color:#555;line-height:1.7;">${content}</div>`;
-        container.appendChild(segDiv);
-    });
-    // 整体复制按钮
-    const copyAllDiv = document.createElement('div');
-    copyAllDiv.style.cssText = 'text-align:right;margin-top:4px;';
-    copyAllDiv.innerHTML = `<button onclick="copyAllPrompt()" style="font-size:12px;color:var(--text);background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:4px 12px;">复制全部提示词</button>`;
-    container.appendChild(copyAllDiv);
+    // 整段显示，右上角复制按钮
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;padding:12px;background:#fff;border:1px solid var(--border);border-radius:8px;';
+    wrap.innerHTML = `<button onclick="copyAllPrompt(this)" style="position:absolute;top:8px;right:8px;font-size:12px;color:var(--text-sec);background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:3px 10px;">复制</button>
+        <div style="font-size:12px;color:#444;line-height:1.8;white-space:pre-wrap;padding-right:50px;">${fullText}</div>`;
+    container.appendChild(wrap);
 }
 
 function copySegment(btn) {
@@ -472,10 +458,10 @@ function copySegment(btn) {
     navigator.clipboard.writeText(content).then(() => { btn.textContent = '已复制'; setTimeout(() => btn.textContent = '复制', 1500); });
 }
 
-function copyAllPrompt() {
+function copyAllPrompt(btn) {
     const fullText = window._promptSegments || '';
     navigator.clipboard.writeText(fullText).then(() => {
-        const btn = event.target; btn.textContent = '已复制'; setTimeout(() => btn.textContent = '复制全部提示词', 1500);
+        btn.textContent = '已复制'; setTimeout(() => btn.textContent = '复制', 1500);
     });
 }
 
