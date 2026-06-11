@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>娜家场景生图 - AI产品场景生成</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #f5f5f7;
+            --card: #ffffff;
+            --border: #e5e5e5;
+            --text: #1d1d1f;
+            --text-sec: #86868b;
+            --accent: #1d1d1f;
+            --accent-h: #333;
+            --radius: 14px;
+            --radius-s: 10px;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .page {
+            max-width: 1400px;
+            margin: 0 auto;
+            height: 100vh;
+        }
+
+        /* Header */
+        .hdr {
+            height: 56px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            gap: 12px;
+        }
+        .hdr-logo {
+            width: 34px; height: 34px;
+            background: var(--accent);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 700; font-size: 17px;
+        }
+        .hdr-title { font-weight: 600; font-size: 18px; }
+        .hdr-sub { font-size: 13px; color: var(--text-sec); margin-left: 4px; }
+
+        /* Layout */
+        .wrap { display: flex; height: calc(100vh - 56px); }
+
+        /* Left Panel */
+        .left {
+            width: 340px; min-width: 340px;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 24px 20px;
+            overflow-y: auto;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+        .left::-webkit-scrollbar { width: 4px; }
+        .left::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+        .sec-label {
+            font-size: 13px; font-weight: 600;
+            color: var(--text-sec);
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        /* Upload */
+        .up-area {
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-s);
+            padding: 24px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s;
+            position: relative;
+            background: #fafafa;
+            min-height: 100px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .up-area:hover { border-color: #999; }
+        .up-area.has { border-style: solid; border-color: var(--accent); padding: 8px; background: #fff; }
+        .up-ico { font-size: 26px; margin-bottom: 6px; color: #bbb; }
+        .up-txt { font-size: 14px; color: var(--text-sec); line-height: 1.5; }
+        .up-prev { max-width: 100%; max-height: 140px; border-radius: 6px; object-fit: contain; }
+        .up-rm {
+            position: absolute; top: 6px; right: 6px;
+            width: 22px; height: 22px;
+            background: rgba(0,0,0,.4); color: #fff;
+            border: none; border-radius: 50%;
+            cursor: pointer; font-size: 13px;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .15s; z-index: 2;
+        }
+        .up-rm:hover { background: rgba(0,0,0,.7); }
+
+        /* Generate button */
+        .gen-btn {
+            width: 100%; padding: 14px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: var(--radius-s);
+            font-size: 16px; font-weight: 500;
+            cursor: pointer; font-family: inherit;
+            transition: all .2s;
+        }
+        .gen-btn:hover { background: var(--accent-h); }
+        .gen-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+        /* Right Panel */
+        .right {
+            flex: 1; padding: 24px;
+            overflow-y: auto;
+            display: flex; flex-direction: column;
+        }
+        .right::-webkit-scrollbar { width: 6px; }
+        .right::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+        /* Empty */
+        .empty {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+        }
+        .empty-ico {
+            width: 72px; height: 72px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            transform: rotate(45deg);
+            margin-bottom: 24px;
+        }
+        .empty-ico span { transform: rotate(-45deg); font-size: 24px; color: #ccc; }
+        .empty-t { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+        .empty-d { font-size: 14px; color: var(--text-sec); max-width: 340px; line-height: 1.7; }
+
+        /* Loading */
+        .ldg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spin {
+            width: 40px; height: 40px;
+            border: 2px solid var(--border); border-top-color: var(--accent);
+            border-radius: 50%; animation: sp .7s linear infinite;
+        }
+        @keyframes sp { to { transform: rotate(360deg); } }
+        .ldg-txt { margin-top: 16px; font-size: 15px; color: var(--text-sec); }
+        .ldg-sub { margin-top: 4px; font-size: 13px; color: #bbb; }
+
+        /* Results */
+        .res-wrap {
+            max-width: 1000px; margin: 0 auto; width: 100%;
+        }
+        .res-top {
+            width: 100%;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .res-top h2 { font-size: 17px; font-weight: 500; }
+        .res-actions-top {
+            display: flex; gap: 10px;
+        }
+        .new-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 14px; background: var(--card);
+            border: 1px solid var(--border); border-radius: var(--radius-s);
+            font-size: 13px; cursor: pointer; font-family: inherit;
+            transition: all .15s; color: var(--text-sec);
+        }
+        .new-btn:hover { border-color: #999; color: var(--text); }
+
+        .res-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .res-grid { grid-template-columns: 1fr; }
+        }
+
+        .res-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        .res-card-img {
+            padding: 12px;
+            display: flex; align-items: center; justify-content: center;
+            background: #fafafa;
+        }
+        .res-card-img img {
+            max-width: 100%; max-height: 380px;
+            object-fit: contain; border-radius: 4px;
+        }
+        .res-card-actions {
+            padding: 14px;
+            display: flex; flex-wrap: wrap;
+            gap: 8px; justify-content: center;
+        }
+        .dl-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 9px 18px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: var(--radius-s);
+            font-size: 13px; font-weight: 500;
+            cursor: pointer; font-family: inherit;
+            transition: all .2s;
+            text-decoration: none;
+        }
+        .dl-btn:hover { background: var(--accent-h); }
+        .bg-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 9px 18px;
+            background: var(--card); color: var(--text-sec);
+            border: 1px solid var(--border); border-radius: var(--radius-s);
+            font-size: 13px; cursor: pointer; font-family: inherit;
+            transition: all .15s;
+        }
+        .bg-btn:hover { border-color: #999; color: var(--text); }
+        .bg-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .dl-bg-btn {
+            display: none; align-items: center; gap: 6px;
+            padding: 9px 18px;
+            background: #fff; color: var(--text);
+            border: 1px solid var(--accent); border-radius: var(--radius-s);
+            font-size: 13px; font-weight: 500;
+            cursor: pointer; font-family: inherit;
+            transition: all .2s;
+            text-decoration: none;
+        }
+        .dl-bg-btn:hover { background: #f5f5f7; }
+
+        /* Error */
+        .err { text-align: center; padding: 40px; }
+        .err-ico { font-size: 40px; margin-bottom: 16px; }
+        .err-t { font-size: 17px; font-weight: 500; margin-bottom: 8px; }
+        .err-d { font-size: 14px; color: var(--text-sec); line-height: 1.7; max-width: 400px; margin: 0 auto; }
+        .retry-btn {
+            margin-top: 16px; padding: 10px 28px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: var(--radius-s);
+            cursor: pointer; font-size: 14px; font-family: inherit;
+        }
+
+        /* Responsive */
+        @media (max-width: 860px) {
+            .wrap { flex-direction: column; height: auto; }
+            .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
+            .right { min-height: 50vh; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page">
+<!-- Header -->
+<div class="hdr">
+    <div class="hdr-logo">景</div>
+    <span class="hdr-title">娜家场景生图</span>
+    <span class="hdr-sub">上传产品+参考，AI生成新场景</span>
+</div>
+
+<!-- Main -->
+<div class="wrap">
+    <!-- Left Panel -->
+    <div class="left">
+        <!-- Upload Product -->
+        <div>
+            <div class="sec-label">产品白底图</div>
+            <div class="up-area" id="pdArea" onclick="$('pdFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'pd')">
+                <input type="file" id="pdFile" accept="image/*" style="display:none" onchange="pdSel(event)">
+                <div id="pdContent">
+                    <div class="up-ico">📦</div>
+                    <div class="up-txt">上传产品白底图</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Reference -->
+        <div>
+            <div class="sec-label">参考风格图</div>
+            <div class="up-area" id="refArea" onclick="$('refFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'ref')">
+                <input type="file" id="refFile" accept="image/*" style="display:none" onchange="refSel(event)">
+                <div id="refContent">
+                    <div class="up-ico">🎨</div>
+                    <div class="up-txt">上传参考风格图</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成场景</button>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right" id="right">
+        <!-- Empty State -->
+        <div class="empty" id="vEmpty">
+            <div class="empty-ico"><span>◇</span></div>
+            <div class="empty-t">准备开始</div>
+            <div class="empty-d">上传产品白底图和参考风格图，AI分析风格后生成全新场景效果图</div>
+        </div>
+
+        <!-- Loading -->
+        <div class="ldg" id="vLoad" style="display:none">
+            <div class="spin"></div>
+            <div class="ldg-txt" id="ldgTxt">正在分析参考图风格...</div>
+            <div class="ldg-sub" id="ldgSub">大约需要20-40秒</div>
+        </div>
+
+        <!-- Result -->
+        <div class="res-wrap" id="vRes" style="display:none">
+            <div class="res-top">
+                <h2>场景生成结果</h2>
+                <div class="res-actions-top">
+                    <button class="new-btn" onclick="generate()">再生成一次</button>
+                    <button class="new-btn" onclick="resetAll()">重新开始</button>
+                </div>
+            </div>
+            <div class="res-grid" id="resGrid"></div>
+        </div>
+
+        <!-- Error -->
+        <div class="err" id="vErr" style="display:none">
+            <div class="err-ico">✕</div>
+            <div class="err-t">生成失败</div>
+            <div class="err-d" id="errTxt">请稍后重试</div>
+            <button class="retry-btn" onclick="generate()">重新生成</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+// ===== Config =====
+const ARK_API_KEY = 'ark-32e3cca5-30ab-4d17-91c1-5024b1c57850-5bda0';
+const CHAT_API = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+const IMAGE_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
+const VISION_MODEL = 'doubao-1.5-vision-pro-32k';
+const IMAGE_MODEL = 'doubao-seedream-4-0-250828';
+
+// ===== State =====
+let productSrc = null;
+let refSrc = null;
+let scenePrompt = null;
+let bgPrompt = null;
+let effectUrls = [];
+let bgUrlMap = {};
+let busy = false;
+
+const $ = id => document.getElementById(id);
+
+// ===== Drag & Drop =====
+function dOver(e, el) { e.preventDefault(); el.style.borderColor = '#999'; }
+function dLeave(e, el) { if (!el.classList.contains('has')) el.style.borderColor = ''; }
+function dDrop(e, el, type) {
+    e.preventDefault(); e.stopPropagation();
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) {
+        if (type === 'pd') loadPd(f);
+        else loadRef(f);
+    }
+}
+
+function pdSel(e) { const f = e.target.files[0]; if (f) loadPd(f); }
+function refSel(e) { const f = e.target.files[0]; if (f) loadRef(f); }
+
+// ===== Load Product =====
+function loadPd(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        productSrc = e.target.result;
+        showPreview('pd', productSrc);
+        updateGenBtn();
+    };
+    reader.readAsDataURL(file);
+}
+
+// ===== Load Reference =====
+function loadRef(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        refSrc = e.target.result;
+        showPreview('ref', refSrc);
+        updateGenBtn();
+    };
+    reader.readAsDataURL(file);
+}
+
+function showPreview(type, src) {
+    const areaId = type === 'pd' ? 'pdArea' : 'refArea';
+    const contentId = type === 'pd' ? 'pdContent' : 'refContent';
+    const clearFn = type === 'pd' ? 'clearPd' : 'clearRef';
+    const area = $(areaId);
+    const content = $(contentId);
+    area.classList.add('has');
+    content.innerHTML = `<img src="${src}" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();${clearFn}()">×</button>`;
+}
+
+function clearPd() {
+    productSrc = null;
+    $('pdFile').value = '';
+    $('pdArea').classList.remove('has');
+    $('pdArea').style.borderColor = '';
+    $('pdContent').innerHTML = `<div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div>`;
+    updateGenBtn();
+}
+
+function clearRef() {
+    refSrc = null;
+    $('refFile').value = '';
+    $('refArea').classList.remove('has');
+    $('refArea').style.borderColor = '';
+    $('refContent').innerHTML = `<div class="up-ico">🎨</div><div class="up-txt">上传参考风格图</div>`;
+    updateGenBtn();
+}
+
+function updateGenBtn() {
+    $('genBtn').disabled = !(productSrc && refSrc);
+}
+
+// ===== Resize Image for Vision API =====
+function resizeForVision(dataUri, maxDim = 1024) {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+            if (img.width <= maxDim && img.height <= maxDim) {
+                resolve(dataUri);
+                return;
+            }
+            const scale = maxDim / Math.max(img.width, img.height);
+            const w = Math.round(img.width * scale);
+            const h = Math.round(img.height * scale);
+            const c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(c.toDataURL('image/jpeg', 0.85));
+        };
+        img.src = dataUri;
+    });
+}
+
+// ===== Step 1: Analyze Images with Vision Model =====
+async function analyzeImages() {
+    const [product, ref] = await Promise.all([
+        resizeForVision(productSrc),
+        resizeForVision(refSrc)
+    ]);
+
+    const systemPrompt = `你是专业商业产品摄影提示词专家。用户会给你两张图：第一张是产品白底图，第二张是参考风格图。
+
+你的任务：
+1. 从产品图识别产品类型、颜色、材质
+2. 从参考图提取场景风格（光影、色调、氛围、材质质感），但绝不复制参考图的具体场景元素和构图
+3. 为该产品设计一个全新的场景，只借鉴参考图的风格和氛围
+
+严格按以下格式输出，不要添加其他内容：
+
+场景提示词：[产品在新场景中的效果描述，包含场景环境、光影效果、色调氛围、风格定位，以"专业商业产品摄影"开头，以"8K高清，商业广告级质感"结尾]
+背景提示词：[纯场景描述，无产品，预留产品放置区域，以"专业商业场景摄影"开头，以"空场景预留产品放置空间，8K高清，商业广告级质感"结尾]`;
+
+    const response = await fetch(CHAT_API, {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + ARK_API_KEY,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: VISION_MODEL,
+            messages: [
+                { role: 'system', content: systemPrompt },
+                {
+                    role: 'user',
+                    content: [
+                        { type: 'image_url', image_url: { url: product } },
+                        { type: 'image_url', image_url: { url: ref } },
+                        { type: 'text', text: '请为这个产品设计一个全新场景，风格参考第二张图但不要复制其场景元素。' }
+                    ]
+                }
+            ],
+            temperature: 0.7,
+            max_tokens: 800
+        })
+    });
+
+    if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error('风格分析失败: ' + (errData.error?.message || response.status));
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || '';
+
+    // Parse prompts
+    const sceneMatch = content.match(/场景提示词[：:]\s*([\s\S]+?)(?=背景提示词|$)/);
+    const bgMatch = content.match(/背景提示词[：:]\s*([\s\S]+?)$/);
+
+    scenePrompt = sceneMatch ? sceneMatch[1].trim() : null;
+    bgPrompt = bgMatch ? bgMatch[1].trim() : null;
+
+    // Fallback if parsing failed
+    if (!scenePrompt) {
+        scenePrompt = '专业商业产品摄影，产品放置在精致场景中，柔和自然光从侧上方照射，温暖色调，现代简约风格，8K高清，商业广告级质感';
+        bgPrompt = '专业商业场景摄影，精致场景环境，柔和自然光从侧上方照射，温暖色调，现代简约风格，空场景预留产品放置空间，8K高清，商业广告级质感';
+    }
+
+    if (!bgPrompt) {
+        bgPrompt = scenePrompt.replace(/产品[^，,]*[，,]?/g, '') + '，空场景预留产品放置空间';
+    }
+
+    return { scenePrompt, bgPrompt };
+}
+
+// ===== Step 2: Generate Images with Seedream =====
+async function callSeedream(prompt) {
+    const response = await fetch(IMAGE_API, {
+        method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + ARK_API_KEY,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: IMAGE_MODEL,
+            prompt: prompt,
+            size: '2k',
+            stream: false,
+            response_format: 'url',
+            watermark: false
+        })
+    });
+
+    if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error('图片生成失败: ' + (errData.error?.message || response.status));
+    }
+
+    const data = await response.json();
+    if (data.data?.[0]?.url) return data.data[0].url;
+    if (data.data?.[0]?.error) throw new Error('图片生成错误: ' + data.data[0].error.message);
+    throw new Error('未获取到图片结果');
+}
+
+async function generateImages(prompt, count) {
+    const promises = [];
+    for (let i = 0; i < count; i++) {
+        promises.push(callSeedream(prompt));
+    }
+    return Promise.all(promises);
+}
+
+// ===== Main Generate =====
+async function generate() {
+    if (busy || !productSrc || !refSrc) return;
+    busy = true;
+    $('genBtn').disabled = true;
+
+    try {
+        // Step 1: Analyze
+        showView('l');
+        $('ldgTxt').textContent = '正在分析参考图风格...';
+        $('ldgSub').textContent = '大约需要5-10秒';
+
+        await analyzeImages();
+
+        // Step 2: Generate 2 effect images
+        $('ldgTxt').textContent = '正在生成场景图...';
+        $('ldgSub').textContent = '大约需要15-30秒';
+
+        effectUrls = await generateImages(scenePrompt, 2);
+        bgUrlMap = {};
+
+        showResults();
+
+    } catch (err) {
+        console.error(err);
+        showView('x');
+        $('errTxt').textContent = err.message || '请稍后重试';
+    } finally {
+        busy = false;
+        updateGenBtn();
+    }
+}
+
+// ===== Generate Background =====
+async function generateBg(idx) {
+    if (!bgPrompt || bgUrlMap[idx]) return;
+
+    const card = $(`resCard${idx}`);
+    const bgBtn = card.querySelector('.bg-btn');
+    bgBtn.textContent = '生成中...';
+    bgBtn.disabled = true;
+
+    try {
+        const url = await callSeedream(bgPrompt);
+        bgUrlMap[idx] = url;
+
+        bgBtn.style.display = 'none';
+        const dlBg = card.querySelector('.dl-bg-btn');
+        dlBg.style.display = 'inline-flex';
+        dlBg.href = url;
+        dlBg.download = `scene-bg-${idx + 1}.png`;
+    } catch (err) {
+        alert('背景图生成失败: ' + err.message);
+        bgBtn.textContent = '生成背景图';
+        bgBtn.disabled = false;
+    }
+}
+
+// ===== Show Results =====
+function showResults() {
+    showView('r');
+    const grid = $('resGrid');
+    grid.innerHTML = '';
+
+    effectUrls.forEach((url, idx) => {
+        const card = document.createElement('div');
+        card.className = 'res-card';
+        card.id = `resCard${idx}`;
+        card.innerHTML = `
+            <div class="res-card-img">
+                <img src="${url}" alt="场景效果图${idx + 1}">
+            </div>
+            <div class="res-card-actions">
+                <a href="${url}" class="dl-btn" download="scene-effect-${idx + 1}.png">⬇ 下载效果图</a>
+                <button class="bg-btn" onclick="generateBg(${idx})">生成背景图</button>
+                <a href="#" class="dl-bg-btn" download="scene-bg-${idx + 1}.png">⬇ 下载背景图</a>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+// ===== View Management =====
+function showView(v) {
+    $('vEmpty').style.display = v === 'e' ? 'flex' : 'none';
+    $('vLoad').style.display = v === 'l' ? 'flex' : 'none';
+    $('vRes').style.display = v === 'r' ? 'block' : 'none';
+    $('vErr').style.display = v === 'x' ? 'block' : 'none';
+}
+
+// ===== Reset =====
+function resetAll() {
+    clearPd();
+    clearRef();
+    scenePrompt = null;
+    bgPrompt = null;
+    effectUrls = [];
+    bgUrlMap = {};
+    showView('e');
+}
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', () => {
+    showView('e');
+});
+</script>
+</body>
+</html>
