@@ -302,10 +302,22 @@ async function analyzeImages() {
     return scenePrompt;
 }
 
-async function generateBg(prompt) {
+async function generateBg(prompt, refImageDataUri) {
     const fullPrompt = prompt + '，严格只包含上述描述的元素，不添加任何额外的物品或装饰';
+    const bodyObj = {
+        model: IMAGE_MODEL,
+        prompt: fullPrompt,
+        size: IMAGE_SIZE,
+        stream: false,
+        response_format: 'b64_json',
+        watermark: false
+    };
+    // Pass reference image so the model can see the actual color tone and style
+    if (refImageDataUri) {
+        bodyObj.image = refImageDataUri;
+    }
     const r = await fetch(IMAGE_API, { method: 'POST', headers: { 'Authorization': 'Bearer ' + ARK_API_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: IMAGE_MODEL, prompt: fullPrompt, size: IMAGE_SIZE, stream: false, response_format: 'b64_json', watermark: false }) });
+        body: JSON.stringify(bodyObj) });
     if (!r.ok) { const ed = await r.json().catch(() => ({})); throw new Error('背景生成失败: ' + (ed.error?.message || r.status)); }
     const data = await r.json();
     if (data.data?.[0]?.b64_json) return 'data:image/png;base64,' + data.data[0].b64_json;
@@ -342,7 +354,8 @@ async function generate() {
         await analyzeImages();
 
         setStep(2); $('ldgTxt').textContent = '正在生成场景背景...'; $('ldgSub').textContent = '大约需要15-30秒';
-        const bgDataUris = await Promise.all([generateBg(scenePrompt), generateBg(scenePrompt)]);
+        const resizedRef = await resizeForAPI(refSrc, 1024);
+        const bgDataUris = await Promise.all([generateBg(scenePrompt, resizedRef), generateBg(scenePrompt, resizedRef)]);
 
         setStep(3); $('ldgTxt').textContent = '正在融合产品到场景...'; $('ldgSub').textContent = '大约需要15-30秒';
         const results = [];
