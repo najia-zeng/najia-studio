@@ -37,11 +37,14 @@
         }
         .brand-logo {
             width: 36px; height: 36px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; font-weight: 700; font-size: 18px;
+            overflow: hidden;
             flex-shrink: 0;
+            background: #000;
+        }
+        .brand-logo img {
+            width: 100%; height: 100%;
+            object-fit: cover;
         }
         .brand-name {
             color: var(--sidebar-text);
@@ -134,9 +137,9 @@
     <div class="sidebar">
         <div class="sidebar-brand">
             <div class="brand-row">
-                <div class="brand-logo">娜</div>
+                <div class="brand-logo"><img src="logo.jpg" alt="NQ"></div>
                 <div>
-                    <div class="brand-name">娜家工作室</div>
+                    <div class="brand-name">NA VISION</div>
                     <div class="brand-sub">AI产品图工具</div>
                 </div>
             </div>
@@ -162,7 +165,7 @@
             </button>
         </div>
 
-        <div class="sidebar-footer">© 娜家工作室</div>
+        <div class="sidebar-footer">© NA VISION</div>
     </div>
 
     <div class="content">
