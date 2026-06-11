@@ -261,12 +261,14 @@ async function analyzeImages() {
 
 你的任务：
 1. 从产品图识别产品类型、颜色、材质
-2. 从参考图提取场景风格（光影、色调、氛围、材质质感），但绝不复制参考图的具体场景元素和构图
-3. 为该产品设计一个全新的场景，只借鉴参考图的风格和氛围
+2. 从参考图中逐一识别所有可见的具体物品和元素（如木桩、救生圈、渔网、绳子、石头、植物等），以及场景环境（如海边、室内等）和光影色调氛围
+3. 生成场景提示词时，必须只包含参考图中存在的元素，严禁添加参考图中没有的任何物品或元素
+
+【核心规则】元素守恒：参考图有什么元素，提示词就只写什么元素；参考图没有的，绝不自行添加。宁可少写也不要多写。
 
 严格按以下格式输出，不要添加其他内容：
 
-场景提示词：[纯场景环境描述，不包含任何产品，预留产品放置区域，以"专业商业场景摄影"开头，以"空场景预留产品放置空间，8K高清，商业广告级质感"结尾]`;
+场景提示词：[纯场景环境描述，只包含参考图中存在的具体元素和风格，不包含任何产品，预留产品放置区域，以"专业商业场景摄影"开头，以"空场景预留产品放置空间，8K高清，商业广告级质感"结尾]`;
 
     const response = await fetch(CHAT_API, {
         method: 'POST',
@@ -278,10 +280,10 @@ async function analyzeImages() {
                 { role: 'user', content: [
                     { type: 'image_url', image_url: { url: product } },
                     { type: 'image_url', image_url: { url: ref } },
-                    { type: 'text', text: '请为这个产品设计一个全新场景，风格参考第二张图但不要复制其场景元素。只输出纯场景提示词，不包含产品。' }
+                    { type: 'text', text: '请仔细识别第二张参考图中所有可见的具体物品和元素，只为这个产品生成包含相同元素的场景提示词。绝不添加参考图中没有的任何元素。只输出纯场景提示词，不包含产品。' }
                 ] }
             ],
-            temperature: 0.7, max_tokens: 500
+            temperature: 0.5, max_tokens: 500
         })
     });
     if (!response.ok) { const ed = await response.json().catch(() => ({})); throw new Error('风格分析失败: ' + (ed.error?.message || response.status)); }
@@ -293,8 +295,9 @@ async function analyzeImages() {
 }
 
 async function generateBg(prompt) {
+    const fullPrompt = prompt + '，严格只包含上述描述的元素，不添加任何额外的物品或装饰';
     const r = await fetch(IMAGE_API, { method: 'POST', headers: { 'Authorization': 'Bearer ' + ARK_API_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: IMAGE_MODEL, prompt, size: IMAGE_SIZE, stream: false, response_format: 'url', watermark: false }) });
+        body: JSON.stringify({ model: IMAGE_MODEL, prompt: fullPrompt, size: IMAGE_SIZE, stream: false, response_format: 'url', watermark: false }) });
     if (!r.ok) { const ed = await r.json().catch(() => ({})); throw new Error('背景生成失败: ' + (ed.error?.message || r.status)); }
     const data = await r.json();
     if (data.data?.[0]?.url) return data.data[0].url;
