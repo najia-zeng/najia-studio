@@ -326,9 +326,13 @@ async function analyzeImages() {
 }
 
 async function generateSceneImage(prompt) {
+    // 提取⑥负面避坑内容，在末尾再强调一遍
+    const negMatch = prompt.match(/⑥\s*负面避坑[：:]\s*([\s\S]+?)$/);
+    const negReminder = negMatch ? '。严格约束：' + negMatch[1].trim() : '';
+    const fullPrompt = prompt + negReminder;
     const bodyObj = {
         model: IMAGE_MODEL,
-        prompt: prompt,
+        prompt: fullPrompt,
         size: IMAGE_SIZE,
         stream: false,
         response_format: 'b64_json',
