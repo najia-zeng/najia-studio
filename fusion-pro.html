@@ -51,10 +51,10 @@
             background: var(--accent);
             border-radius: 9px;
             display: flex; align-items: center; justify-content: center;
-            color: #fff; font-weight: 700; font-size: 15px;
+            color: #fff; font-weight: 700; font-size: 17px;
         }
-        .hdr-title { font-weight: 600; font-size: 16px; }
-        .hdr-sub { font-size: 12px; color: var(--text-sec); margin-left: 4px; }
+        .hdr-title { font-weight: 600; font-size: 18px; }
+        .hdr-sub { font-size: 13px; color: var(--text-sec); margin-left: 4px; }
 
         /* ===== Layout ===== */
         .wrap { display: flex; height: calc(100vh - 56px); }
@@ -72,7 +72,7 @@
         .left::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
 
         .sec-label {
-            font-size: 11px; font-weight: 600;
+            font-size: 13px; font-weight: 600;
             color: var(--text-sec);
             letter-spacing: 1px;
         }
@@ -92,9 +92,9 @@
         }
         .up-area:hover { border-color: #999; }
         .up-area.has { border-style: solid; border-color: var(--accent); padding: 8px; background: #fff; }
-        .up-ico { font-size: 22px; margin-bottom: 6px; color: #bbb; }
-        .up-txt { font-size: 13px; color: var(--text-sec); line-height: 1.5; }
-        .up-hint { font-size: 11px; color: #ccc; margin-top: 3px; }
+        .up-ico { font-size: 26px; margin-bottom: 6px; color: #bbb; }
+        .up-txt { font-size: 14px; color: var(--text-sec); line-height: 1.5; }
+        .up-hint { font-size: 12px; color: #ccc; margin-top: 3px; }
         .up-prev { max-width: 100%; max-height: 140px; border-radius: 6px; object-fit: contain; }
         .up-rm {
             position: absolute; top: 6px; right: 6px;
@@ -112,7 +112,7 @@
             width: 100%; padding: 14px;
             background: var(--accent); color: #fff;
             border: none; border-radius: var(--radius-s);
-            font-size: 15px; font-weight: 500;
+            font-size: 16px; font-weight: 500;
             cursor: pointer; font-family: inherit;
             transition: all .2s;
         }
@@ -153,8 +153,8 @@
             margin-bottom: 24px;
         }
         .empty-ico span { transform: rotate(-45deg); font-size: 24px; color: #ccc; }
-        .empty-t { font-size: 18px; font-weight: 500; margin-bottom: 8px; }
-        .empty-d { font-size: 13px; color: var(--text-sec); max-width: 320px; line-height: 1.7; }
+        .empty-t { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+        .empty-d { font-size: 14px; color: var(--text-sec); max-width: 320px; line-height: 1.7; }
 
         /* Loading */
         .ldg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -164,8 +164,8 @@
             border-radius: 50%; animation: sp .7s linear infinite;
         }
         @keyframes sp { to { transform: rotate(360deg); } }
-        .ldg-txt { margin-top: 16px; font-size: 14px; color: var(--text-sec); }
-        .ldg-sub { margin-top: 4px; font-size: 12px; color: #bbb; }
+        .ldg-txt { margin-top: 16px; font-size: 15px; color: var(--text-sec); }
+        .ldg-sub { margin-top: 4px; font-size: 13px; color: #bbb; }
 
         /* Result */
         .res-wrap {
@@ -178,12 +178,12 @@
             margin-bottom: 20px; padding-bottom: 16px;
             border-bottom: 1px solid var(--border);
         }
-        .res-top h2 { font-size: 16px; font-weight: 500; }
+        .res-top h2 { font-size: 17px; font-weight: 500; }
         .new-btn {
             display: inline-flex; align-items: center; gap: 6px;
             padding: 7px 14px; background: var(--card);
             border: 1px solid var(--border); border-radius: var(--radius-s);
-            font-size: 12px; cursor: pointer; font-family: inherit;
+            font-size: 13px; cursor: pointer; font-family: inherit;
             transition: all .15s; color: var(--text-sec);
         }
         .new-btn:hover { border-color: #999; color: var(--text); }
@@ -206,7 +206,7 @@
             padding: 10px 24px;
             background: var(--accent); color: #fff;
             border: none; border-radius: var(--radius-s);
-            font-size: 13px; font-weight: 500;
+            font-size: 14px; font-weight: 500;
             cursor: pointer; font-family: inherit;
             transition: all .2s;
             text-decoration: none;
@@ -217,7 +217,7 @@
             padding: 10px 24px;
             background: var(--card); color: var(--text-sec);
             border: 1px solid var(--border); border-radius: var(--radius-s);
-            font-size: 13px; cursor: pointer; font-family: inherit;
+            font-size: 14px; cursor: pointer; font-family: inherit;
             transition: all .15s;
         }
         .retry-btn2:hover { border-color: #999; color: var(--text); }
@@ -225,13 +225,13 @@
         /* Error */
         .err { text-align: center; padding: 40px; }
         .err-ico { font-size: 40px; margin-bottom: 16px; }
-        .err-t { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
-        .err-d { font-size: 13px; color: var(--text-sec); line-height: 1.7; max-width: 400px; margin: 0 auto; }
+        .err-t { font-size: 17px; font-weight: 500; margin-bottom: 8px; }
+        .err-d { font-size: 14px; color: var(--text-sec); line-height: 1.7; max-width: 400px; margin: 0 auto; }
         .retry-btn {
             margin-top: 16px; padding: 10px 28px;
             background: var(--accent); color: #fff;
             border: none; border-radius: var(--radius-s);
-            cursor: pointer; font-size: 13px; font-family: inherit;
+            cursor: pointer; font-size: 14px; font-family: inherit;
         }
 
         /* Canvas tip bar */
@@ -239,7 +239,7 @@
             position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,.55); color: #fff;
             padding: 6px 16px; border-radius: 20px;
-            font-size: 11px; pointer-events: none;
+            font-size: 12px; pointer-events: none;
             white-space: nowrap; z-index: 5;
             opacity: 0; transition: opacity .3s;
         }
