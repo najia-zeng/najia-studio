@@ -153,6 +153,10 @@
                 </div>
             </div>
             <div id="resContent"></div>
+            <div id="promptDebug" style="display:none;margin-top:16px;padding:14px;background:#f9f9fb;border:1px solid var(--border);border-radius:var(--radius-s);font-size:12px;color:var(--text-sec);line-height:1.6;">
+                <div style="font-weight:600;margin-bottom:6px;color:var(--text);">📝 生成提示词（调试用）</div>
+                <div id="promptText"></div>
+            </div>
         </div>
         <div class="err" id="vErr" style="display:none">
             <div class="err-ico">✕</div>
@@ -261,14 +265,18 @@ async function analyzeImages() {
 
 你的任务：
 1. 从产品图识别产品类型、颜色、材质
-2. 从参考图中逐一识别所有可见的具体物品和元素（如木桩、救生圈、渔网、绳子、石头、植物等），以及场景环境（如海边、室内等）和光影色调氛围
-3. 生成场景提示词时，必须只包含参考图中存在的元素，严禁添加参考图中没有的任何物品或元素
+2. 从参考图中逐一识别所有可见的具体物品和元素（如木桩、救生圈、渔网、绳子、石头、植物、网球、文字标识等），以及场景环境（如海边、网球场、室内等）
+3. 明确提取参考图的整体色调（如蓝色调、暖棕色调、冷灰色调等）和光影方向
+4. 生成场景提示词时，必须严格复刻参考图的色调、光影和元素，严禁替换为其他色调或风格
 
-【核心规则】元素守恒：参考图有什么元素，提示词就只写什么元素；参考图没有的，绝不自行添加。宁可少写也不要多写。
+【核心规则】
+- 元素守恒：参考图有什么元素，提示词就只写什么元素；参考图没有的，绝不自行添加
+- 色调守恒：参考图是什么色调，提示词必须明确指定相同色调，绝不能替换成其他色调
+- 光影守恒：参考图的光影方向和氛围必须保留
 
 严格按以下格式输出，不要添加其他内容：
 
-场景提示词：[纯场景环境描述，只包含参考图中存在的具体元素和风格，不包含任何产品，预留产品放置区域，以"专业商业场景摄影"开头，以"空场景预留产品放置空间，8K高清，商业广告级质感"结尾]`;
+场景提示词：[纯场景环境描述，必须以参考图的实际色调开头（如"蓝色调场景"），只包含参考图中存在的具体元素和风格，不包含任何产品，预留产品放置区域，以"专业商业场景摄影"开头，以"空场景预留产品放置空间，8K高清，商业广告级质感"结尾]`;
 
     const response = await fetch(CHAT_API, {
         method: 'POST',
@@ -358,6 +366,11 @@ function showResults(results) {
     showView('r');
     const container = $('resContent');
     container.innerHTML = '';
+    // Show generated prompt for debugging
+    if (scenePrompt) {
+        $('promptDebug').style.display = 'block';
+        $('promptText').textContent = scenePrompt;
+    }
     results.forEach((r, idx) => {
         const group = document.createElement('div');
         group.className = 'scene-group';
@@ -390,7 +403,7 @@ function showView(v) {
     $('vErr').style.display = v === 'x' ? 'block' : 'none';
 }
 
-function resetAll() { clearPd(); clearRef(); scenePrompt = null; showView('e'); }
+function resetAll() { clearPd(); clearRef(); scenePrompt = null; $('promptDebug').style.display = 'none'; showView('e'); }
 document.addEventListener('DOMContentLoaded', () => { showView('e'); });
 </script>
 </body>
