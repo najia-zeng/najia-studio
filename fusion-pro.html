@@ -413,7 +413,7 @@
 const ARK_API_KEY = 'ark-32e3cca5-30ab-4d17-91c1-5024b1c57850-5bda0';
 const ARK_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
 const MODEL = 'doubao-seedream-4-0-250828';
-const FUSION_PROMPT = '严格保持原始背景场景的构图、色调和所有元素完全不变，仅对产品与背景的交界处进行自然融合处理，消除产品的白边和悬浮感，产品表面呈现真实的环境反射：环境主光源在产品边缘形成自然高光，环境色调映射在产品表面，产品底部有柔和接触阴影，产品与背景之间自然过渡无白色边缘，不改变不添加不删除背景中的任何元素，画面真实自然，8K高清，商业广告级质感';
+const FUSION_PROMPT = '专业商业产品场景摄影，产品完全融入周围环境场景，产品表面呈现真实的环境反射：环境主光源在产品边缘形成自然高光，环境色调映射在产品表面，产品底部有柔和接触阴影，产品与背景之间自然过渡无白色边缘，整体画面光影和谐统一，画面真实自然，8K高清，商业广告级质感';
 
 // ===== State =====
 let bgFile = null, bgDataUri = null, bgNatW = 0, bgNatH = 0;
@@ -478,11 +478,11 @@ function loadPd(file) {
     const reader = new FileReader();
     reader.onload = e => {
         pdOriginalSrc = e.target.result;
-        // Auto-crop + white-to-transparent
-        processProductImage(pdOriginalSrc, parseInt($('cropSlider').value)).then(processed => {
-            pdCroppedSrc = processed;
-            showPdPreview(processed);
-            if (fCanvas) addProductToCanvas(processed);
+        // Auto-crop white borders (keep white background, AI will blend it)
+        autoCrop(pdOriginalSrc, parseInt($('cropSlider').value)).then(cropped => {
+            pdCroppedSrc = cropped;
+            showPdPreview(cropped);
+            if (fCanvas) addProductToCanvas(cropped);
             else {
                 showView('e');
             }
@@ -599,48 +599,6 @@ function autoCrop(imgSrc, threshold) {
     });
 }
 
-// ===== White-to-Transparent =====
-function whiteToTransparent(imgSrc, threshold) {
-    return new Promise(resolve => {
-        const img = new Image();
-        img.onload = () => {
-            const c = document.createElement('canvas');
-            c.width = img.width;
-            c.height = img.height;
-            const ctx = c.getContext('2d');
-            ctx.drawImage(img, 0, 0);
-            const imageData = ctx.getImageData(0, 0, c.width, c.height);
-            const d = imageData.data;
-            const feather = 25; // feather width for smooth edges
-
-            for (let i = 0; i < d.length; i += 4) {
-                const r = d[i], g = d[i + 1], b = d[i + 2];
-                const minC = Math.min(r, g, b);
-                if (minC >= threshold) {
-                    // Fully white → fully transparent
-                    d[i + 3] = 0;
-                } else if (minC >= threshold - feather) {
-                    // Feather zone → gradual transparency
-                    const t = (minC - (threshold - feather)) / feather; // 0→1
-                    d[i + 3] = Math.round((1 - t) * 255);
-                }
-                // else: keep original alpha (255)
-            }
-
-            ctx.putImageData(imageData, 0, 0);
-            resolve(c.toDataURL('image/png'));
-        };
-        img.src = imgSrc;
-    });
-}
-
-// ===== Process Product: Crop + Remove White BG =====
-async function processProductImage(src, threshold) {
-    const cropped = await autoCrop(src, threshold);
-    const transparent = await whiteToTransparent(cropped, threshold);
-    return transparent;
-}
-
 // ===== Slider Handlers =====
 function onCropChange(val) {
     $('cropVal').textContent = val;
@@ -648,9 +606,9 @@ function onCropChange(val) {
     clearTimeout(cropTimeout);
     cropTimeout = setTimeout(() => {
         if (!pdOriginalSrc) return;
-        processProductImage(pdOriginalSrc, parseInt(val)).then(processed => {
-            pdCroppedSrc = processed;
-            showPdPreview(processed);
+        autoCrop(pdOriginalSrc, parseInt(val)).then(cropped => {
+            pdCroppedSrc = cropped;
+            showPdPreview(cropped);
             if (fCanvas && productObj) {
                 const pos = {
                     left: productObj.left,
@@ -660,7 +618,7 @@ function onCropChange(val) {
                     angle: productObj.angle,
                 };
                 fCanvas.remove(productObj);
-                addProductToCanvas(processed, pos);
+                addProductToCanvas(cropped, pos);
             }
         });
     }, 200);
@@ -876,7 +834,6 @@ async function generate() {
                 prompt: FUSION_PROMPT,
                 image: compositeDataUri,
                 size: '2k',
-                strength: 0.45,
                 stream: false,
                 response_format: 'url',
                 watermark: false
