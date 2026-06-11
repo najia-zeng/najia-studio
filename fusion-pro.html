@@ -61,12 +61,12 @@
 
         /* ===== Left ===== */
         .left {
-            width: 380px; min-width: 380px;
+            width: 340px; min-width: 340px;
             background: var(--card);
             border-right: 1px solid var(--border);
             padding: 24px 20px;
             overflow-y: auto;
-            display: flex; flex-direction: column; gap: 16px;
+            display: flex; flex-direction: column; gap: 20px;
         }
         .left::-webkit-scrollbar { width: 4px; }
         .left::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
@@ -75,27 +75,26 @@
             font-size: 11px; font-weight: 600;
             color: var(--text-sec);
             letter-spacing: 1px;
-            text-transform: uppercase;
         }
 
         /* Upload */
         .up-area {
             border: 1px dashed var(--border);
             border-radius: var(--radius-s);
-            padding: 20px 14px;
+            padding: 24px 14px;
             text-align: center;
             cursor: pointer;
             transition: all .2s;
             position: relative;
             background: #fafafa;
-            min-height: 90px;
+            min-height: 100px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .up-area:hover { border-color: #999; }
-        .up-area.has { border-style: solid; border-color: var(--accent); padding: 6px; background: #fff; }
-        .up-ico { font-size: 20px; margin-bottom: 6px; color: #bbb; }
-        .up-txt { font-size: 12px; color: var(--text-sec); line-height: 1.5; }
-        .up-hint { font-size: 10px; color: #ccc; margin-top: 2px; }
+        .up-area.has { border-style: solid; border-color: var(--accent); padding: 8px; background: #fff; }
+        .up-ico { font-size: 22px; margin-bottom: 6px; color: #bbb; }
+        .up-txt { font-size: 13px; color: var(--text-sec); line-height: 1.5; }
+        .up-hint { font-size: 11px; color: #ccc; margin-top: 3px; }
         .up-prev { max-width: 100%; max-height: 140px; border-radius: 6px; object-fit: contain; }
         .up-rm {
             position: absolute; top: 6px; right: 6px;
@@ -108,47 +107,12 @@
         }
         .up-rm:hover { background: rgba(0,0,0,.7); }
 
-        /* Slider row */
-        .slider-row {
-            display: flex; align-items: center; gap: 10px;
-        }
-        .slider-row label {
-            font-size: 12px; color: var(--text-sec); white-space: nowrap; min-width: 52px;
-        }
-        .slider-row input[type=range] {
-            flex: 1; height: 4px; -webkit-appearance: none; background: var(--border); border-radius: 2px; outline: none;
-        }
-        .slider-row input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer;
-        }
-        .slider-row .val {
-            font-size: 12px; font-weight: 500; min-width: 32px; text-align: right; color: var(--text);
-        }
-
-        /* Steps */
-        .steps {
-            background: #f8f8fa;
-            border-radius: var(--radius-s);
-            padding: 12px 14px;
-            font-size: 11px;
-            line-height: 2;
-            color: var(--text-sec);
-        }
-        .steps b { color: var(--text); display: block; margin-bottom: 2px; font-size: 12px; }
-        .step-num {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 16px; height: 16px;
-            background: var(--accent); color: #fff;
-            border-radius: 50%; font-size: 9px; font-weight: 600;
-            margin-right: 5px; vertical-align: middle;
-        }
-
         /* Generate button */
         .gen-btn {
-            width: 100%; padding: 12px;
+            width: 100%; padding: 14px;
             background: var(--accent); color: #fff;
             border: none; border-radius: var(--radius-s);
-            font-size: 14px; font-weight: 500;
+            font-size: 15px; font-weight: 500;
             cursor: pointer; font-family: inherit;
             transition: all .2s;
             margin-top: auto;
@@ -174,9 +138,7 @@
             position: relative;
             min-height: 400px;
         }
-        .canvas-wrap canvas {
-            display: block;
-        }
+        .canvas-wrap canvas { display: block; }
 
         /* Empty */
         .empty {
@@ -193,7 +155,7 @@
         }
         .empty-ico span { transform: rotate(-45deg); font-size: 24px; color: #ccc; }
         .empty-t { font-size: 18px; font-weight: 500; margin-bottom: 8px; }
-        .empty-d { font-size: 13px; color: var(--text-sec); max-width: 360px; line-height: 1.7; }
+        .empty-d { font-size: 13px; color: var(--text-sec); max-width: 320px; line-height: 1.7; }
 
         /* Loading */
         .ldg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -276,7 +238,7 @@
         /* Canvas tip bar */
         .canvas-tip {
             position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,.6); color: #fff;
+            background: rgba(0,0,0,.55); color: #fff;
             padding: 6px 16px; border-radius: 20px;
             font-size: 11px; pointer-events: none;
             white-space: nowrap; z-index: 5;
@@ -307,54 +269,27 @@
     <!-- Left Panel -->
     <div class="left">
         <!-- Upload Background -->
-        <div class="sec-label">上传背景图</div>
-        <div class="up-area" id="bgArea" onclick="$('bgFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'bg')">
-            <input type="file" id="bgFile" accept="image/*" style="display:none" onchange="bgSel(event)">
-            <div id="bgContent">
-                <div class="up-ico">🖼</div>
-                <div class="up-txt">点击上传背景图</div>
-                <div class="up-hint">用扩词器生成的场景图</div>
+        <div>
+            <div class="sec-label">背景图</div>
+            <div class="up-area" id="bgArea" onclick="$('bgFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'bg')">
+                <input type="file" id="bgFile" accept="image/*" style="display:none" onchange="bgSel(event)">
+                <div id="bgContent">
+                    <div class="up-ico">🖼</div>
+                    <div class="up-txt">上传背景图</div>
+                </div>
             </div>
         </div>
 
         <!-- Upload Product -->
-        <div class="sec-label">上传产品图</div>
-        <div class="up-area" id="pdArea" onclick="$('pdFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'pd')">
-            <input type="file" id="pdFile" accept="image/*" style="display:none" onchange="pdSel(event)">
-            <div id="pdContent">
-                <div class="up-ico">📦</div>
-                <div class="up-txt">点击上传产品白底图</div>
-                <div class="up-hint">自动裁剪白边，可拖拽定位</div>
+        <div>
+            <div class="sec-label">产品图</div>
+            <div class="up-area" id="pdArea" onclick="$('pdFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'pd')">
+                <input type="file" id="pdFile" accept="image/*" style="display:none" onchange="pdSel(event)">
+                <div id="pdContent">
+                    <div class="up-ico">📦</div>
+                    <div class="up-txt">上传产品白底图</div>
+                </div>
             </div>
-        </div>
-
-        <!-- Crop Threshold -->
-        <div id="sliderSection" style="display:none">
-            <div class="sec-label" style="margin-bottom:8px">去白边阈值</div>
-            <div class="slider-row">
-                <label>留白</label>
-                <input type="range" id="cropSlider" min="200" max="255" value="240" oninput="onCropChange(this.value)">
-                <span class="val" id="cropVal">240</span>
-            </div>
-            <div style="font-size:10px;color:#bbb;margin-top:4px">自动裁剪白边并去除白色背景，值越小去越多</div>
-
-            <!-- Opacity -->
-            <div class="sec-label" style="margin-top:12px;margin-bottom:8px">产品透明度</div>
-            <div class="slider-row">
-                <label>透明</label>
-                <input type="range" id="opSlider" min="20" max="100" value="100" oninput="onOpacityChange(this.value)">
-                <span class="val" id="opVal">100%</span>
-            </div>
-            <div style="font-size:10px;color:#bbb;margin-top:4px">调低透明度方便对准位置，融合时自动恢复</div>
-        </div>
-
-        <!-- Steps -->
-        <div class="steps">
-            <b>使用步骤</b>
-            <div><span class="step-num">1</span>用扩词器生成背景图</div>
-            <div><span class="step-num">2</span>上传背景图和产品白底图</div>
-            <div><span class="step-num">3</span>拖动、缩放、旋转产品到合适位置</div>
-            <div><span class="step-num">4</span>点击开始融合，获得成品图</div>
         </div>
 
         <button class="gen-btn" id="genBtn" onclick="generate()" disabled>开始融合</button>
@@ -366,20 +301,20 @@
         <div class="empty" id="vEmpty">
             <div class="empty-ico"><span>◇</span></div>
             <div class="empty-t">准备开始</div>
-            <div class="empty-d">上传背景图和产品白底图，拖动产品到合适位置，AI帮你自然融合成商业场景图</div>
+            <div class="empty-d">上传背景图和产品白底图，拖动产品到合适位置，AI帮你自然融合</div>
         </div>
 
         <!-- Canvas State -->
         <div class="canvas-wrap" id="canvasWrap" style="display:none">
             <canvas id="mainCanvas"></canvas>
-            <div class="canvas-tip">拖动产品移动 · 角落缩放 · 顶部旋转</div>
+            <div class="canvas-tip">拖动移动 · 角落缩放 · 顶部旋转</div>
         </div>
 
         <!-- Loading -->
         <div class="ldg" id="vLoad" style="display:none">
             <div class="spin"></div>
-            <div class="ldg-txt" id="ldgTxt">正在处理图片...</div>
-            <div class="ldg-sub" id="ldgSub">融合大约需要15-30秒</div>
+            <div class="ldg-txt" id="ldgTxt">正在融合图片...</div>
+            <div class="ldg-sub" id="ldgSub">大约需要15-30秒</div>
         </div>
 
         <!-- Result -->
@@ -414,13 +349,14 @@ const ARK_API_KEY = 'ark-32e3cca5-30ab-4d17-91c1-5024b1c57850-5bda0';
 const ARK_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
 const MODEL = 'doubao-seedream-4-0-250828';
 const FUSION_PROMPT = '专业商业产品场景摄影，产品完全融入周围环境场景，产品表面呈现真实的环境反射：环境主光源在产品边缘形成自然高光，环境色调映射在产品表面，产品底部有柔和接触阴影，产品与背景之间自然过渡无白色边缘，整体画面光影和谐统一，画面真实自然，8K高清，商业广告级质感';
+const CROP_THRESHOLD = 240; // fixed threshold
+const CROP_PADDING = 20;    // white border padding for AI blending
 
 // ===== State =====
 let bgFile = null, bgDataUri = null, bgNatW = 0, bgNatH = 0;
 let pdFile = null, pdOriginalSrc = null, pdCroppedSrc = null;
 let fCanvas = null, productObj = null;
 let busy = false;
-let cropTimeout = null;
 
 const $ = id => document.getElementById(id);
 
@@ -466,7 +402,7 @@ function clearBg() {
     const area = $('bgArea');
     area.classList.remove('has');
     area.style.borderColor = '';
-    $('bgContent').innerHTML = `<div class="up-ico">🖼</div><div class="up-txt">点击上传背景图</div><div class="up-hint">用扩词器生成的场景图</div>`;
+    $('bgContent').innerHTML = `<div class="up-ico">🖼</div><div class="up-txt">上传背景图</div>`;
     destroyCanvas();
     showView('e');
     updateGenBtn();
@@ -478,15 +414,10 @@ function loadPd(file) {
     const reader = new FileReader();
     reader.onload = e => {
         pdOriginalSrc = e.target.result;
-        // Auto-crop white borders (keep white background, AI will blend it)
-        autoCrop(pdOriginalSrc, parseInt($('cropSlider').value)).then(cropped => {
+        autoCrop(pdOriginalSrc).then(cropped => {
             pdCroppedSrc = cropped;
             showPdPreview(cropped);
             if (fCanvas) addProductToCanvas(cropped);
-            else {
-                showView('e');
-            }
-            $('sliderSection').style.display = '';
             updateGenBtn();
         });
     };
@@ -506,8 +437,7 @@ function clearPd() {
     const area = $('pdArea');
     area.classList.remove('has');
     area.style.borderColor = '';
-    $('pdContent').innerHTML = `<div class="up-ico">📦</div><div class="up-txt">点击上传产品白底图</div><div class="up-hint">自动裁剪白边，可拖拽定位</div>`;
-    $('sliderSection').style.display = 'none';
+    $('pdContent').innerHTML = `<div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div>`;
     if (fCanvas && productObj) {
         fCanvas.remove(productObj);
         productObj = null;
@@ -517,7 +447,7 @@ function clearPd() {
 }
 
 // ===== Auto-Crop White Borders =====
-function autoCrop(imgSrc, threshold) {
+function autoCrop(imgSrc) {
     return new Promise(resolve => {
         const img = new Image();
         img.onload = () => {
@@ -529,10 +459,10 @@ function autoCrop(imgSrc, threshold) {
             const imageData = ctx.getImageData(0, 0, c.width, c.height);
             const d = imageData.data;
             const w = c.width, h = c.height;
+            const threshold = CROP_THRESHOLD;
 
             let top = 0, bottom = h - 1, left = 0, right = w - 1;
 
-            // Find top
             for (let y = 0; y < h; y++) {
                 let found = false;
                 for (let x = 0; x < w; x++) {
@@ -543,7 +473,6 @@ function autoCrop(imgSrc, threshold) {
                 }
                 if (found) break;
             }
-            // Find bottom
             for (let y = h - 1; y >= 0; y--) {
                 let found = false;
                 for (let x = 0; x < w; x++) {
@@ -554,7 +483,6 @@ function autoCrop(imgSrc, threshold) {
                 }
                 if (found) break;
             }
-            // Find left
             for (let x = 0; x < w; x++) {
                 let found = false;
                 for (let y = top; y <= bottom; y++) {
@@ -565,7 +493,6 @@ function autoCrop(imgSrc, threshold) {
                 }
                 if (found) break;
             }
-            // Find right
             for (let x = w - 1; x >= 0; x--) {
                 let found = false;
                 for (let y = top; y <= bottom; y++) {
@@ -577,59 +504,23 @@ function autoCrop(imgSrc, threshold) {
                 if (found) break;
             }
 
-            // Crop tight first (no padding)
             const cropW = right - left + 1;
             const cropH = bottom - top + 1;
 
-            // Add white border padding so AI has enough white area to blend
-            const pad = 20;
+            // Add white border padding for AI blending
+            const pad = CROP_PADDING;
             const cc = document.createElement('canvas');
             cc.width = cropW + pad * 2;
             cc.height = cropH + pad * 2;
             const cctx = cc.getContext('2d');
-            // Fill white background
             cctx.fillStyle = '#FFFFFF';
             cctx.fillRect(0, 0, cc.width, cc.height);
-            // Draw product in center with padding
             cctx.drawImage(img, left, top, cropW, cropH, pad, pad, cropW, cropH);
 
             resolve(cc.toDataURL('image/png'));
         };
         img.src = imgSrc;
     });
-}
-
-// ===== Slider Handlers =====
-function onCropChange(val) {
-    $('cropVal').textContent = val;
-    // Debounce: re-crop after 200ms of no changes
-    clearTimeout(cropTimeout);
-    cropTimeout = setTimeout(() => {
-        if (!pdOriginalSrc) return;
-        autoCrop(pdOriginalSrc, parseInt(val)).then(cropped => {
-            pdCroppedSrc = cropped;
-            showPdPreview(cropped);
-            if (fCanvas && productObj) {
-                const pos = {
-                    left: productObj.left,
-                    top: productObj.top,
-                    scaleX: productObj.scaleX,
-                    scaleY: productObj.scaleY,
-                    angle: productObj.angle,
-                };
-                fCanvas.remove(productObj);
-                addProductToCanvas(cropped, pos);
-            }
-        });
-    }, 200);
-}
-
-function onOpacityChange(val) {
-    $('opVal').textContent = val + '%';
-    if (productObj) {
-        productObj.set('opacity', val / 100);
-        fCanvas.renderAll();
-    }
 }
 
 // ===== Fabric.js Canvas =====
@@ -639,7 +530,6 @@ function initCanvasWithBg(dataUri) {
         bgNatW = img.width;
         bgNatH = img.height;
 
-        // Cap internal resolution at 2048
         let intW = img.width, intH = img.height;
         if (intW > 2048 || intH > 2048) {
             const s = 2048 / Math.max(intW, intH);
@@ -647,11 +537,9 @@ function initCanvasWithBg(dataUri) {
             intH = Math.round(intH * s);
         }
 
-        // Show canvas area
         $('vEmpty').style.display = 'none';
         $('canvasWrap').style.display = 'flex';
 
-        // Calculate display size to fit container
         const container = $('canvasWrap');
         const maxW = container.clientWidth - 32;
         const maxH = container.clientHeight - 32;
@@ -659,13 +547,11 @@ function initCanvasWithBg(dataUri) {
         const dispW = Math.round(intW * dispScale);
         const dispH = Math.round(intH * dispScale);
 
-        // Init or resize fabric canvas
         if (!fCanvas) {
             fCanvas = new fabric.Canvas('mainCanvas', {
                 selection: false,
                 preserveObjectStacking: true,
             });
-            // Style controls
             fabric.Object.prototype.set({
                 cornerSize: 10,
                 cornerColor: '#1d1d1f',
@@ -680,14 +566,10 @@ function initCanvasWithBg(dataUri) {
         fCanvas.clear();
         productObj = null;
 
-        // Set canvas dimensions
         fCanvas.setWidth(dispW);
         fCanvas.setHeight(dispH);
 
-        // Add background image
         fabric.Image.fromURL(dataUri, function(fImg) {
-            const bgScaleX = intW / fImg.width;
-            const bgScaleY = intH / fImg.height;
             fImg.set({
                 scaleX: dispW / fImg.width,
                 scaleY: dispH / fImg.height,
@@ -696,7 +578,6 @@ function initCanvasWithBg(dataUri) {
             });
             fCanvas.setBackgroundImage(fImg, fCanvas.renderAll.bind(fCanvas));
 
-            // Add product if already loaded
             if (pdCroppedSrc) {
                 addProductToCanvas(pdCroppedSrc);
             }
@@ -709,7 +590,6 @@ function addProductToCanvas(src, savedPos) {
     if (!fCanvas) return;
 
     fabric.Image.fromURL(src, function(img) {
-        // Scale product to ~35% of canvas width
         const targetW = fCanvas.getWidth() * 0.35;
         const scale = targetW / img.width;
 
@@ -730,13 +610,7 @@ function addProductToCanvas(src, savedPos) {
             });
         }
 
-        // Apply current opacity
-        img.set('opacity', parseInt($('opSlider').value) / 100);
-
-        img.set({
-            hasRotatingPoint: true,
-            lockUniScaling: false,
-        });
+        img.set({ hasRotatingPoint: true, lockUniScaling: false });
 
         fCanvas.add(img);
         fCanvas.setActiveObject(img);
@@ -753,7 +627,6 @@ function destroyCanvas() {
         productObj = null;
     }
     $('canvasWrap').style.display = 'none';
-    // Re-create the canvas element since dispose removes it
     const wrap = $('canvasWrap');
     const oldC = $('mainCanvas');
     if (oldC) oldC.remove();
@@ -766,12 +639,6 @@ function destroyCanvas() {
 function exportComposite() {
     if (!fCanvas || !productObj) return null;
 
-    // Save current opacity and set to 1 for export
-    const savedOpacity = productObj.opacity;
-    productObj.set('opacity', 1);
-    fCanvas.renderAll();
-
-    // Calculate multiplier for full background resolution
     const multiplier = bgNatW / fCanvas.getWidth();
 
     const dataUrl = fCanvas.toDataURL({
@@ -779,10 +646,6 @@ function exportComposite() {
         multiplier: multiplier,
         quality: 1,
     });
-
-    // Restore opacity
-    productObj.set('opacity', savedOpacity);
-    fCanvas.renderAll();
 
     return dataUrl;
 }
@@ -811,17 +674,12 @@ async function generate() {
     $('genBtn').disabled = true;
 
     try {
-        // Step 1: Export composite
-        $('ldgTxt').textContent = '正在合成图片...';
-        $('ldgSub').textContent = '导出画布内容';
+        $('ldgTxt').textContent = '正在融合图片...';
+        $('ldgSub').textContent = '大约需要15-30秒';
         showView('l');
 
         const compositeDataUri = exportComposite();
         if (!compositeDataUri) throw new Error('画布导出失败');
-
-        // Step 2: Call Seedream API
-        $('ldgTxt').textContent = '正在融合图片...';
-        $('ldgSub').textContent = '融合大约需要15-30秒';
 
         const res = await fetch(ARK_API, {
             method: 'POST',
