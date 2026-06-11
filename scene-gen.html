@@ -297,9 +297,10 @@ async function analyzeImages() {
 async function generateBg(prompt) {
     const fullPrompt = prompt + '，严格只包含上述描述的元素，不添加任何额外的物品或装饰';
     const r = await fetch(IMAGE_API, { method: 'POST', headers: { 'Authorization': 'Bearer ' + ARK_API_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: IMAGE_MODEL, prompt: fullPrompt, size: IMAGE_SIZE, stream: false, response_format: 'url', watermark: false }) });
+        body: JSON.stringify({ model: IMAGE_MODEL, prompt: fullPrompt, size: IMAGE_SIZE, stream: false, response_format: 'b64_json', watermark: false }) });
     if (!r.ok) { const ed = await r.json().catch(() => ({})); throw new Error('背景生成失败: ' + (ed.error?.message || r.status)); }
     const data = await r.json();
+    if (data.data?.[0]?.b64_json) return 'data:image/png;base64,' + data.data[0].b64_json;
     if (data.data?.[0]?.url) return data.data[0].url;
     if (data.data?.[0]?.error) throw new Error('图片生成错误: ' + data.data[0].error.message);
     throw new Error('未获取到图片结果');
@@ -307,18 +308,13 @@ async function generateBg(prompt) {
 
 async function fusionProduct(compositeDataUri) {
     const r = await fetch(IMAGE_API, { method: 'POST', headers: { 'Authorization': 'Bearer ' + ARK_API_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: IMAGE_MODEL, prompt: FUSION_PROMPT, image: compositeDataUri, size: IMAGE_SIZE, stream: false, response_format: 'url', watermark: false }) });
+        body: JSON.stringify({ model: IMAGE_MODEL, prompt: FUSION_PROMPT, image: compositeDataUri, size: IMAGE_SIZE, stream: false, response_format: 'b64_json', watermark: false }) });
     if (!r.ok) { const ed = await r.json().catch(() => ({})); throw new Error('融合失败: ' + (ed.error?.message || r.status)); }
     const data = await r.json();
+    if (data.data?.[0]?.b64_json) return 'data:image/png;base64,' + data.data[0].b64_json;
     if (data.data?.[0]?.url) return data.data[0].url;
     if (data.data?.[0]?.error) throw new Error('融合错误: ' + data.data[0].error.message);
     throw new Error('未获取到融合结果');
-}
-
-async function downloadAsDataUri(url) {
-    const r = await fetch(url);
-    const blob = await r.blob();
-    return new Promise(res => { const reader = new FileReader(); reader.onload = e => res(e.target.result); reader.readAsDataURL(blob); });
 }
 
 function setStep(n) {
@@ -338,19 +334,18 @@ async function generate() {
         await analyzeImages();
 
         setStep(2); $('ldgTxt').textContent = '正在生成场景背景...'; $('ldgSub').textContent = '大约需要15-30秒';
-        const bgUrls = await Promise.all([generateBg(scenePrompt), generateBg(scenePrompt)]);
+        const bgDataUris = await Promise.all([generateBg(scenePrompt), generateBg(scenePrompt)]);
 
         setStep(3); $('ldgTxt').textContent = '正在融合产品到场景...'; $('ldgSub').textContent = '大约需要15-30秒';
         const results = [];
-        for (let i = 0; i < bgUrls.length; i++) {
+        for (let i = 0; i < bgDataUris.length; i++) {
             try {
-                const bgDataUri = await downloadAsDataUri(bgUrls[i]);
-                const composite = await composeProductOnBg(bgDataUri, productCroppedSrc);
-                const effectUrl = await fusionProduct(composite);
-                results.push({ bgUrl: bgUrls[i], effectUrl });
+                const composite = await composeProductOnBg(bgDataUris[i], productCroppedSrc);
+                const effectDataUri = await fusionProduct(composite);
+                results.push({ bgSrc: bgDataUris[i], effectSrc: effectDataUri });
             } catch (err) {
                 console.error('Scene ' + (i+1) + ' fusion failed:', err);
-                results.push({ bgUrl: bgUrls[i], effectUrl: null, error: err.message });
+                results.push({ bgSrc: bgDataUris[i], effectSrc: null, error: err.message });
             }
         }
         showResults(results);
@@ -367,11 +362,11 @@ function showResults(results) {
         const group = document.createElement('div');
         group.className = 'scene-group';
         let html = `<div class="scene-label">场景 ${idx + 1}</div><div class="scene-pair">`;
-        if (r.effectUrl) {
+        if (r.effectSrc) {
             html += `<div class="res-card">
                 <div class="res-card-label">效果图 <span class="tag tag-effect">带产品</span></div>
-                <div class="res-card-img"><img src="${r.effectUrl}" alt="效果图${idx+1}"></div>
-                <div class="res-card-actions"><a href="${r.effectUrl}" class="dl-btn" download="scene-effect-${idx+1}.png">⬇ 下载效果图</a></div>
+                <div class="res-card-img"><img src="${r.effectSrc}" alt="效果图${idx+1}"></div>
+                <div class="res-card-actions"><a href="${r.effectSrc}" class="dl-btn" download="scene-effect-${idx+1}.png">⬇ 下载效果图</a></div>
             </div>`;
         } else {
             html += `<div class="res-card"><div class="res-card-label">效果图 <span class="tag tag-effect">带产品</span></div>
@@ -379,8 +374,8 @@ function showResults(results) {
         }
         html += `<div class="res-card">
             <div class="res-card-label">背景图 <span class="tag tag-bg">纯场景</span></div>
-            <div class="res-card-img"><img src="${r.bgUrl}" alt="背景图${idx+1}"></div>
-            <div class="res-card-actions"><a href="${r.bgUrl}" class="dl-btn-outline" download="scene-bg-${idx+1}.png">⬇ 下载背景图</a></div>
+            <div class="res-card-img"><img src="${r.bgSrc}" alt="背景图${idx+1}"></div>
+            <div class="res-card-actions"><a href="${r.bgSrc}" class="dl-btn-outline" download="scene-bg-${idx+1}.png">⬇ 下载背景图</a></div>
         </div>`;
         html += '</div>';
         group.innerHTML = html;
