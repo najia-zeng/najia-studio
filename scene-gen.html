@@ -227,7 +227,7 @@ function resizeForAPI(dataUri, maxDim = 1024) {
 }
 
 async function analyzeImages() {
-    const [product, ref] = await Promise.all([resizeForAPI(productSrc), resizeForAPI(refSrc)]);
+    const [product, ref] = await Promise.all([resizeForAPI(productSrc, 2048), resizeForAPI(refSrc, 2048)]);
 
     const systemPrompt = `你是专业产品摄影提示词工程师，精通AI生图提示词编写。你的任务是把产品特征和参考风格图的视觉元素，翻译成AI生图模型能精准理解的专业提示词。
 
