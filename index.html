@@ -90,6 +90,7 @@
             border: none; background: none;
             width: 100%; text-align: left;
             font-family: inherit;
+            text-decoration: none;
         }
         .nav-btn:hover { background: var(--sidebar-hover); }
         .nav-btn.active { background: var(--sidebar-active); }
@@ -99,6 +100,7 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 14px; flex-shrink: 0;
         }
+        .nav-ico-home { background: rgba(255,59,48,.1); }
         .nav-ico-kuociq { background: var(--accent-blue); }
         .nav-ico-scene { background: var(--accent-purple); }
         .nav-ico-fusion { background: var(--accent-green); }
@@ -108,6 +110,7 @@
         .nav-ico-checklist { background: var(--accent-orange); }
         .nav-ico-faq { background: var(--accent-blue); }
 
+        .nav-btn.active .nav-ico-home { background: rgba(255,59,48,.2); }
         .nav-btn.active .nav-ico-kuociq { background: rgba(102,126,234,.22); }
         .nav-btn.active .nav-ico-scene { background: rgba(118,75,162,.22); }
         .nav-btn.active .nav-ico-fusion { background: rgba(52,199,89,.22); }
@@ -141,6 +144,7 @@
         .content {
             flex: 1; position: relative;
             background: #f5f5f7;
+            overflow: hidden;
         }
         .content iframe {
             width: 100%; height: 100%;
@@ -148,34 +152,238 @@
             display: block;
         }
 
-        /* Welcome page */
-        .welcome {
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            height: 100%; text-align: center;
-            padding: 40px;
+        /* Home page */
+        .home {
+            height: 100%;
+            overflow-y: auto;
+            background: #fafafa;
         }
-        .welcome-logo {
-            width: 80px; height: 80px;
-            border-radius: 50%;
-            overflow: hidden;
-            background: #000;
-            margin-bottom: 24px;
+        .home::-webkit-scrollbar { width: 6px; }
+        .home::-webkit-scrollbar-thumb { background: #d1d1d6; border-radius: 3px; }
+
+        .home-inner {
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 48px 48px 60px;
         }
-        .welcome-logo img { width: 100%; height: 100%; object-fit: cover; }
-        .welcome h1 {
-            font-size: 28px; font-weight: 700;
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 40px 0 48px;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center; gap: 6px;
+            background: linear-gradient(135deg, rgba(102,126,234,.1), rgba(118,75,162,.1));
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px; font-weight: 500;
+            color: #6b7fd4;
+            margin-bottom: 20px;
+        }
+        .hero h1 {
+            font-size: 32px; font-weight: 700;
             color: var(--sidebar-text);
-            margin-bottom: 8px;
+            line-height: 1.3;
+            margin-bottom: 12px;
         }
-        .welcome p {
-            font-size: 15px; color: var(--sidebar-text-sec);
-            max-width: 480px; line-height: 1.7;
+        .hero h1 span {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .welcome-hint {
-            margin-top: 32px;
-            font-size: 13px; color: var(--sidebar-text-sec);
-            opacity: .7;
+        .hero-sub {
+            font-size: 16px; color: var(--sidebar-text-sec);
+            line-height: 1.7;
+            max-width: 520px; margin: 0 auto;
+        }
+
+        /* Benefits */
+        .benefits {
+            display: flex; gap: 16px;
+            margin: 36px 0 48px;
+        }
+        .benefit {
+            flex: 1;
+            background: #fff;
+            border-radius: 14px;
+            padding: 24px 20px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: transform .2s, box-shadow .2s;
+        }
+        .benefit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,.06);
+        }
+        .benefit-num {
+            font-size: 28px; font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        .benefit-label {
+            font-size: 13px; font-weight: 500;
+            color: var(--sidebar-text);
+            margin-bottom: 4px;
+        }
+        .benefit-desc {
+            font-size: 12px; color: var(--sidebar-text-sec);
+        }
+
+        /* Section */
+        .section-title {
+            font-size: 18px; font-weight: 600;
+            color: var(--sidebar-text);
+            margin-bottom: 20px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        /* Workflow */
+        .workflow {
+            background: #fff;
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            margin-bottom: 36px;
+        }
+        .workflow-steps {
+            display: flex; gap: 0;
+            align-items: stretch;
+        }
+        .wf-step {
+            flex: 1;
+            text-align: center;
+            padding: 16px 12px;
+            position: relative;
+        }
+        .wf-step:not(:last-child)::after {
+            content: '→';
+            position: absolute;
+            right: -8px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: #c7c7cc;
+            z-index: 1;
+        }
+        .wf-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+        .wf-icon-1 { background: rgba(102,126,234,.12); }
+        .wf-icon-2 { background: rgba(118,75,162,.12); }
+        .wf-icon-3 { background: rgba(52,199,89,.12); }
+        .wf-icon-4 { background: rgba(255,149,0,.12); }
+        .wf-step-title {
+            font-size: 14px; font-weight: 600;
+            color: var(--sidebar-text);
+            margin-bottom: 4px;
+        }
+        .wf-step-desc {
+            font-size: 12px; color: var(--sidebar-text-sec);
+            line-height: 1.5;
+        }
+        .wf-step-tool {
+            margin-top: 8px;
+            font-size: 11px; font-weight: 500;
+            color: #6b7fd4;
+            background: rgba(102,126,234,.08);
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 10px;
+        }
+
+        /* Tool cards */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 36px;
+        }
+        .tool-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 24px 20px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .tool-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,.06);
+        }
+        .tool-card-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            margin-bottom: 14px;
+        }
+        .tool-card h3 {
+            font-size: 15px; font-weight: 600;
+            color: var(--sidebar-text);
+            margin-bottom: 6px;
+        }
+        .tool-card p {
+            font-size: 12px; color: var(--sidebar-text-sec);
+            line-height: 1.6;
+        }
+        .tool-card-arrow {
+            margin-top: 14px;
+            font-size: 12px; font-weight: 500;
+            color: #6b7fd4;
+            display: flex; align-items: center; gap: 4px;
+        }
+
+        /* KB cards */
+        .kb-list {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-bottom: 36px;
+        }
+        .kb-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 18px 24px;
+            border-bottom: 1px solid #f0f0f2;
+            text-decoration: none;
+            transition: background .15s;
+            cursor: pointer;
+        }
+        .kb-item:last-child { border-bottom: none; }
+        .kb-item:hover { background: #fafafa; }
+        .kb-item-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .kb-item-info { flex: 1; }
+        .kb-item-title {
+            font-size: 14px; font-weight: 500;
+            color: var(--sidebar-text);
+        }
+        .kb-item-desc {
+            font-size: 12px; color: var(--sidebar-text-sec);
+            margin-top: 2px;
+        }
+        .kb-item-arrow {
+            color: #c7c7cc; font-size: 16px;
+        }
+
+        /* Footer */
+        .home-footer {
+            text-align: center;
+            padding: 24px 0 0;
+            color: var(--sidebar-text-sec);
+            font-size: 12px;
         }
 
         /* Mobile */
@@ -185,6 +393,11 @@
             .brand-name, .brand-sub, .nav-info, .nav-section, .sidebar-footer, .nav-ext { display: none; }
             .nav-btn { justify-content: center; padding: 11px 8px; }
             .sidebar-brand { padding: 16px 8px 12px; text-align: center; }
+            .home-inner { padding: 24px 20px 40px; }
+            .benefits { flex-direction: column; }
+            .tools-grid { grid-template-columns: 1fr; }
+            .workflow-steps { flex-direction: column; }
+            .wf-step:not(:last-child)::after { content: '↓'; right: auto; top: auto; bottom: -16px; left: 50%; transform: translateX(-50%); }
         }
     </style>
 </head>
@@ -203,7 +416,14 @@
         </div>
 
         <div class="sidebar-nav">
-            <!-- 智能体工具 -->
+            <button class="nav-btn active" id="navHome" onclick="goHome()">
+                <div class="nav-ico nav-ico-home">🏠</div>
+                <div class="nav-info">
+                    <div class="nav-title">首页</div>
+                    <div class="nav-desc">产品介绍与工作流</div>
+                </div>
+            </button>
+
             <div class="nav-section">
                 <span class="nav-section-icon">🔧</span> 智能体工具
             </div>
@@ -232,7 +452,6 @@
                 </div>
             </button>
 
-            <!-- 知识库 -->
             <div class="nav-section">
                 <span class="nav-section-icon">📚</span> 知识库
             </div>
@@ -264,7 +483,6 @@
                 <span class="nav-ext">↗</span>
             </a>
 
-            <!-- 资源 -->
             <div class="nav-section">
                 <span class="nav-section-icon">📋</span> 资源
             </div>
@@ -292,12 +510,142 @@
     </div>
 
     <div class="content">
-        <div class="welcome" id="welcomePage">
-            <div class="welcome-logo"><img src="logo.jpg" alt="NQ"></div>
-            <h1>娜家视觉</h1>
-            <p>AI产品图工作流——从白底图到商用场景图，<br>智能体工具 + 专业知识库，一站式搞定。</p>
-            <div class="welcome-hint">← 选择左侧工具开始使用</div>
+        <!-- Home Page -->
+        <div class="home" id="homePage">
+            <div class="home-inner">
+
+                <!-- Hero -->
+                <div class="hero">
+                    <div class="hero-badge">✨ 实拍打底 + AI增效</div>
+                    <h1>1小时出一套产品图<br>成本不到<span>10块钱</span></h1>
+                    <p class="hero-sub">从白底图到商用场景图，智能体工具 + 专业知识库，一站式搞定。不用外包，不用学摄影，自己就能出能卖货的产品图。</p>
+                </div>
+
+                <!-- Benefits -->
+                <div class="benefits">
+                    <div class="benefit">
+                        <div class="benefit-num">↓90%</div>
+                        <div class="benefit-label">成本直降</div>
+                        <div class="benefit-desc">相比外包拍摄</div>
+                    </div>
+                    <div class="benefit">
+                        <div class="benefit-num">5×</div>
+                        <div class="benefit-label">效率提升</div>
+                        <div class="benefit-desc">等外包3天→自己1小时</div>
+                    </div>
+                    <div class="benefit">
+                        <div class="benefit-num">0</div>
+                        <div class="benefit-label">侵权风险</div>
+                        <div class="benefit-desc">实拍自家产品，AI只换背景</div>
+                    </div>
+                </div>
+
+                <!-- Workflow -->
+                <div class="section-title">📋 工作流程</div>
+                <div class="workflow">
+                    <div class="workflow-steps">
+                        <div class="wf-step">
+                            <div class="wf-icon wf-icon-1">📸</div>
+                            <div class="wf-step-title">拍白底图</div>
+                            <div class="wf-step-desc">手机拍一张白底产品图<br>作为AI生成的输入</div>
+                            <div class="wf-step-tool">→ 扩词器生成提示词</div>
+                        </div>
+                        <div class="wf-step">
+                            <div class="wf-icon wf-icon-2">🎨</div>
+                            <div class="wf-step-title">AI生成场景图</div>
+                            <div class="wf-step-desc">选参考风格<br>一键生成完整场景图</div>
+                            <div class="wf-step-tool">→ AI创意生图</div>
+                        </div>
+                        <div class="wf-step">
+                            <div class="wf-icon wf-icon-3">🔗</div>
+                            <div class="wf-step-title">融合精修</div>
+                            <div class="wf-step-desc">实拍+AI场景融合<br>消除AI味</div>
+                            <div class="wf-step-tool">→ 实拍融合AI</div>
+                        </div>
+                        <div class="wf-step">
+                            <div class="wf-icon wf-icon-4">📦</div>
+                            <div class="wf-step-title">收尾交付</div>
+                            <div class="wf-step-desc">高清放大、批量抠图<br>多平台格式输出</div>
+                            <div class="wf-step-tool">→ 知识库教程</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tools -->
+                <div class="section-title">🔧 智能体工具</div>
+                <div class="tools-grid">
+                    <div class="tool-card" onclick="switchTool('kuociq')">
+                        <div class="tool-card-icon nav-ico-kuociq">💡</div>
+                        <h3>扩词器</h3>
+                        <p>输入产品信息，自动生成专业六段式AI生图提示词，不用自己琢磨怎么写。</p>
+                        <div class="tool-card-arrow">开始使用 →</div>
+                    </div>
+                    <div class="tool-card" onclick="switchTool('scene')">
+                        <div class="tool-card-icon nav-ico-scene">🎨</div>
+                        <h3>AI创意生图</h3>
+                        <p>上传产品图+参考图，一步生成完整场景图，不用PS也能出场景。</p>
+                        <div class="tool-card-arrow">开始使用 →</div>
+                    </div>
+                    <div class="tool-card" onclick="switchTool('fusion')">
+                        <div class="tool-card-icon nav-ico-fusion">🔗</div>
+                        <h3>实拍融合AI</h3>
+                        <p>实拍产品光影+AI场景背景融合，效果更真实，告别塑料感。</p>
+                        <div class="tool-card-arrow">开始使用 →</div>
+                    </div>
+                </div>
+
+                <!-- Knowledge Base -->
+                <div class="section-title">📚 专业知识库</div>
+                <div class="kb-list">
+                    <a class="kb-item" href="#" id="kbTutorial" target="_blank" rel="noopener">
+                        <div class="kb-item-icon nav-ico-tutorial">📖</div>
+                        <div class="kb-item-info">
+                            <div class="kb-item-title">AI出图教程</div>
+                            <div class="kb-item-desc">不用学提示词！从生图→判断→检查→修复，小白走完一遍就能独立操作</div>
+                        </div>
+                        <div class="kb-item-arrow">↗</div>
+                    </a>
+                    <a class="kb-item" href="#" id="kbPs" target="_blank" rel="noopener">
+                        <div class="kb-item-icon nav-ico-ps">🖼️</div>
+                        <div class="kb-item-info">
+                            <div class="kb-item-title">PS合成教程</div>
+                            <div class="kb-item-desc">3步检查+3招修复，简单PS操作让AI图告别"假"</div>
+                        </div>
+                        <div class="kb-item-arrow">↗</div>
+                    </a>
+                    <a class="kb-item" href="#" id="kbApi" target="_blank" rel="noopener">
+                        <div class="kb-item-icon nav-ico-api">⚙️</div>
+                        <div class="kb-item-info">
+                            <div class="kb-item-title">API配置指南</div>
+                            <div class="kb-item-desc">注册火山引擎、获取API密钥，一步步教你配好工具</div>
+                        </div>
+                        <div class="kb-item-arrow">↗</div>
+                    </a>
+                    <a class="kb-item" href="#" id="kbChecklist" target="_blank" rel="noopener">
+                        <div class="kb-item-icon nav-ico-checklist">✅</div>
+                        <div class="kb-item-info">
+                            <div class="kb-item-title">商用图标准自查</div>
+                            <div class="kb-item-desc">你的产品图能不能上架？4步自查清单，一查就知道</div>
+                        </div>
+                        <div class="kb-item-arrow">↗</div>
+                    </a>
+                    <a class="kb-item" href="#" id="kbFaq" target="_blank" rel="noopener">
+                        <div class="kb-item-icon nav-ico-faq">❓</div>
+                        <div class="kb-item-info">
+                            <div class="kb-item-title">常见问题</div>
+                            <div class="kb-item-desc">生成失败？效果不好？图片有瑕疵？常见问题快速解答</div>
+                        </div>
+                        <div class="kb-item-arrow">↗</div>
+                    </a>
+                </div>
+
+                <div class="home-footer">
+                    娜家视觉 · 让每一张产品图都能卖货
+                </div>
+            </div>
         </div>
+
+        <!-- Tool iframe -->
         <iframe id="toolFrame" src="" style="display:none;"></iframe>
     </div>
 </div>
@@ -311,15 +659,25 @@ const tools = {
 let currentTool = null;
 
 function switchTool(name) {
-    if (name === currentTool) return;
     currentTool = name;
     const frame = document.getElementById('toolFrame');
-    const welcome = document.getElementById('welcomePage');
+    const home = document.getElementById('homePage');
     frame.src = tools[name].url;
     frame.style.display = 'block';
-    welcome.style.display = 'none';
+    home.style.display = 'none';
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(tools[name].navId).classList.add('active');
+}
+
+function goHome() {
+    currentTool = null;
+    const frame = document.getElementById('toolFrame');
+    const home = document.getElementById('homePage');
+    frame.style.display = 'none';
+    frame.src = '';
+    home.style.display = 'block';
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('navHome').classList.add('active');
 }
 </script>
 </body>
