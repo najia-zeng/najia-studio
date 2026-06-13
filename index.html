@@ -190,12 +190,14 @@
             border: 1px solid rgba(107,92,231,.1);
         }
         .hero h1 {
-            font-size: 36px; font-weight: 900;
+            font-size: 56px; font-weight: 900;
             color: var(--text-primary);
-            line-height: 1.35; margin-bottom: 16px;
+            line-height: 1; margin-bottom: 16px;
             letter-spacing: -.5px;
         }
         .hero h1 span {
+            font-size: 36px;
+            font-weight: 700;
             background: linear-gradient(135deg, var(--brand), #8b5cf6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -230,7 +232,7 @@
             margin-bottom: 6px; letter-spacing: -1px;
         }
         .benefit-label {
-            font-size: 14px; font-weight: 600;
+            font-size: 20px; font-weight: 600;
             color: var(--text-primary); margin-bottom: 4px;
         }
         .benefit-desc {
@@ -384,6 +386,51 @@
         }
         .kb-item:hover .kb-item-arrow { color: var(--brand); }
 
+        /* Cases card */
+        .cases-card {
+            display: block;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            margin-bottom: 40px;
+            text-decoration: none;
+            transition: all .25s ease;
+        }
+        .cases-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(107,92,231,.15);
+        }
+        .cases-card-inner {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 28px 32px;
+        }
+        .cases-card-icon {
+            width: 56px; height: 56px;
+            border-radius: var(--radius-md);
+            background: rgba(107,92,231,.08);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; flex-shrink: 0;
+        }
+        .cases-card-info { flex: 1; }
+        .cases-card-title {
+            font-size: 18px; font-weight: 600;
+            color: var(--text-primary); margin-bottom: 6px;
+        }
+        .cases-card-desc {
+            font-size: 13px; color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .cases-card-arrow {
+            font-size: 20px; color: #d1d5db;
+            transition: color .15s; flex-shrink: 0;
+        }
+        .cases-card:hover .cases-card-arrow { color: var(--brand); }
+
         /* Footer */
         .home-footer {
             text-align: center; padding: 32px 0 0;
@@ -413,7 +460,7 @@
     <div class="sidebar">
         <div class="sidebar-brand">
             <div class="brand-row">
-                <div class="brand-logo"><img src="logo.jpg" alt="NQ"></div>
+                <div class="brand-logo"><img src="logo.png" alt="娜家视觉"></div>
                 <div>
                     <div class="brand-name">娜家视觉</div>
                     <div class="brand-sub">AI产品图工作流</div>
@@ -430,7 +477,7 @@
                 </div>
             </button>
 
-            <div class="nav-section">🔧 智能体工具</div>
+            <div class="nav-section">🎨 智能体工具</div>
 
             <button class="nav-btn" id="navKuociq" onclick="switchTool('kuociq')">
                 <div class="nav-ico nav-ico-kuociq">💡</div>
@@ -456,51 +503,33 @@
                 </div>
             </button>
 
-            <div class="nav-section">📚 知识库</div>
+            <div class="nav-section">📖 专业知识库</div>
 
-            <a class="nav-btn" href="#" id="navTutorial" target="_blank" rel="noopener">
+            <a class="nav-btn" href="https://my.feishu.cn/wiki/Rgsewp0u2iPhLDkmj0RcAqoFnyd" id="navManual" target="_blank" rel="noopener">
                 <div class="nav-ico nav-ico-tutorial">📖</div>
                 <div class="nav-info">
-                    <div class="nav-title">AI出图教程</div>
-                    <div class="nav-desc">从白底图到商用场景图</div>
+                    <div class="nav-title">实拍+AI实操手册</div>
+                    <div class="nav-desc">从白底图到商用场景图全流程</div>
                 </div>
                 <span class="nav-ext">↗</span>
             </a>
 
-            <a class="nav-btn" href="#" id="navPs" target="_blank" rel="noopener">
+            <a class="nav-btn" href="https://my.feishu.cn/wiki/McnywZ5IFiCDY5kekS4cnOnOnyc" id="navPs" target="_blank" rel="noopener">
                 <div class="nav-ico nav-ico-ps">🖼️</div>
                 <div class="nav-info">
-                    <div class="nav-title">PS合成教程</div>
-                    <div class="nav-desc">AI图不够用？PS精修补救</div>
+                    <div class="nav-title">AI图精修指南</div>
+                    <div class="nav-desc">3步检查+3招修复，告别AI味</div>
                 </div>
                 <span class="nav-ext">↗</span>
             </a>
 
-            <a class="nav-btn" href="#" id="navApi" target="_blank" rel="noopener">
-                <div class="nav-ico nav-ico-api">⚙️</div>
-                <div class="nav-info">
-                    <div class="nav-title">API配置指南</div>
-                    <div class="nav-desc">注册火山引擎&配置密钥</div>
-                </div>
-                <span class="nav-ext">↗</span>
-            </a>
+            <div class="nav-section">📂 案例库合集</div>
 
-            <div class="nav-section">📋 资源</div>
-
-            <a class="nav-btn" href="#" id="navChecklist" target="_blank" rel="noopener">
-                <div class="nav-ico nav-ico-checklist">✅</div>
+            <a class="nav-btn" href="https://my.feishu.cn/base/ZGKpb403PagA0OsUOOsc7e6knhg?table=tbl3z7iIkkMo2wEO&view=vewFQY4wwq" id="navCases" target="_blank" rel="noopener">
+                <div class="nav-ico nav-ico-checklist">📂</div>
                 <div class="nav-info">
-                    <div class="nav-title">商用图标准自查</div>
-                    <div class="nav-desc">你的产品图能上架吗？</div>
-                </div>
-                <span class="nav-ext">↗</span>
-            </a>
-
-            <a class="nav-btn" href="#" id="navFaq" target="_blank" rel="noopener">
-                <div class="nav-ico nav-ico-faq">❓</div>
-                <div class="nav-info">
-                    <div class="nav-title">常见问题</div>
-                    <div class="nav-desc">使用问题快速解答</div>
+                    <div class="nav-title">AI创作案例库</div>
+                    <div class="nav-desc">12个真实案例，出图效果一目了然</div>
                 </div>
                 <span class="nav-ext">↗</span>
             </a>
@@ -517,26 +546,26 @@
                 <!-- Hero -->
                 <div class="hero">
                     <div class="hero-badge">娜家视觉出品</div>
-                    <h1>实拍打底 · AI提效<br><span>帮助电商卖家自己搞定产品图</span></h1>
-                    <p class="hero-sub">从白底图到商用场景图，智能体工具 + 专业知识库，一站式搞定。</p>
+                    <h1>实拍打底·AI提效<br><span>帮助电商卖家自己搞定产品图</span></h1>
+                    <p class="hero-sub">从白底图到商用场景图，智能体工具 + 专业知识库，一站式搞定</p>
                 </div>
 
                 <!-- Benefits -->
                 <div class="benefits">
                     <div class="benefit">
-                        <div class="benefit-num">↓90%</div>
+                        <div class="benefit-num">90%</div>
                         <div class="benefit-label">成本直降</div>
-                        <div class="benefit-desc">相比外包拍摄</div>
+                        <div class="benefit-desc">告别昂贵外包</div>
                     </div>
                     <div class="benefit">
-                        <div class="benefit-num">5×</div>
+                        <div class="benefit-num">5倍</div>
                         <div class="benefit-label">效率提升</div>
-                        <div class="benefit-desc">等外包3天→自己1小时</div>
+                        <div class="benefit-desc">自主掌握上新节奏</div>
                     </div>
                     <div class="benefit">
-                        <div class="benefit-num">0风险</div>
-                        <div class="benefit-label">侵权无忧</div>
-                        <div class="benefit-desc">实拍自家产品，AI只换背景</div>
+                        <div class="benefit-num">0 风险</div>
+                        <div class="benefit-label">规避侵权</div>
+                        <div class="benefit-desc">降低退货率</div>
                     </div>
                 </div>
 
@@ -604,47 +633,37 @@
                 <div class="section-label">KNOWLEDGE BASE</div>
                 <div class="section-title">专业知识库，跟着走就能学会</div>
                 <div class="kb-list">
-                    <a class="kb-item" href="#" id="kbTutorial" target="_blank" rel="noopener">
+                    <a class="kb-item" href="https://my.feishu.cn/wiki/Rgsewp0u2iPhLDkmj0RcAqoFnyd" id="kbManual" target="_blank" rel="noopener">
                         <div class="kb-item-icon nav-ico-tutorial">📖</div>
                         <div class="kb-item-info">
-                            <div class="kb-item-title">AI出图教程</div>
-                            <div class="kb-item-desc">不用学提示词！从生图→判断→检查→修复，小白走完一遍就能独立操作</div>
+                            <div class="kb-item-title">实拍+AI实操手册</div>
+                            <div class="kb-item-desc">从白底图到商用场景图全流程，跟着走一遍就能独立操作</div>
                         </div>
                         <div class="kb-item-arrow">↗</div>
                     </a>
-                    <a class="kb-item" href="#" id="kbPs" target="_blank" rel="noopener">
+                    <a class="kb-item" href="https://my.feishu.cn/wiki/McnywZ5IFiCDY5kekS4cnOnOnyc" id="kbPs" target="_blank" rel="noopener">
                         <div class="kb-item-icon nav-ico-ps">🖼️</div>
                         <div class="kb-item-info">
-                            <div class="kb-item-title">PS合成教程</div>
-                            <div class="kb-item-desc">3步检查+3招修复，简单PS操作让AI图告别"假"</div>
-                        </div>
-                        <div class="kb-item-arrow">↗</div>
-                    </a>
-                    <a class="kb-item" href="#" id="kbApi" target="_blank" rel="noopener">
-                        <div class="kb-item-icon nav-ico-api">⚙️</div>
-                        <div class="kb-item-info">
-                            <div class="kb-item-title">API配置指南</div>
-                            <div class="kb-item-desc">注册火山引擎、获取API密钥，一步步教你配好工具</div>
-                        </div>
-                        <div class="kb-item-arrow">↗</div>
-                    </a>
-                    <a class="kb-item" href="#" id="kbChecklist" target="_blank" rel="noopener">
-                        <div class="kb-item-icon nav-ico-checklist">✅</div>
-                        <div class="kb-item-info">
-                            <div class="kb-item-title">商用图标准自查</div>
-                            <div class="kb-item-desc">你的产品图能不能上架？4步自查清单，一查就知道</div>
-                        </div>
-                        <div class="kb-item-arrow">↗</div>
-                    </a>
-                    <a class="kb-item" href="#" id="kbFaq" target="_blank" rel="noopener">
-                        <div class="kb-item-icon nav-ico-faq">❓</div>
-                        <div class="kb-item-info">
-                            <div class="kb-item-title">常见问题</div>
-                            <div class="kb-item-desc">生成失败？效果不好？图片有瑕疵？常见问题快速解答</div>
+                            <div class="kb-item-title">AI图精修指南</div>
+                            <div class="kb-item-desc">3步检查+3招修复，告别AI味，让产品图真到像实拍</div>
                         </div>
                         <div class="kb-item-arrow">↗</div>
                     </a>
                 </div>
+
+                <!-- Cases -->
+                <div class="section-label">CASES</div>
+                <div class="section-title">真实案例，出图效果一目了然</div>
+                <a class="cases-card" href="https://my.feishu.cn/base/ZGKpb403PagA0OsUOOsc7e6knhg?table=tbl3z7iIkkMo2wEO&view=vewFQY4wwq" target="_blank" rel="noopener">
+                    <div class="cases-card-inner">
+                        <div class="cases-card-icon">📂</div>
+                        <div class="cases-card-info">
+                            <div class="cases-card-title">AI创作案例库</div>
+                            <div class="cases-card-desc">12个真实案例 · 美妆护肤/香水/洗护 · 含参考图+生成结果+创作思路</div>
+                        </div>
+                        <div class="cases-card-arrow">↗</div>
+                    </div>
+                </a>
 
                 <div class="home-footer">
                     娜家视觉 · 让每一张产品图都能卖货
