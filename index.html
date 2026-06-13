@@ -319,10 +319,49 @@
             padding: 2px 8px; border-radius: 8px;
         }
 
-        /* Tool cards */
-        .tools-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr);
+        /* Case cards */
+        .cases-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
             gap: 20px; margin-bottom: 56px;
+        }
+        .case-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all .2s ease;
+            cursor: pointer;
+        }
+        .case-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        .case-img {
+            width: 100%; overflow: hidden;
+            aspect-ratio: 16/9;
+            background: #f5f5f5;
+        }
+        .case-img img {
+            width: 100%; height: 100%;
+            object-fit: cover; object-position: top;
+            transition: transform .3s ease;
+        }
+        .case-card:hover .case-img img { transform: scale(1.03); }
+        .case-info {
+            padding: 16px 20px;
+        }
+        .case-tag {
+            display: inline-block;
+            font-size: 11px; font-weight: 600;
+            color: var(--brand);
+            background: var(--brand-bg);
+            padding: 3px 10px; border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .case-name {
+            font-size: 15px; font-weight: 600;
+            color: var(--text-primary);
         }
         .tool-card {
             background: var(--bg-card);
@@ -459,7 +498,7 @@
             .home-inner { padding: 24px 20px 40px; }
             .hero h1 { font-size: 26px; }
             .benefits { grid-template-columns: 1fr; }
-            .tools-grid { grid-template-columns: 1fr; }
+            .cases-grid { grid-template-columns: 1fr; }
             .workflow-versions { grid-template-columns: 1fr; }
         }
     </style>
@@ -630,65 +669,39 @@
                     </div>
                 </div>
 
-                <!-- Tools -->
-                <div class="section-label">AI TOOLS</div>
-                <div class="section-title">智能体工具，即开即用</div>
-                <div class="tools-grid">
-                    <div class="tool-card" onclick="switchTool('kuociq')">
-                        <div class="tool-card-icon nav-ico-kuociq">💡</div>
-                        <h3>扩词器</h3>
-                        <p>输入产品信息，自动生成专业六段式AI生图提示词，不用自己琢磨怎么写。</p>
-                        <div class="tool-card-arrow">开始使用 →</div>
-                    </div>
-                    <div class="tool-card" onclick="switchTool('scene')">
-                        <div class="tool-card-icon nav-ico-scene">🎨</div>
-                        <h3>AI创意生图</h3>
-                        <p>上传产品图+参考图，一步生成完整场景图，不用PS也能出场景。</p>
-                        <div class="tool-card-arrow">开始使用 →</div>
-                    </div>
-                    <div class="tool-card" onclick="switchTool('fusion')">
-                        <div class="tool-card-icon nav-ico-fusion">🔗</div>
-                        <h3>实拍融合AI</h3>
-                        <p>实拍产品光影+AI场景背景融合，效果更真实，告别塑料感。</p>
-                        <div class="tool-card-arrow">开始使用 →</div>
-                    </div>
-                </div>
-
-                <!-- Knowledge Base -->
-                <div class="section-label">KNOWLEDGE BASE</div>
-                <div class="section-title">专业知识库，跟着走就能学会</div>
-                <div class="kb-list">
-                    <a class="kb-item" href="https://my.feishu.cn/wiki/Rgsewp0u2iPhLDkmj0RcAqoFnyd" id="kbManual" target="_blank" rel="noopener">
-                        <div class="kb-item-icon nav-ico-tutorial">📖</div>
-                        <div class="kb-item-info">
-                            <div class="kb-item-title">实拍+AI实操手册</div>
-                            <div class="kb-item-desc">从白底图到商用场景图全流程，跟着走一遍就能独立操作</div>
-                        </div>
-                        <div class="kb-item-arrow">↗</div>
-                    </a>
-                    <a class="kb-item" href="https://my.feishu.cn/wiki/McnywZ5IFiCDY5kekS4cnOnOnyc" id="kbPs" target="_blank" rel="noopener">
-                        <div class="kb-item-icon nav-ico-ps">🖼️</div>
-                        <div class="kb-item-info">
-                            <div class="kb-item-title">AI图精修指南</div>
-                            <div class="kb-item-desc">3步检查+3招修复，告别AI味，让产品图真到像实拍</div>
-                        </div>
-                        <div class="kb-item-arrow">↗</div>
-                    </a>
-                </div>
-
                 <!-- Cases -->
                 <div class="section-label">CASES</div>
-                <div class="section-title">真实案例，出图效果一目了然</div>
-                <a class="cases-card" href="https://my.feishu.cn/base/ZGKpb403PagA0OsUOOsc7e6knhg?table=tbl3z7iIkkMo2wEO&view=vewFQY4wwq" target="_blank" rel="noopener">
-                    <div class="cases-card-inner">
-                        <div class="cases-card-icon">📂</div>
-                        <div class="cases-card-info">
-                            <div class="cases-card-title">AI创作案例库</div>
-                            <div class="cases-card-desc">12个真实案例 · 美妆护肤/香水/洗护 · 含参考图+生成结果+创作思路</div>
+                <div class="section-title">真实案例，效果说话</div>
+                <div class="cases-grid">
+                    <div class="case-card">
+                        <div class="case-img"><img src="case-medical.png" alt="科研医美风格"></div>
+                        <div class="case-info">
+                            <div class="case-tag">科研医美</div>
+                            <div class="case-name">弗雷德白 · 肌底溶媒液</div>
                         </div>
-                        <div class="cases-card-arrow">↗</div>
                     </div>
-                </a>
+                    <div class="case-card">
+                        <div class="case-img"><img src="case-prada.png" alt="奢华极简"></div>
+                        <div class="case-info">
+                            <div class="case-tag">奢华极简</div>
+                            <div class="case-name">PRADA · 香水</div>
+                        </div>
+                    </div>
+                    <div class="case-card">
+                        <div class="case-img"><img src="case-loewe.png" alt="夏日地中海"></div>
+                        <div class="case-info">
+                            <div class="case-tag">夏日地中海</div>
+                            <div class="case-name">LOEWE · 香水</div>
+                        </div>
+                    </div>
+                    <div class="case-card">
+                        <div class="case-img"><img src="case-replica.png" alt="鲜花氛围"></div>
+                        <div class="case-info">
+                            <div class="case-tag">鲜花氛围</div>
+                            <div class="case-name">REPLICA · 香水</div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="home-footer">
                     娜家视觉 · 让每一张产品图都能卖货
