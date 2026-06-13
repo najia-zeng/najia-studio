@@ -260,52 +260,63 @@
             box-shadow: var(--shadow-sm);
             margin-bottom: 56px;
         }
-        .workflow-steps {
-            display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 0; position: relative;
+        .workflow-versions {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
         }
-        .wf-step {
-            text-align: center; padding: 8px 16px;
+        .wf-version {
+            background: #fff;
+            border-radius: var(--radius-lg);
+            padding: 28px 24px 24px;
+            border: 1px solid var(--border);
+        }
+        .wf-version-tag {
+            display: inline-block;
+            font-size: 11px; font-weight: 600;
+            padding: 3px 10px; border-radius: 10px;
+            margin-bottom: 16px;
+        }
+        .wf-version-tag.basic { color: #3b82f6; background: rgba(59,130,246,.08); }
+        .wf-version-tag.advanced { color: #6b5ce7; background: rgba(107,92,231,.08); }
+        .wf-version-title {
+            font-size: 16px; font-weight: 700;
+            color: var(--text-primary); margin-bottom: 20px;
+        }
+        .wf-version-steps {
+            display: flex; align-items: flex-start; gap: 0;
+        }
+        .wf-v-step {
+            flex: 1; text-align: center; padding: 0 8px;
             position: relative;
         }
-        .wf-step:not(:last-child)::after {
-            content: '';
+        .wf-v-step:not(:last-child)::after {
+            content: '→';
             position: absolute;
-            top: 32px; right: -2px;
-            width: 32px; height: 2px;
-            background: linear-gradient(90deg, #e5e7eb, var(--brand-bg), #e5e7eb);
+            top: 20px; right: -6px;
+            font-size: 16px; color: #d4d4d8;
+            z-index: 1;
         }
-        .wf-num {
-            width: 28px; height: 28px;
-            border-radius: 50%; font-size: 12px; font-weight: 700;
+        .wf-v-num {
+            width: 40px; height: 40px;
+            border-radius: 50%; font-size: 14px; font-weight: 700;
             display: inline-flex; align-items: center; justify-content: center;
-            margin-bottom: 16px; color: var(--brand);
+            margin-bottom: 10px; color: var(--brand);
             background: var(--brand-bg);
             border: 1.5px solid rgba(107,92,231,.15);
         }
-        .wf-icon {
-            width: 56px; height: 56px; border-radius: var(--radius-md);
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 26px; margin-bottom: 14px;
+        .wf-v-step-title {
+            font-size: 14px; font-weight: 600;
+            color: var(--text-primary); margin-bottom: 4px;
         }
-        .wf-icon-1 { background: rgba(59,130,246,.08); }
-        .wf-icon-2 { background: rgba(107,92,231,.08); }
-        .wf-icon-3 { background: rgba(16,185,129,.08); }
-        .wf-icon-4 { background: rgba(245,158,11,.08); }
-        .wf-step-title {
-            font-size: 15px; font-weight: 600;
-            color: var(--text-primary); margin-bottom: 6px;
+        .wf-v-step-desc {
+            font-size: 11px; color: var(--text-tertiary);
+            line-height: 1.5;
         }
-        .wf-step-desc {
-            font-size: 12px; color: var(--text-tertiary);
-            line-height: 1.6;
-        }
-        .wf-step-tool {
-            margin-top: 10px; font-size: 11px; font-weight: 500;
+        .wf-v-step-tool {
+            margin-top: 6px; font-size: 10px; font-weight: 500;
             color: var(--brand);
             background: var(--brand-bg);
             display: inline-block;
-            padding: 4px 12px; border-radius: 12px;
+            padding: 2px 8px; border-radius: 8px;
         }
 
         /* Tool cards */
@@ -449,8 +460,7 @@
             .hero h1 { font-size: 26px; }
             .benefits { grid-template-columns: 1fr; }
             .tools-grid { grid-template-columns: 1fr; }
-            .workflow-steps { grid-template-columns: 1fr 1fr; }
-            .wf-step:not(:last-child)::after { display: none; }
+            .workflow-versions { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -570,36 +580,58 @@
 
                 <!-- Workflow -->
                 <div class="section-label">WORKFLOW</div>
-                <div class="section-title">四步出图，跟走就行</div>
+                <div class="section-title">三步生成能上架的产品图<br><span style="font-size:14px;font-weight:400;color:var(--text-tertiary)">百分百还原产品 · 简单易操作</span></div>
                 <div class="workflow">
-                    <div class="workflow-steps">
-                        <div class="wf-step">
-                            <div class="wf-num">1</div>
-                            <div class="wf-icon wf-icon-1">📸</div>
-                            <div class="wf-step-title">拍白底图</div>
-                            <div class="wf-step-desc">手机拍一张白底产品图<br>作为AI生成的输入</div>
-                            <div class="wf-step-tool">扩词器</div>
+                    <div class="workflow-versions">
+                        <!-- 基础版 -->
+                        <div class="wf-version">
+                            <div class="wf-version-tag basic">基础版</div>
+                            <div class="wf-version-title">已有产品，先拍后AI</div>
+                            <div class="wf-version-steps">
+                                <div class="wf-v-step">
+                                    <div class="wf-v-num">1</div>
+                                    <div class="wf-v-step-title">实拍白底图</div>
+                                    <div class="wf-v-step-desc">手机拍就行</div>
+                                    <div class="wf-v-step-tool">拍摄台</div>
+                                </div>
+                                <div class="wf-v-step">
+                                    <div class="wf-v-num">2</div>
+                                    <div class="wf-v-step-title">AI生场景</div>
+                                    <div class="wf-v-step-desc">选风格自动出图</div>
+                                    <div class="wf-v-step-tool">AI创意生图</div>
+                                </div>
+                                <div class="wf-v-step">
+                                    <div class="wf-v-num">3</div>
+                                    <div class="wf-v-step-title">融合修复</div>
+                                    <div class="wf-v-step-desc">产品是真的，背景也是</div>
+                                    <div class="wf-v-step-tool">实拍融合AI</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="wf-step">
-                            <div class="wf-num">2</div>
-                            <div class="wf-icon wf-icon-2">🎨</div>
-                            <div class="wf-step-title">AI生成场景图</div>
-                            <div class="wf-step-desc">选参考风格<br>一键生成完整场景图</div>
-                            <div class="wf-step-tool">AI创意生图</div>
-                        </div>
-                        <div class="wf-step">
-                            <div class="wf-num">3</div>
-                            <div class="wf-icon wf-icon-3">🔗</div>
-                            <div class="wf-step-title">融合精修</div>
-                            <div class="wf-step-desc">实拍+AI场景融合<br>消除AI味</div>
-                            <div class="wf-step-tool">实拍融合AI</div>
-                        </div>
-                        <div class="wf-step">
-                            <div class="wf-num">4</div>
-                            <div class="wf-icon wf-icon-4">📦</div>
-                            <div class="wf-step-title">收尾交付</div>
-                            <div class="wf-step-desc">高清放大、批量抠图<br>多平台格式输出</div>
-                            <div class="wf-step-tool">知识库教程</div>
+                        <!-- 进阶版 -->
+                        <div class="wf-version">
+                            <div class="wf-version-tag advanced">进阶版</div>
+                            <div class="wf-version-title">先看效果，再补拍匹配</div>
+                            <div class="wf-version-steps">
+                                <div class="wf-v-step">
+                                    <div class="wf-v-num">1</div>
+                                    <div class="wf-v-step-title">AI生场景</div>
+                                    <div class="wf-v-step-desc">先出方向定风格</div>
+                                    <div class="wf-v-step-tool">AI创意生图</div>
+                                </div>
+                                <div class="wf-v-step">
+                                    <div class="wf-v-num">2</div>
+                                    <div class="wf-v-step-title">补拍产品光影</div>
+                                    <div class="wf-v-step-desc">按场景拍产品</div>
+                                    <div class="wf-v-step-tool">拍摄台</div>
+                                </div>
+                                <div class="wf-v-step">
+                                    <div class="wf-v-num">3</div>
+                                    <div class="wf-v-step-title">融合修复</div>
+                                    <div class="wf-v-step-desc">光影匹配更真实</div>
+                                    <div class="wf-v-step-tool">实拍融合AI</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
