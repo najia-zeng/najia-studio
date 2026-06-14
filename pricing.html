@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实拍打底·AI提效｜199元学全套AI产品图方案</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --brand: #6b5ce7;
+            --brand-light: #8b7ff0;
+            --brand-dark: #5a4bd6;
+            --brand-bg: rgba(107,92,231,.06);
+            --brand-bg-hover: rgba(107,92,231,.10);
+            --text-primary: #1a1a2e;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+            --bg-page: #f7f7fa;
+            --bg-card: #ffffff;
+            --border: #e8e8ed;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,.06);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,.08);
+            --shadow-brand: 0 4px 20px rgba(107,92,231,.15);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-page);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.7;
+        }
+
+        .page-wrapper {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        /* Back link */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--brand);
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            margin-bottom: 32px;
+            transition: opacity .2s;
+        }
+        .back-link:hover { opacity: .7; }
+
+        /* Hero */
+        .hero {
+            margin-bottom: 40px;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: var(--brand);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+        .hero h1 {
+            font-size: 32px;
+            font-weight: 900;
+            line-height: 1.3;
+            margin-bottom: 12px;
+            letter-spacing: -.5px;
+        }
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--brand), var(--brand-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-sub {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        /* Notice */
+        .notice {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            margin-bottom: 40px;
+        }
+        .notice-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 6px;
+        }
+        .notice ul {
+            list-style: none;
+            padding: 0;
+        }
+        .notice li {
+            font-size: 13px;
+            color: #92400e;
+            padding: 2px 0;
+            padding-left: 16px;
+            position: relative;
+        }
+        .notice li::before {
+            content: '·';
+            position: absolute;
+            left: 4px;
+            font-weight: 700;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 40px;
+        }
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            letter-spacing: -.3px;
+        }
+
+        /* Pain points */
+        .pain-list {
+            list-style: none;
+            padding: 0;
+        }
+        .pain-list li {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
+            margin-bottom: 8px;
+            font-size: 15px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .pain-icon {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            background: #fef2f2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        /* Solution intro */
+        .solution-intro {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.8;
+        }
+        .solution-intro strong {
+            color: var(--text-primary);
+        }
+
+        /* Feature cards */
+        .feature-group {
+            margin-bottom: 28px;
+        }
+        .feature-group-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 18px 20px;
+            margin-bottom: 10px;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .feature-card:hover {
+            border-color: var(--brand-light);
+            box-shadow: var(--shadow-brand);
+        }
+        .feature-card-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+        .feature-card-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Audience */
+        .audience-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .audience-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+        }
+        .audience-card.fit { border-color: #86efac; }
+        .audience-card.nofit { border-color: #fca5a5; }
+        .audience-label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .audience-card.fit .audience-label { color: #16a34a; }
+        .audience-card.nofit .audience-label { color: #dc2626; }
+        .audience-list {
+            list-style: none;
+            padding: 0;
+        }
+        .audience-list li {
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 4px 0;
+            padding-left: 18px;
+            position: relative;
+        }
+        .audience-card.fit .audience-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #16a34a;
+            font-weight: 700;
+        }
+        .audience-card.nofit .audience-list li::before {
+            content: '✗';
+            position: absolute;
+            left: 0;
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        /* Price */
+        .price-block {
+            background: linear-gradient(135deg, var(--brand), var(--brand-light));
+            border-radius: var(--radius-lg);
+            padding: 36px 32px;
+            text-align: center;
+            color: #fff;
+            margin-bottom: 40px;
+        }
+        .price-label {
+            font-size: 14px;
+            opacity: .85;
+            margin-bottom: 8px;
+        }
+        .price-amount {
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: -2px;
+            margin-bottom: 4px;
+        }
+        .price-amount span {
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: 0;
+        }
+        .price-desc {
+            font-size: 14px;
+            opacity: .85;
+        }
+        .price-cta {
+            display: inline-block;
+            margin-top: 20px;
+            background: #fff;
+            color: var(--brand);
+            font-size: 16px;
+            font-weight: 700;
+            padding: 14px 48px;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: transform .15s, box-shadow .15s;
+        }
+        .price-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(0,0,0,.15);
+        }
+        .price-rise {
+            margin-top: 14px;
+            font-size: 12px;
+            opacity: .7;
+        }
+
+        /* FAQ */
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+        .faq-q {
+            padding: 16px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        .faq-q::after {
+            content: '+';
+            font-size: 18px;
+            color: var(--text-tertiary);
+            transition: transform .2s;
+        }
+        .faq-item.open .faq-q::after {
+            content: '−';
+        }
+        .faq-a {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .3s ease, padding .3s ease;
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+        .faq-item.open .faq-a {
+            max-height: 200px;
+            padding: 0 20px 16px;
+        }
+
+        /* Footer */
+        .page-footer {
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid var(--border);
+        }
+        .page-footer a {
+            color: var(--brand);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            .page-wrapper { padding: 24px 16px 60px; }
+            .hero h1 { font-size: 26px; }
+            .audience-grid { grid-template-columns: 1fr; }
+            .price-amount { font-size: 40px; }
+            .price-block { padding: 28px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+    <a class="back-link" href="https://najia-zeng.github.io/najia-studio/">← 返回首页</a>
+
+    <!-- Hero -->
+    <div class="hero">
+        <div class="hero-badge">199元 · 一次付费永久访问</div>
+        <h1>自己搞定商用产品图，<br><span>从此不外包</span></h1>
+        <div class="hero-sub">
+            从白底图到商用场景图，智能体工具 + 专业知识库<br>
+            实拍打底 · AI提效
+        </div>
+    </div>
+
+    <!-- Notice -->
+    <div class="notice">
+        <div class="notice-title">⚠️ 购买须知</div>
+        <ul>
+            <li>本产品通过「飞书知识库」交付，购买后开通权限</li>
+            <li>内容持续更新，已购用户永久免费获取更新</li>
+            <li>虚拟内容产品，售出不退不换，请确认后再购买</li>
+        </ul>
+    </div>
+
+    <!-- Pain Points -->
+    <div class="section">
+        <div class="section-title">你是否有这些困扰？</div>
+        <ul class="pain-list">
+            <li>
+                <div class="pain-icon">💸</div>
+                外包一张图几百块，每月上新花掉大几千
+            </li>
+            <li>
+                <div class="pain-icon">🤖</div>
+                学AI生图，生成的图一眼假，产品变形不敢用
+            </li>
+            <li>
+                <div class="pain-icon">📷</div>
+                买了设备不会布光，报了课还是拍不出来
+            </li>
+        </ul>
+    </div>
+
+    <!-- Solution -->
+    <div class="section">
+        <div class="section-title">我们的解决方案</div>
+        <div class="solution-intro">
+            不是通用教程，不是一键生成工具，是一套<strong>「实拍打底 + AI提效」</strong>的完整工作流。
+        </div>
+
+        <div class="feature-group">
+            <div class="feature-group-title">🤖 3个智能体工具</div>
+            <div class="feature-card">
+                <div class="feature-card-name">提示词生成器</div>
+                <div class="feature-card-desc">不会写提示词？上传产品图，它帮你写</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card-name">AI创意生图</div>
+                <div class="feature-card-desc">上传产品图 + 参考图，一步生成场景图</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card-name">实拍融合AI</div>
+                <div class="feature-card-desc">实拍产品 + AI背景，自然融合成商用成品图</div>
+            </div>
+        </div>
+
+        <div class="feature-group">
+            <div class="feature-group-title">📚 持续更新的知识库</div>
+            <div class="feature-card">
+                <div class="feature-card-name">实拍+AI实操手册（基础版 + 进阶版）</div>
+                <div class="feature-card-desc">从0到1，自己搞定一套图</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card-name">AI图诊断清单</div>
+                <div class="feature-card-desc">一眼看出AI图哪里不能用</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card-name">融合修复教程</div>
+                <div class="feature-card-desc">把实拍产品真正融进AI场景</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card-name">品类案例库</div>
+                <div class="feature-card-desc">五金 / 陶瓷 / 发饰 / 玻璃 / 香水 / 护肤品……真实商用案例持续更新</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audience -->
+    <div class="section">
+        <div class="section-title">谁适合买？</div>
+        <div class="audience-grid">
+            <div class="audience-card fit">
+                <div class="audience-label">✓ 适合</div>
+                <ul class="audience-list">
+                    <li>电商卖家（美妆/饰品/五金/食品/日用等）</li>
+                    <li>不想再花冤枉钱外包，想自己搞定产品图</li>
+                    <li>想系统学习「实拍+AI」方法的人</li>
+                </ul>
+            </div>
+            <div class="audience-card nofit">
+                <div class="audience-label">✗ 不适合</div>
+                <ul class="audience-list">
+                    <li>想要一键出图、完全不想动手的</li>
+                    <li>预算充足、习惯外包不打算自己拍的</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Price -->
+    <div class="price-block">
+        <div class="price-label">一次付费 · 永久访问</div>
+        <div class="price-amount"><span>¥</span>199</div>
+        <div class="price-desc">知识库 + 工具 + 案例库，后续更新免费</div>
+        <a class="price-cta" href="#contact">添加微信购买</a>
+        <div class="price-rise">每新增10个案例或优化一次工具，价格上调100元</div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="section">
+        <div class="section-title">常见问题</div>
+
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">AI生图我会了，为什么还要买知识库？</div>
+            <div class="faq-a">AI生成不难，难的是生出来能不能商用。产品变形、透视错误、光影矛盾——这些问题不诊断不修复，上架就是退货率。知识库教的是判断和修复，这才是值钱的部分。</div>
+        </div>
+
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">API费用大概多少？</div>
+            <div class="faq-a">按量付费，生成一张图几分钱到一两毛。一个月正常使用几块到几十块，远低于外包。</div>
+        </div>
+
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">199元买了之后还有其他费用吗？</div>
+            <div class="faq-a">没有。知识库 + 工具 + 案例库一次付费永久访问。API费用你自己充值自己用，我们不经手。</div>
+        </div>
+
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">零基础能用吗？</div>
+            <div class="faq-a">基础版手册从拍白底图开始教，不需要任何摄影基础。智能体工具上传图片就能用，不需要懂提示词。</div>
+        </div>
+
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">后续会涨价吗？</div>
+            <div class="faq-a">会。每新增10个案例或优化一次工具，价格上调100元。越早买越划算。</div>
+        </div>
+
+        <div class="faq-item" onclick="this.classList.toggle('open')">
+            <div class="faq-q">效果不好能退款吗？</div>
+            <div class="faq-a">虚拟内容产品，不支持退款。购买前可先看免费案例（私信"案例"），确认适合再下单。</div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="page-footer">
+        <a href="https://najia-zeng.github.io/najia-studio/">← 返回娜家视觉首页</a>
+    </div>
+
+</div>
+
+</body>
+</html>
