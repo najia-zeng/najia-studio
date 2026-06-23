@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智能体 · 实拍融合AI</title>
+    <title>实拍融合AI - AI产品场景融合</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
@@ -347,7 +347,7 @@
 const ARK_API_KEY = 'ark-32e3cca5-30ab-4d17-91c1-5024b1c57850-5bda0';
 const ARK_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
 const MODEL = 'doubao-seedream-4-0-250828';
-const FUSION_PROMPT = '专业商业产品场景摄影，产品完全融入周围环境场景，产品表面呈现真实的环境反射：环境主光源在产品边缘形成自然高光，环境色调映射在产品表面，产品底部有柔和接触阴影，产品与背景之间自然过渡无白色边缘，整体画面光影和谐统一，画面真实自然，8K高清，商业广告级质感';
+const FUSION_PROMPT = '专业商业产品场景摄影，严格保持产品原有的形状、比例、文字、logo和所有细节完全不变，产品外观必须与原图一模一样，只做以下融合处理：产品边缘与背景自然过渡消除白色边缘，产品表面添加环境反射和高光使其融入场景光线，产品底部添加柔和接触阴影，禁止改变产品的任何外观细节（形状、文字、颜色、比例），禁止产品变形、拉伸、扭曲或失真，画面真实自然，8K高清，商业广告级质感';
 const CROP_THRESHOLD = 240; // fixed threshold
 const CROP_PADDING = 20;    // white border padding for AI blending
 
@@ -733,14 +733,4 @@ async function generate() {
 // ===== Reset =====
 function resetAll() {
     clearBg();
-    clearPd();
-    showView('e');
-}
-
-// ===== Init =====
-document.addEventListener('DOMContentLoaded', () => {
-    showView('e');
-});
-</script>
-</body>
-</html>
+   
