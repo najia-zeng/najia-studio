@@ -552,6 +552,14 @@
                 </div>
             </button>
 
+            <button class="nav-btn" id="navPrecise" onclick="switchTool('precise')">
+                <div class="nav-ico" style="font-size:18px">🎯</div>
+                <div class="nav-info">
+                    <div class="nav-title">产品精准融合</div>
+                    <div class="nav-desc">产品零变形，本地精准合成</div>
+                </div>
+            </button>
+
             <div class="nav-section">📖 专业知识库</div>
 
             <a class="nav-btn" href="https://my.feishu.cn/wiki/Rgsewp0u2iPhLDkmj0RcAqoFnyd" id="navManual" target="_blank" rel="noopener">
@@ -718,7 +726,8 @@
 const tools = {
     kuociq: { url: 'kuociq.html', navId: 'navKuociq' },
     scene:  { url: 'scene-gen.html', navId: 'navScene' },
-    fusion: { url: 'fusion-pro.html', navId: 'navFusion' }
+    fusion: { url: 'fusion-pro.html', navId: 'navFusion' },
+    precise: { url: 'fusion-precise.html', navId: 'navPrecise' }
 };
 let currentTool = null;
 
