@@ -183,9 +183,6 @@
 </div>
 
 <script>
-const CROP_THRESHOLD = 240;
-const FEATHER_PX = 8;
-
 let bgDataUri = null, bgNatW = 0, bgNatH = 0;
 let pdOriginalSrc = null, pdCroppedSrc = null;
 let fCanvas = null, productObj = null;
@@ -252,7 +249,7 @@ function clearPd() {
     updateGenBtn();
 }
 
-// ===== Smart Crop with Alpha Feathering =====
+// ===== Smart Crop with Distance Transform + Color Decontamination =====
 function smartCrop(imgSrc) {
     return new Promise(resolve => {
         const img = new Image();
@@ -261,73 +258,114 @@ function smartCrop(imgSrc) {
             c.width = img.width; c.height = img.height;
             const ctx = c.getContext('2d');
             ctx.drawImage(img, 0, 0);
-            const imageData = ctx.getImageData(0, 0, c.width, c.height);
-            const d = imageData.data;
-            const w = c.width, h = c.height, t = CROP_THRESHOLD;
+            const id = ctx.getImageData(0, 0, c.width, c.height);
+            const d = id.data;
+            const w = c.width, h = c.height;
 
-            // Find bounding box of non-white pixels
+            const FEATHER_PX = 12;     // Edge feather zone width
+            const DECONTAM_ZONE = 25;  // White decontamination zone width (pixels from bg boundary)
+            const PAD = FEATHER_PX + 4;
+
+            // Helper: is this pixel likely white background?
+            function isWhiteBg(pi) {
+                const r = d[pi], g = d[pi+1], b = d[pi+2];
+                const maxC = Math.max(r, g, b);
+                const minC = Math.min(r, g, b);
+                const sat = maxC > 0 ? (maxC - minC) / maxC : 0;
+                return maxC >= 230 && sat < 0.05;
+            }
+
+            // Step 1: Find bounding box of non-background pixels
             let top = 0, bottom = h - 1, left = 0, right = w - 1;
-            for (let y = 0; y < h; y++) { let f = false; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if (d[i] < t || d[i+1] < t || d[i+2] < t) { top = y; f = true; break; } } if (f) break; }
-            for (let y = h - 1; y >= 0; y--) { let f = false; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if (d[i] < t || d[i+1] < t || d[i+2] < t) { bottom = y; f = true; break; } } if (f) break; }
-            for (let x = 0; x < w; x++) { let f = false; for (let y = top; y <= bottom; y++) { const i = (y * w + x) * 4; if (d[i] < t || d[i+1] < t || d[i+2] < t) { left = x; f = true; break; } } if (f) break; }
-            for (let x = w - 1; x >= 0; x--) { let f = false; for (let y = top; y <= bottom; y++) { const i = (y * w + x) * 4; if (d[i] < t || d[i+1] < t || d[i+2] < t) { right = x; f = true; break; } } if (f) break; }
+            outer1: for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!isWhiteBg((y*w+x)*4)) { top = y; break outer1; }
+            outer2: for (let y = h-1; y >= 0; y--) for (let x = 0; x < w; x++) if (!isWhiteBg((y*w+x)*4)) { bottom = y; break outer2; }
+            outer3: for (let x = 0; x < w; x++) for (let y = top; y <= bottom; y++) if (!isWhiteBg((y*w+x)*4)) { left = x; break outer3; }
+            outer4: for (let x = w-1; x >= 0; x--) for (let y = top; y <= bottom; y++) if (!isWhiteBg((y*w+x)*4)) { right = x; break outer4; }
 
             const cropW = right - left + 1;
             const cropH = bottom - top + 1;
-            const feather = FEATHER_PX;
-            const pad = feather + 3;
 
-            // Create output canvas with transparent background
+            // Step 2: Chamfer distance transform from white background
+            const cw = cropW, ch = cropH;
+            const dist = new Float32Array(cw * ch);
+            const INF = 1e5;
+            dist.fill(INF);
+            for (let y = 0; y < ch; y++)
+                for (let x = 0; x < cw; x++)
+                    if (isWhiteBg(((y+top)*w+(x+left))*4)) dist[y*cw+x] = 0;
+            // Forward pass (top-left → bottom-right)
+            for (let y = 1; y < ch; y++)
+                for (let x = 1; x < cw-1; x++) {
+                    const i = y*cw+x;
+                    dist[i] = Math.min(dist[i], dist[i-cw]+1, dist[i-cw-1]+1.4, dist[i-cw+1]+1.4, dist[i-1]+1);
+                }
+            // Backward pass (bottom-right → top-left)
+            for (let y = ch-2; y >= 0; y--)
+                for (let x = cw-2; x >= 1; x--) {
+                    const i = y*cw+x;
+                    dist[i] = Math.min(dist[i], dist[i+cw]+1, dist[i+cw-1]+1.4, dist[i+cw+1]+1.4, dist[i+1]+1);
+                }
+
+            // Step 3: Create output with alpha + color decontamination
             const oc = document.createElement('canvas');
-            oc.width = cropW + pad * 2;
-            oc.height = cropH + pad * 2;
+            oc.width = cropW + PAD * 2;
+            oc.height = cropH + PAD * 2;
             const octx = oc.getContext('2d');
-            // Draw cropped product onto center
-            octx.drawImage(img, left, top, cropW, cropH, pad, pad, cropW, cropH);
-
-            // Process alpha channel for edge feathering and white background removal
-            const outData = octx.getImageData(0, 0, oc.width, oc.height);
-            const od = outData.data;
+            octx.drawImage(img, left, top, cropW, cropH, PAD, PAD, cropW, cropH);
+            const od = octx.getImageData(0, 0, oc.width, oc.height);
+            const px = od.data;
 
             for (let y = 0; y < oc.height; y++) {
                 for (let x = 0; x < oc.width; x++) {
                     const i = (y * oc.width + x) * 4;
-                    const inProduct = x >= pad && x < pad + cropW && y >= pad && y < pad + cropH;
+                    const inCrop = x >= PAD && x < PAD + cw && y >= PAD && y < PAD + ch;
 
-                    if (!inProduct) { od[i + 3] = 0; continue; }
+                    if (!inCrop) { px[i+3] = 0; continue; }
 
-                    // Distance from product edge
-                    const distFromEdge = Math.min(
-                        x - pad, pad + cropW - 1 - x,
-                        y - pad, pad + cropH - 1 - y
-                    );
+                    const cx = x - PAD, cy = y - PAD;
+                    const dd = dist[cy * cw + cx]; // distance from nearest white bg pixel
 
+                    // Feather at mask boundary
                     let alpha = 255;
-
-                    // Edge feathering: smooth alpha gradient at the boundary
-                    if (distFromEdge < feather) {
-                        alpha = Math.round(255 * (distFromEdge + 1) / (feather + 1));
+                    if (dd < FEATHER_PX) {
+                        alpha = Math.round(255 * Math.max(0, dd) / FEATHER_PX);
                     }
 
-                    // Near-edge white pixel removal (remove residual white background at edges)
-                    if (distFromEdge < feather * 3) {
-                        const r = od[i], g = od[i+1], b = od[i+2];
+                    // White decontamination within edge zone
+                    if (dd < DECONTAM_ZONE) {
+                        const r = px[i], g = px[i+1], b = px[i+2];
                         const maxC = Math.max(r, g, b);
                         const minC = Math.min(r, g, b);
                         const sat = maxC > 0 ? (maxC - minC) / maxC : 0;
-                        // Pure white with no saturation = background remnant
-                        if (maxC > 248 && sat < 0.04) {
-                            const whiteFactor = Math.min(1, (maxC - 248) / 7);
-                            const bgAlpha = 1 - whiteFactor;
-                            alpha = Math.round(alpha * bgAlpha);
+                        const brightness = maxC / 255;
+
+                        if (brightness > 0.90 && sat < 0.12) {
+                            // Whiteness: how much of this pixel is white bg contamination
+                            // Stronger near boundary, weaker deeper into product
+                            const zoneFactor = 1 - dd / DECONTAM_ZONE;
+                            let whiteness = brightness * brightness * Math.max(0, 1 - sat / 0.12);
+                            whiteness *= zoneFactor;
+
+                            if (whiteness > 0.01) {
+                                const productAlpha = 1 - whiteness;
+                                // Color decontamination: unpremultiply against white
+                                // pixel = C * (1-w) + 255 * w  →  C = (pixel - 255*w) / (1-w)
+                                if (productAlpha > 0.05 && productAlpha < 0.98) {
+                                    const inv = 1 / productAlpha;
+                                    px[i]   = Math.min(255, Math.max(0, Math.round((r - 255 * whiteness) * inv)));
+                                    px[i+1] = Math.min(255, Math.max(0, Math.round((g - 255 * whiteness) * inv)));
+                                    px[i+2] = Math.min(255, Math.max(0, Math.round((b - 255 * whiteness) * inv)));
+                                }
+                                alpha = Math.min(alpha, Math.round(255 * productAlpha));
+                            }
                         }
                     }
 
-                    od[i + 3] = Math.max(0, alpha);
+                    px[i+3] = Math.max(0, Math.min(255, alpha));
                 }
             }
 
-            octx.putImageData(outData, 0, 0);
+            octx.putImageData(od, 0, 0);
             resolve(oc.toDataURL('image/png'));
         };
         img.src = imgSrc;
