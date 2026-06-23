@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能体·产品精准融合</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f5f5f7; --card: #ffffff; --border: #e5e5e5;
+            --text: #1d1d1f; --text-sec: #86868b;
+            --accent: #1d1d1f; --accent-h: #333;
+            --radius: 14px; --radius-s: 10px;
+        }
+        body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+        .page { max-width: 1400px; margin: 0 auto; height: 100vh; }
+
+        .hdr { height: 56px; background: var(--card); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 12px; }
+        .hdr-logo { width: 34px; height: 34px; background: var(--accent); border-radius: 9px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 17px; }
+        .hdr-title { font-weight: 600; font-size: 18px; }
+        .hdr-sub { font-size: 13px; color: var(--text-sec); margin-left: 4px; }
+
+        .wrap { display: flex; height: calc(100vh - 56px); }
+
+        .left { width: 340px; min-width: 340px; background: var(--card); border-right: 1px solid var(--border); padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+        .left::-webkit-scrollbar { width: 4px; }
+        .left::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+        .sec-label { font-size: 13px; font-weight: 600; color: var(--text-sec); letter-spacing: 1px; margin-bottom: 8px; }
+
+        .up-area { border: 1px dashed var(--border); border-radius: var(--radius-s); padding: 20px 14px; text-align: center; cursor: pointer; transition: all .2s; position: relative; background: #fafafa; min-height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .up-area:hover { border-color: #999; }
+        .up-area.has { border-style: solid; border-color: var(--accent); padding: 8px; background: #fff; }
+        .up-ico { font-size: 24px; margin-bottom: 4px; color: #bbb; }
+        .up-txt { font-size: 14px; color: var(--text-sec); line-height: 1.5; }
+        .up-prev { max-width: 100%; max-height: 120px; border-radius: 6px; object-fit: contain; }
+        .up-rm { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; background: rgba(0,0,0,.4); color: #fff; border: none; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: background .15s; z-index: 2; }
+        .up-rm:hover { background: rgba(0,0,0,.7); }
+
+        .gen-btn { width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-s); font-size: 16px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .2s; }
+        .gen-btn:hover { background: var(--accent-h); }
+        .gen-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+        .divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+        .ctrl-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .ctrl-row label { font-size: 13px; color: var(--text-sec); min-width: 36px; }
+        .ctrl-row input[type="range"] { flex: 1; height: 4px; -webkit-appearance: none; appearance: none; background: var(--border); border-radius: 2px; outline: none; }
+        .ctrl-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+        .ctrl-row span { font-size: 12px; color: var(--text-sec); min-width: 32px; text-align: right; }
+
+        .shadow-reset { font-size: 12px; color: var(--text-sec); cursor: pointer; background: none; border: none; text-decoration: underline; font-family: inherit; padding: 0; }
+        .shadow-reset:hover { color: var(--text); }
+
+        .tip-box { font-size: 12px; color: var(--text-sec); line-height: 1.6; padding: 10px 12px; background: #f9f9fb; border-radius: var(--radius-s); border: 1px solid var(--border); }
+
+        .right { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; }
+        .right::-webkit-scrollbar { width: 6px; }
+        .right::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+        .canvas-wrap { flex: 1; display: flex; align-items: center; justify-content: center; background: #eaeaea; border-radius: var(--radius); overflow: hidden; position: relative; min-height: 400px; }
+        .canvas-wrap canvas { display: block; }
+        .canvas-tip { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.55); color: #fff; padding: 6px 16px; border-radius: 20px; font-size: 12px; pointer-events: none; white-space: nowrap; z-index: 5; opacity: 0; transition: opacity .3s; }
+        .canvas-wrap:hover .canvas-tip { opacity: 1; }
+
+        .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .empty-ico { width: 72px; height: 72px; border: 2px solid var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; transform: rotate(45deg); margin-bottom: 24px; }
+        .empty-ico span { transform: rotate(-45deg); font-size: 24px; color: #ccc; }
+        .empty-t { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+        .empty-d { font-size: 14px; color: var(--text-sec); max-width: 320px; line-height: 1.7; }
+
+        .res-wrap { max-width: 800px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .res-top { width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+        .res-top h2 { font-size: 17px; font-weight: 500; }
+        .new-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-s); font-size: 13px; cursor: pointer; font-family: inherit; transition: all .15s; color: var(--text-sec); }
+        .new-btn:hover { border-color: #999; color: var(--text); }
+        .res-img-wrap { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; align-items: center; justify-content: center; }
+        .res-img { max-width: 100%; max-height: 70vh; border-radius: 6px; object-fit: contain; }
+        .res-actions { margin-top: 16px; display: flex; gap: 12px; }
+        .dl-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 24px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-s); font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .2s; text-decoration: none; }
+        .dl-btn:hover { background: var(--accent-h); }
+        .back-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 24px; background: var(--card); color: var(--text-sec); border: 1px solid var(--border); border-radius: var(--radius-s); font-size: 14px; cursor: pointer; font-family: inherit; transition: all .15s; }
+        .back-btn:hover { border-color: #999; color: var(--text); }
+
+        .ldg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spin { width: 40px; height: 40px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; }
+        @keyframes sp { to { transform: rotate(360deg); } }
+        .ldg-txt { margin-top: 16px; font-size: 15px; color: var(--text-sec); }
+
+        @media (max-width: 860px) {
+            .wrap { flex-direction: column; height: auto; }
+            .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
+            .right { min-height: 50vh; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page">
+<div class="hdr">
+    <div class="hdr-logo">准</div>
+    <span class="hdr-title">产品精准融合</span>
+    <span class="hdr-sub">产品零变形，本地精准合成</span>
+</div>
+<div class="wrap">
+    <div class="left">
+        <div>
+            <div class="sec-label">背景图</div>
+            <div class="up-area" id="bgArea" onclick="$('bgFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'bg')">
+                <input type="file" id="bgFile" accept="image/*" style="display:none" onchange="bgSel(event)">
+                <div id="bgContent"><div class="up-ico">🖼</div><div class="up-txt">上传背景图</div></div>
+            </div>
+        </div>
+        <div>
+            <div class="sec-label">产品图</div>
+            <div class="up-area" id="pdArea" onclick="$('pdFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'pd')">
+                <input type="file" id="pdFile" accept="image/*" style="display:none" onchange="pdSel(event)">
+                <div id="pdContent"><div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div></div>
+            </div>
+        </div>
+        <div class="divider"></div>
+        <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <div class="sec-label" style="margin-bottom:0">阴影调整</div>
+                <button class="shadow-reset" onclick="resetShadow()">重置</button>
+            </div>
+            <div class="ctrl-row">
+                <label>方向</label>
+                <input type="range" id="shadowX" min="-40" max="40" value="3">
+                <span id="shadowXVal">3</span>
+            </div>
+            <div class="ctrl-row">
+                <label>距离</label>
+                <input type="range" id="shadowY" min="0" max="50" value="8">
+                <span id="shadowYVal">8</span>
+            </div>
+            <div class="ctrl-row">
+                <label>模糊</label>
+                <input type="range" id="shadowBlur" min="0" max="80" value="25">
+                <span id="shadowBlurVal">25</span>
+            </div>
+            <div class="ctrl-row">
+                <label>浓度</label>
+                <input type="range" id="shadowAlpha" min="0" max="100" value="30">
+                <span id="shadowAlphaVal">30%</span>
+            </div>
+        </div>
+        <button class="gen-btn" id="genBtn" onclick="exportFusion()" disabled>导出融合图</button>
+        <div class="tip-box">产品精准融合不会改变产品外观，合成效果偏"贴图"风格。如需更自然的融合效果，可使用<a href="fusion-pro.html" style="color:var(--text)">实拍融合AI</a>。</div>
+    </div>
+    <div class="right" id="right">
+        <div class="empty" id="vEmpty">
+            <div class="empty-ico"><span>◇</span></div>
+            <div class="empty-t">准备开始</div>
+            <div class="empty-d">上传背景图和产品白底图，调整阴影后直接导出，产品零变形</div>
+        </div>
+        <div class="canvas-wrap" id="canvasWrap" style="display:none">
+            <canvas id="mainCanvas"></canvas>
+            <div class="canvas-tip">拖动移动 · 角落缩放 · 顶部旋转</div>
+        </div>
+        <div class="ldg" id="vLoad" style="display:none">
+            <div class="spin"></div>
+            <div class="ldg-txt">正在导出高清图...</div>
+        </div>
+        <div class="res-wrap" id="vRes" style="display:none">
+            <div class="res-top">
+                <h2>融合结果</h2>
+                <button class="new-btn" onclick="backToCanvas()">返回调整</button>
+            </div>
+            <div class="res-img-wrap">
+                <img id="resImg" class="res-img" src="" alt="融合结果">
+            </div>
+            <div class="res-actions">
+                <a id="dlLink" class="dl-btn" href="#" download="fusion-precise.png">⬇ 下载图片</a>
+                <button class="back-btn" onclick="backToCanvas()">继续调整</button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+const CROP_THRESHOLD = 240;
+const FEATHER_PX = 8;
+
+let bgDataUri = null, bgNatW = 0, bgNatH = 0;
+let pdOriginalSrc = null, pdCroppedSrc = null;
+let fCanvas = null, productObj = null;
+
+const $ = id => document.getElementById(id);
+
+// ===== Drag & Drop =====
+function dOver(e, el) { e.preventDefault(); el.style.borderColor = '#999'; }
+function dLeave(e, el) { if (!el.classList.contains('has')) el.style.borderColor = ''; }
+function dDrop(e, el, type) { e.preventDefault(); e.stopPropagation(); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) { if (type === 'bg') loadBg(f); else loadPd(f); } }
+
+function bgSel(e) { const f = e.target.files[0]; if (f) loadBg(f); }
+function pdSel(e) { const f = e.target.files[0]; if (f) loadPd(f); }
+
+// ===== Load Background =====
+function loadBg(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        bgDataUri = e.target.result;
+        showPreview('bg', bgDataUri);
+        initCanvasWithBg(bgDataUri);
+        updateGenBtn();
+    };
+    reader.readAsDataURL(file);
+}
+
+function showPreview(type, src) {
+    const areaId = type === 'bg' ? 'bgArea' : 'pdArea';
+    const contentId = type === 'bg' ? 'bgContent' : 'pdContent';
+    const clearFn = type === 'bg' ? 'clearBg' : 'clearPd';
+    $(areaId).classList.add('has');
+    $(contentId).innerHTML = `<img src="${src}" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();${clearFn}()">×</button>`;
+}
+
+function clearBg() {
+    bgDataUri = null; bgNatW = 0; bgNatH = 0;
+    $('bgFile').value = '';
+    $('bgArea').classList.remove('has'); $('bgArea').style.borderColor = '';
+    $('bgContent').innerHTML = '<div class="up-ico">🖼</div><div class="up-txt">上传背景图</div>';
+    destroyCanvas(); showView('e'); updateGenBtn();
+}
+
+// ===== Load Product =====
+function loadPd(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        pdOriginalSrc = e.target.result;
+        smartCrop(pdOriginalSrc).then(cropped => {
+            pdCroppedSrc = cropped;
+            showPreview('pd', cropped);
+            if (fCanvas && bgDataUri) addProductToCanvas(cropped);
+            updateGenBtn();
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearPd() {
+    pdOriginalSrc = null; pdCroppedSrc = null;
+    $('pdFile').value = '';
+    $('pdArea').classList.remove('has'); $('pdArea').style.borderColor = '';
+    $('pdContent').innerHTML = '<div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div>';
+    if (fCanvas && productObj) { fCanvas.remove(productObj); productObj = null; fCanvas.renderAll(); }
+    updateGenBtn();
+}
+
+// ===== Smart Crop with Alpha Feathering =====
+function smartCrop(imgSrc) {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+            const c = document.createElement('canvas');
+            c.width = img.width; c.height = img.height;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const imageData = ctx.getImageData(0, 0, c.width, c.height);
+            const d = imageData.data;
+            const w = c.width, h = c.height, t = CROP_THRESHOLD;
+
+            // Find bounding box of non-white pixels
+            let top = 0, bottom = h - 1, left = 0, right = w - 1;
+            for (let y = 0; y < h; y++) { let f = false; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if (d[i] < t || d[i+1] < t || d[i+2] < t) { top = y; f = true; break; } } if (f) break; }
+            for (let y = h - 1; y >= 0; y--) { let f = false; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if (d[i] < t || d[i+1] < t || d[i+2] < t) { bottom = y; f = true; break; } } if (f) break; }
+            for (let x = 0; x < w; x++) { let f = false; for (let y = top; y <= bottom; y++) { const i = (y * w + x) * 4; if (d[i] < t || d[i+1] < t || d[i+2] < t) { left = x; f = true; break; } } if (f) break; }
+            for (let x = w - 1; x >= 0; x--) { let f = false; for (let y = top; y <= bottom; y++) { const i = (y * w + x) * 4; if (d[i] < t || d[i+1] < t || d[i+2] < t) { right = x; f = true; break; } } if (f) break; }
+
+            const cropW = right - left + 1;
+            const cropH = bottom - top + 1;
+            const feather = FEATHER_PX;
+            const pad = feather + 3;
+
+            // Create output canvas with transparent background
+            const oc = document.createElement('canvas');
+            oc.width = cropW + pad * 2;
+            oc.height = cropH + pad * 2;
+            const octx = oc.getContext('2d');
+            // Draw cropped product onto center
+            octx.drawImage(img, left, top, cropW, cropH, pad, pad, cropW, cropH);
+
+            // Process alpha channel for edge feathering and white background removal
+            const outData = octx.getImageData(0, 0, oc.width, oc.height);
+            const od = outData.data;
+
+            for (let y = 0; y < oc.height; y++) {
+                for (let x = 0; x < oc.width; x++) {
+                    const i = (y * oc.width + x) * 4;
+                    const inProduct = x >= pad && x < pad + cropW && y >= pad && y < pad + cropH;
+
+                    if (!inProduct) { od[i + 3] = 0; continue; }
+
+                    // Distance from product edge
+                    const distFromEdge = Math.min(
+                        x - pad, pad + cropW - 1 - x,
+                        y - pad, pad + cropH - 1 - y
+                    );
+
+                    let alpha = 255;
+
+                    // Edge feathering: smooth alpha gradient at the boundary
+                    if (distFromEdge < feather) {
+                        alpha = Math.round(255 * (distFromEdge + 1) / (feather + 1));
+                    }
+
+                    // Near-edge white pixel removal (remove residual white background at edges)
+                    if (distFromEdge < feather * 3) {
+                        const r = od[i], g = od[i+1], b = od[i+2];
+                        const maxC = Math.max(r, g, b);
+                        const minC = Math.min(r, g, b);
+                        const sat = maxC > 0 ? (maxC - minC) / maxC : 0;
+                        // Pure white with no saturation = background remnant
+                        if (maxC > 248 && sat < 0.04) {
+                            const whiteFactor = Math.min(1, (maxC - 248) / 7);
+                            const bgAlpha = 1 - whiteFactor;
+                            alpha = Math.round(alpha * bgAlpha);
+                        }
+                    }
+
+                    od[i + 3] = Math.max(0, alpha);
+                }
+            }
+
+            octx.putImageData(outData, 0, 0);
+            resolve(oc.toDataURL('image/png'));
+        };
+        img.src = imgSrc;
+    });
+}
+
+// ===== Fabric.js Canvas =====
+function initCanvasWithBg(dataUri) {
+    const img = new Image();
+    img.onload = () => {
+        bgNatW = img.width; bgNatH = img.height;
+        let intW = img.width, intH = img.height;
+        if (intW > 2048 || intH > 2048) { const s = 2048 / Math.max(intW, intH); intW = Math.round(intW * s); intH = Math.round(intH * s); }
+
+        $('vEmpty').style.display = 'none';
+        $('canvasWrap').style.display = 'flex';
+
+        const container = $('canvasWrap');
+        const maxW = container.clientWidth - 32;
+        const maxH = container.clientHeight - 32;
+        const dispScale = Math.min(maxW / intW, maxH / intH, 1);
+        const dispW = Math.round(intW * dispScale);
+        const dispH = Math.round(intH * dispScale);
+
+        if (!fCanvas) {
+            fCanvas = new fabric.Canvas('mainCanvas', { selection: false, preserveObjectStacking: true });
+            fabric.Object.prototype.set({
+                cornerSize: 10, cornerColor: '#1d1d1f', cornerStyle: 'circle',
+                borderColor: '#1d1d1f', transparentCorners: false, borderScaleFactor: 1.5, padding: 4
+            });
+        }
+
+        fCanvas.clear(); productObj = null;
+        fCanvas.setWidth(dispW); fCanvas.setHeight(dispH);
+
+        fabric.Image.fromURL(dataUri, function(fImg) {
+            fImg.set({ scaleX: dispW / fImg.width, scaleY: dispH / fImg.height, selectable: false, evented: false });
+            fCanvas.setBackgroundImage(fImg, fCanvas.renderAll.bind(fCanvas));
+            if (pdCroppedSrc) addProductToCanvas(pdCroppedSrc);
+        });
+    };
+    img.src = dataUri;
+}
+
+function addProductToCanvas(src, savedPos) {
+    if (!fCanvas) return;
+    fabric.Image.fromURL(src, function(img) {
+        const targetW = fCanvas.getWidth() * 0.35;
+        const scale = targetW / img.width;
+
+        if (savedPos) {
+            img.set({ left: savedPos.left, top: savedPos.top, scaleX: savedPos.scaleX, scaleY: savedPos.scaleY, angle: savedPos.angle });
+        } else {
+            img.set({
+                left: (fCanvas.getWidth() - img.width * scale) / 2,
+                top: (fCanvas.getHeight() - img.height * scale) / 2,
+                scaleX: scale, scaleY: scale
+            });
+        }
+
+        // Apply current shadow settings
+        applyShadowToObject(img);
+
+        img.set({ hasRotatingPoint: true, lockUniScaling: false });
+        fCanvas.add(img);
+        fCanvas.setActiveObject(img);
+        productObj = img;
+        fCanvas.renderAll();
+    });
+}
+
+function destroyCanvas() {
+    if (fCanvas) { fCanvas.clear(); fCanvas.dispose(); fCanvas = null; productObj = null; }
+    $('canvasWrap').style.display = 'none';
+    const wrap = $('canvasWrap');
+    const oldC = $('mainCanvas'); if (oldC) oldC.remove();
+    const newC = document.createElement('canvas'); newC.id = 'mainCanvas';
+    wrap.insertBefore(newC, wrap.firstChild);
+}
+
+// ===== Shadow Controls =====
+['shadowX', 'shadowY', 'shadowBlur', 'shadowAlpha'].forEach(id => {
+    document.addEventListener('DOMContentLoaded', () => {
+        $(id).addEventListener('input', updateShadow);
+    });
+});
+
+function applyShadowToObject(obj) {
+    const ox = parseInt($('shadowX').value);
+    const oy = parseInt($('shadowY').value);
+    const blur = parseInt($('shadowBlur').value);
+    const a = parseInt($('shadowAlpha').value) / 100;
+    obj.set({
+        shadow: new fabric.Shadow({
+            color: `rgba(0,0,0,${a})`,
+            blur: blur,
+            offsetX: ox,
+            offsetY: oy
+        })
+    });
+}
+
+function updateShadow() {
+    $('shadowXVal').textContent = $('shadowX').value;
+    $('shadowYVal').textContent = $('shadowY').value;
+    $('shadowBlurVal').textContent = $('shadowBlur').value;
+    $('shadowAlphaVal').textContent = $('shadowAlpha').value + '%';
+    if (!productObj) return;
+    applyShadowToObject(productObj);
+    fCanvas.renderAll();
+}
+
+function resetShadow() {
+    $('shadowX').value = 3; $('shadowY').value = 8;
+    $('shadowBlur').value = 25; $('shadowAlpha').value = 30;
+    updateShadow();
+}
+
+// ===== Export =====
+function exportFusion() {
+    if (!fCanvas || !productObj) return;
+    showView('l');
+
+    // Use setTimeout to let the loading view render before heavy canvas export
+    setTimeout(() => {
+        try {
+            const multiplier = bgNatW / fCanvas.getWidth();
+            const dataUrl = fCanvas.toDataURL({ format: 'png', multiplier: multiplier, quality: 1 });
+            $('resImg').src = dataUrl;
+            $('dlLink').href = dataUrl;
+            showView('r');
+        } catch (err) {
+            console.error(err);
+            alert('导出失败: ' + err.message);
+            showView('c');
+        }
+    }, 100);
+}
+
+function backToCanvas() { showView('c'); }
+
+// ===== View Management =====
+function showView(v) {
+    $('vEmpty').style.display = v === 'e' ? 'flex' : 'none';
+    $('canvasWrap').style.display = (v === 'c' || v === 'e') && bgDataUri ? 'flex' : 'none';
+    if (v === 'e' && !bgDataUri) $('canvasWrap').style.display = 'none';
+    if (v === 'c') $('canvasWrap').style.display = 'flex';
+    $('vLoad').style.display = v === 'l' ? 'flex' : 'none';
+    $('vRes').style.display = v === 'r' ? 'block' : 'none';
+}
+
+function updateGenBtn() { $('genBtn').disabled = !(bgDataUri && pdCroppedSrc); }
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', () => {
+    showView('e');
+    // Init shadow display values
+    $('shadowXVal').textContent = $('shadowX').value;
+    $('shadowYVal').textContent = $('shadowY').value;
+    $('shadowBlurVal').textContent = $('shadowBlur').value;
+    $('shadowAlphaVal').textContent = $('shadowAlpha').value + '%';
+    // Attach shadow listeners
+    ['shadowX', 'shadowY', 'shadowBlur', 'shadowAlpha'].forEach(id => {
+        $(id).addEventListener('input', updateShadow);
+    });
+});
+</script>
+</body>
+</html>
