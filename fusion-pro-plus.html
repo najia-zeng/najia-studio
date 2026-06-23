@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实拍融合AI·进阶版 - 材质精准控制</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #f5f5f7;
+            --card: #ffffff;
+            --border: #e5e5e5;
+            --text: #1d1d1f;
+            --text-sec: #86868b;
+            --accent: #1d1d1f;
+            --accent-h: #333;
+            --radius: 14px;
+            --radius-s: 10px;
+            --tag-bg: #f0f0f2;
+            --tag-active: #1d1d1f;
+            --tag-active-text: #fff;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .page {
+            max-width: 1400px;
+            margin: 0 auto;
+            height: 100vh;
+        }
+
+        /* ===== Header ===== */
+        .hdr {
+            height: 56px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            gap: 12px;
+        }
+        .hdr-logo {
+            width: 34px; height: 34px;
+            background: linear-gradient(135deg, #1d1d1f 60%, #555);
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-weight: 700; font-size: 17px;
+        }
+        .hdr-title { font-weight: 600; font-size: 18px; }
+        .hdr-sub { font-size: 13px; color: var(--text-sec); margin-left: 4px; }
+        .hdr-badge {
+            font-size: 11px; font-weight: 600;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: #fff; padding: 2px 8px; border-radius: 4px;
+            margin-left: 8px; letter-spacing: 0.5px;
+        }
+
+        /* ===== Layout ===== */
+        .wrap { display: flex; height: calc(100vh - 56px); }
+
+        /* ===== Left ===== */
+        .left {
+            width: 360px; min-width: 360px;
+            background: var(--card);
+            border-right: 1px solid var(--border);
+            padding: 20px 20px;
+            overflow-y: auto;
+            display: flex; flex-direction: column; gap: 16px;
+        }
+        .left::-webkit-scrollbar { width: 4px; }
+        .left::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+        .sec-label {
+            font-size: 13px; font-weight: 600;
+            color: var(--text-sec);
+            letter-spacing: 1px;
+        }
+
+        /* Upload */
+        .up-area {
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-s);
+            padding: 24px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s;
+            position: relative;
+            background: #fafafa;
+            min-height: 100px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .up-area:hover { border-color: #999; }
+        .up-area.has { border-style: solid; border-color: var(--accent); padding: 8px; background: #fff; }
+        .up-ico { font-size: 26px; margin-bottom: 6px; color: #bbb; }
+        .up-txt { font-size: 14px; color: var(--text-sec); line-height: 1.5; }
+        .up-hint { font-size: 12px; color: #ccc; margin-top: 3px; }
+        .up-prev { max-width: 100%; max-height: 140px; border-radius: 6px; object-fit: contain; }
+        .up-rm {
+            position: absolute; top: 6px; right: 6px;
+            width: 22px; height: 22px;
+            background: rgba(0,0,0,.4); color: #fff;
+            border: none; border-radius: 50%;
+            cursor: pointer; font-size: 13px;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .15s; z-index: 2;
+        }
+        .up-rm:hover { background: rgba(0,0,0,.7); }
+
+        /* ===== Material & Shadow Controls ===== */
+        .ctrl-section {
+            background: #fafafa;
+            border-radius: var(--radius-s);
+            padding: 14px;
+        }
+        .ctrl-label {
+            font-size: 13px; font-weight: 600;
+            color: var(--text-sec);
+            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .ctrl-label .ico { font-size: 15px; }
+
+        /* Tag group */
+        .tag-group {
+            display: flex; flex-wrap: wrap; gap: 8px;
+        }
+        .tag {
+            padding: 7px 14px;
+            background: var(--tag-bg);
+            border: 1.5px solid transparent;
+            border-radius: 8px;
+            font-size: 13px; font-weight: 500;
+            color: var(--text-sec);
+            cursor: pointer; font-family: inherit;
+            transition: all .2s;
+            user-select: none;
+        }
+        .tag:hover { background: #e8e8ea; color: var(--text); }
+        .tag.active {
+            background: var(--tag-active);
+            color: var(--tag-active-text);
+            border-color: var(--tag-active);
+        }
+
+        /* Prompt preview */
+        .prompt-preview {
+            margin-top: 8px;
+            padding: 10px 12px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-sec);
+            line-height: 1.8;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+        .prompt-preview::-webkit-scrollbar { width: 3px; }
+        .prompt-preview::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+        .prompt-preview .hl {
+            color: #ff6b35;
+            font-weight: 500;
+        }
+
+        /* Generate button */
+        .gen-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #1d1d1f, #333);
+            color: #fff;
+            border: none; border-radius: var(--radius-s);
+            font-size: 16px; font-weight: 500;
+            cursor: pointer; font-family: inherit;
+            transition: all .2s;
+        }
+        .gen-btn:hover { background: linear-gradient(135deg, #333, #444); }
+        .gen-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+        /* ===== Right ===== */
+        .right {
+            flex: 1; padding: 24px;
+            overflow-y: auto;
+            display: flex; flex-direction: column;
+        }
+        .right::-webkit-scrollbar { width: 6px; }
+        .right::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+        /* Canvas container */
+        .canvas-wrap {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            background: #eaeaea;
+            border-radius: var(--radius);
+            overflow: hidden;
+            position: relative;
+            min-height: 400px;
+        }
+        .canvas-wrap canvas { display: block; }
+
+        /* Empty */
+        .empty {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+        }
+        .empty-ico {
+            width: 72px; height: 72px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            transform: rotate(45deg);
+            margin-bottom: 24px;
+        }
+        .empty-ico span { transform: rotate(-45deg); font-size: 24px; color: #ccc; }
+        .empty-t { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+        .empty-d { font-size: 14px; color: var(--text-sec); max-width: 320px; line-height: 1.7; }
+
+        /* Loading */
+        .ldg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spin {
+            width: 40px; height: 40px;
+            border: 2px solid var(--border); border-top-color: var(--accent);
+            border-radius: 50%; animation: sp .7s linear infinite;
+        }
+        @keyframes sp { to { transform: rotate(360deg); } }
+        .ldg-txt { margin-top: 16px; font-size: 15px; color: var(--text-sec); }
+        .ldg-sub { margin-top: 4px; font-size: 13px; color: #bbb; }
+
+        /* Result */
+        .res-wrap {
+            max-width: 800px; margin: 0 auto; width: 100%;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .res-top {
+            width: 100%;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .res-top h2 { font-size: 17px; font-weight: 500; }
+        .new-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 14px; background: var(--card);
+            border: 1px solid var(--border); border-radius: var(--radius-s);
+            font-size: 13px; cursor: pointer; font-family: inherit;
+            transition: all .15s; color: var(--text-sec);
+        }
+        .new-btn:hover { border-color: #999; color: var(--text); }
+
+        .res-img-wrap {
+            width: 100%; background: var(--card);
+            border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 16px; display: flex; align-items: center; justify-content: center;
+        }
+        .res-img {
+            max-width: 100%; max-height: 70vh;
+            border-radius: 6px; object-fit: contain;
+        }
+
+        .res-actions {
+            margin-top: 16px; display: flex; gap: 12px;
+        }
+        .dl-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 24px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: var(--radius-s);
+            font-size: 14px; font-weight: 500;
+            cursor: pointer; font-family: inherit;
+            transition: all .2s;
+            text-decoration: none;
+        }
+        .dl-btn:hover { background: var(--accent-h); }
+        .retry-btn2 {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 24px;
+            background: var(--card); color: var(--text-sec);
+            border: 1px solid var(--border); border-radius: var(--radius-s);
+            font-size: 14px; cursor: pointer; font-family: inherit;
+            transition: all .15s;
+        }
+        .retry-btn2:hover { border-color: #999; color: var(--text); }
+
+        /* Error */
+        .err { text-align: center; padding: 40px; }
+        .err-ico { font-size: 40px; margin-bottom: 16px; }
+        .err-t { font-size: 17px; font-weight: 500; margin-bottom: 8px; }
+        .err-d { font-size: 14px; color: var(--text-sec); line-height: 1.7; max-width: 400px; margin: 0 auto; }
+        .retry-btn {
+            margin-top: 16px; padding: 10px 28px;
+            background: var(--accent); color: #fff;
+            border: none; border-radius: var(--radius-s);
+            cursor: pointer; font-size: 14px; font-family: inherit;
+        }
+
+        /* Canvas tip bar */
+        .canvas-tip {
+            position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,.55); color: #fff;
+            padding: 6px 16px; border-radius: 20px;
+            font-size: 12px; pointer-events: none;
+            white-space: nowrap; z-index: 5;
+            opacity: 0; transition: opacity .3s;
+        }
+        .canvas-wrap:hover .canvas-tip { opacity: 1; }
+
+        /* Responsive */
+        @media (max-width: 860px) {
+            .wrap { flex-direction: column; height: auto; }
+            .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
+            .right { min-height: 50vh; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page">
+<!-- Header -->
+<div class="hdr">
+    <div class="hdr-logo">贴</div>
+    <span class="hdr-title">实拍融合AI</span>
+    <span class="hdr-badge">进阶版</span>
+    <span class="hdr-sub">材质精准控制</span>
+</div>
+
+<!-- Main -->
+<div class="wrap">
+    <!-- Left Panel -->
+    <div class="left">
+        <!-- Upload Background -->
+        <div>
+            <div class="sec-label">背景图</div>
+            <div class="up-area" id="bgArea" onclick="$('bgFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'bg')">
+                <input type="file" id="bgFile" accept="image/*" style="display:none" onchange="bgSel(event)">
+                <div id="bgContent">
+                    <div class="up-ico">🖼</div>
+                    <div class="up-txt">上传背景图</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Product -->
+        <div>
+            <div class="sec-label">产品图</div>
+            <div class="up-area" id="pdArea" onclick="$('pdFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'pd')">
+                <input type="file" id="pdFile" accept="image/*" style="display:none" onchange="pdSel(event)">
+                <div id="pdContent">
+                    <div class="up-ico">📦</div>
+                    <div class="up-txt">上传产品白底图</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Material Control -->
+        <div class="ctrl-section">
+            <div class="ctrl-label"><span class="ico">✦</span> 产品材质</div>
+            <div class="tag-group" id="materialGroup">
+                <div class="tag active" data-val="plastic" onclick="selectTag('material',this)">哑光塑料</div>
+                <div class="tag" data-val="glass" onclick="selectTag('material',this)">玻璃/透明</div>
+                <div class="tag" data-val="metal" onclick="selectTag('material',this)">金属</div>
+                <div class="tag" data-val="fabric" onclick="selectTag('material',this)">织物/纸质</div>
+                <div class="tag" data-val="wood" onclick="selectTag('material',this)">木质</div>
+            </div>
+        </div>
+
+        <!-- Shadow Control -->
+        <div class="ctrl-section">
+            <div class="ctrl-label"><span class="ico">◐</span> 阴影模式</div>
+            <div class="tag-group" id="shadowGroup">
+                <div class="tag active" data-val="auto" onclick="selectTag('shadow',this)">自动</div>
+                <div class="tag" data-val="strong" onclick="selectTag('shadow',this)">强调投影</div>
+                <div class="tag" data-val="none" onclick="selectTag('shadow',this)">无投影</div>
+            </div>
+        </div>
+
+        <!-- Prompt Preview -->
+        <div>
+            <div class="sec-label">当前提示词</div>
+            <div class="prompt-preview" id="promptPreview"></div>
+        </div>
+
+        <button class="gen-btn" id="genBtn" onclick="generate()" disabled>开始融合</button>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right" id="right">
+        <!-- Empty State -->
+        <div class="empty" id="vEmpty">
+            <div class="empty-ico"><span>◇</span></div>
+            <div class="empty-t">准备开始</div>
+            <div class="empty-d">上传背景图和产品白底图，选择材质和阴影模式，AI精准融合</div>
+        </div>
+
+        <!-- Canvas State -->
+        <div class="canvas-wrap" id="canvasWrap" style="display:none">
+            <canvas id="mainCanvas"></canvas>
+            <div class="canvas-tip">拖动移动 · 角落缩放 · 顶部旋转</div>
+        </div>
+
+        <!-- Loading -->
+        <div class="ldg" id="vLoad" style="display:none">
+            <div class="spin"></div>
+            <div class="ldg-txt" id="ldgTxt">正在融合图片...</div>
+            <div class="ldg-sub" id="ldgSub">大约需要15-30秒</div>
+        </div>
+
+        <!-- Result -->
+        <div class="res-wrap" id="vRes" style="display:none">
+            <div class="res-top">
+                <h2>融合结果</h2>
+                <button class="new-btn" onclick="resetAll()">重新开始</button>
+            </div>
+            <div class="res-img-wrap">
+                <img id="resImg" class="res-img" src="" alt="融合结果">
+            </div>
+            <div class="res-actions">
+                <a id="dlLink" class="dl-btn" href="#" download="fusion-result.png">⬇ 下载图片</a>
+                <button class="retry-btn2" onclick="generate()">再融合一次</button>
+            </div>
+        </div>
+
+        <!-- Error -->
+        <div class="err" id="vErr" style="display:none">
+            <div class="err-ico">✕</div>
+            <div class="err-t">融合失败</div>
+            <div class="err-d" id="errTxt">请稍后重试</div>
+            <button class="retry-btn" onclick="generate()">重新融合</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+// ===== Config =====
+const ARK_API_KEY = 'ark-32e3cca5-30ab-4d17-91c1-5024b1c57850-5bda0';
+const ARK_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
+const MODEL = 'doubao-seedream-4-5-251128';
+const CROP_THRESHOLD = 252;
+const CROP_PADDING = 5;
+
+// ===== Material Prompt Map =====
+const MATERIAL_MAP = {
+    plastic: {
+        label: '哑光塑料',
+        light: '赋予产品与环境一致的自然光影',
+    },
+    glass: {
+        label: '玻璃/透明',
+        light: '产品反射周围环境光与材质，折射效果，赋予透明质感',
+    },
+    metal: {
+        label: '金属',
+        light: '产品表面锐利高光与环境映射，金属反光质感',
+    },
+    fabric: {
+        label: '织物/纸质',
+        light: '柔和漫反射，无高光，保留材质纹理细节',
+    },
+    wood: {
+        label: '木质',
+        light: '自然纹理与光影，柔和漫反射',
+    }
+};
+
+const SHADOW_MAP = {
+    auto: { label: '自动', prompt: '' },
+    strong: { label: '强调投影', prompt: '底部形成与背景光影方向统一的自然投影' },
+    none: { label: '无投影', prompt: '产品呈悬浮状态，无底部投影' }
+};
+
+// ===== State =====
+let bgFile = null, bgDataUri = null, bgNatW = 0, bgNatH = 0;
+let pdFile = null, pdOriginalSrc = null, pdCroppedSrc = null;
+let fCanvas = null, productObj = null;
+let busy = false;
+let currentMaterial = 'plastic';
+let currentShadow = 'auto';
+
+const $ = id => document.getElementById(id);
+
+// ===== Prompt Builder =====
+function buildPrompt() {
+    const mat = MATERIAL_MAP[currentMaterial];
+    const shd = SHADOW_MAP[currentShadow];
+
+    let parts = [
+        '保持产品的形状、文字、logo和外观细节完全不变。',
+        '将产品自然融入背景环境中，消除白色边框和悬浮感。',
+        mat.light + '。',
+    ];
+    if (shd.prompt) parts.push(shd.prompt + '。');
+    parts.push('画面真实自然，符合商业广告质感');
+
+    return parts.join('');
+}
+
+function updatePromptPreview() {
+    const prompt = buildPrompt();
+    const mat = MATERIAL_MAP[currentMaterial];
+    const shd = SHADOW_MAP[currentShadow];
+
+    // Highlight the material and shadow parts
+    let html = prompt
+        .replace(mat.light, '<span class="hl">' + mat.light + '</span>');
+    if (shd.prompt) {
+        html = html.replace(shd.prompt, '<span class="hl">' + shd.prompt + '</span>');
+    }
+
+    $('promptPreview').innerHTML = html;
+}
+
+// ===== Tag Selection =====
+function selectTag(group, el) {
+    const groupId = group === 'material' ? 'materialGroup' : 'shadowGroup';
+    const tags = $(groupId).querySelectorAll('.tag');
+    tags.forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+
+    if (group === 'material') {
+        currentMaterial = el.dataset.val;
+    } else {
+        currentShadow = el.dataset.val;
+    }
+    updatePromptPreview();
+}
+
+// ===== Drag & Drop =====
+function dOver(e, el) { e.preventDefault(); el.style.borderColor = '#999'; }
+function dLeave(e, el) { if (!el.classList.contains('has')) el.style.borderColor = ''; }
+function dDrop(e, el, type) {
+    e.preventDefault();
+    e.stopPropagation();
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) {
+        if (type === 'bg') loadBg(f);
+        else loadPd(f);
+    }
+}
+
+function bgSel(e) { const f = e.target.files[0]; if (f) loadBg(f); }
+function pdSel(e) { const f = e.target.files[0]; if (f) loadPd(f); }
+
+// ===== Load Background =====
+function loadBg(file) {
+    bgFile = file;
+    const reader = new FileReader();
+    reader.onload = e => {
+        bgDataUri = e.target.result;
+        showBgPreview(bgDataUri);
+        initCanvasWithBg(bgDataUri);
+        updateGenBtn();
+    };
+    reader.readAsDataURL(file);
+}
+
+function showBgPreview(src) {
+    const area = $('bgArea');
+    const content = $('bgContent');
+    area.classList.add('has');
+    content.innerHTML = `<img src="${src}" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();clearBg()">×</button>`;
+}
+
+function clearBg() {
+    bgFile = null; bgDataUri = null; bgNatW = 0; bgNatH = 0;
+    $('bgFile').value = '';
+    const area = $('bgArea');
+    area.classList.remove('has');
+    area.style.borderColor = '';
+    $('bgContent').innerHTML = `<div class="up-ico">🖼</div><div class="up-txt">上传背景图</div>`;
+    destroyCanvas();
+    showView('e');
+    updateGenBtn();
+}
+
+// ===== Load Product =====
+function loadPd(file) {
+    pdFile = file;
+    const reader = new FileReader();
+    reader.onload = e => {
+        pdOriginalSrc = e.target.result;
+        autoCrop(pdOriginalSrc).then(cropped => {
+            pdCroppedSrc = cropped;
+            showPdPreview(cropped);
+            if (fCanvas) addProductToCanvas(cropped);
+            updateGenBtn();
+        });
+    };
+    reader.readAsDataURL(file);
+}
+
+function showPdPreview(src) {
+    const area = $('pdArea');
+    const content = $('pdContent');
+    area.classList.add('has');
+    content.innerHTML = `<img src="${src}" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();clearPd()">×</button>`;
+}
+
+function clearPd() {
+    pdFile = null; pdOriginalSrc = null; pdCroppedSrc = null;
+    $('pdFile').value = '';
+    const area = $('pdArea');
+    area.classList.remove('has');
+    area.style.borderColor = '';
+    $('pdContent').innerHTML = `<div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div>`;
+    if (fCanvas && productObj) {
+        fCanvas.remove(productObj);
+        productObj = null;
+        fCanvas.renderAll();
+    }
+    updateGenBtn();
+}
+
+// ===== Auto-Crop White Borders =====
+function autoCrop(imgSrc) {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+            const c = document.createElement('canvas');
+            c.width = img.width;
+            c.height = img.height;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const imageData = ctx.getImageData(0, 0, c.width, c.height);
+            const d = imageData.data;
+            const w = c.width, h = c.height;
+            const threshold = CROP_THRESHOLD;
+
+            let top = 0, bottom = h - 1, left = 0, right = w - 1;
+
+            for (let y = 0; y < h; y++) {
+                let found = false;
+                for (let x = 0; x < w; x++) {
+                    const i = (y * w + x) * 4;
+                    if (d[i] < threshold || d[i + 1] < threshold || d[i + 2] < threshold) {
+                        top = y; found = true; break;
+                    }
+                }
+                if (found) break;
+            }
+            for (let y = h - 1; y >= 0; y--) {
+                let found = false;
+                for (let x = 0; x < w; x++) {
+                    const i = (y * w + x) * 4;
+                    if (d[i] < threshold || d[i + 1] < threshold || d[i + 2] < threshold) {
+                        bottom = y; found = true; break;
+                    }
+                }
+                if (found) break;
+            }
+            for (let x = 0; x < w; x++) {
+                let found = false;
+                for (let y = top; y <= bottom; y++) {
+                    const i = (y * w + x) * 4;
+                    if (d[i] < threshold || d[i + 1] < threshold || d[i + 2] < threshold) {
+                        left = x; found = true; break;
+                    }
+                }
+                if (found) break;
+            }
+            for (let x = w - 1; x >= 0; x--) {
+                let found = false;
+                for (let y = top; y <= bottom; y++) {
+                    const i = (y * w + x) * 4;
+                    if (d[i] < threshold || d[i + 1] < threshold || d[i + 2] < threshold) {
+                        right = x; found = true; break;
+                    }
+                }
+                if (found) break;
+            }
+
+            const cropW = right - left + 1;
+            const cropH = bottom - top + 1;
+
+            const pad = CROP_PADDING;
+            const cc = document.createElement('canvas');
+            cc.width = cropW + pad * 2;
+            cc.height = cropH + pad * 2;
+            const cctx = cc.getContext('2d');
+            cctx.fillStyle = '#FFFFFF';
+            cctx.fillRect(0, 0, cc.width, cc.height);
+            cctx.drawImage(img, left, top, cropW, cropH, pad, pad, cropW, cropH);
+
+            resolve(cc.toDataURL('image/png'));
+        };
+        img.src = imgSrc;
+    });
+}
+
+// ===== Fabric.js Canvas =====
+function initCanvasWithBg(dataUri) {
+    const img = new Image();
+    img.onload = () => {
+        bgNatW = img.width;
+        bgNatH = img.height;
+
+        let intW = img.width, intH = img.height;
+        if (intW > 2048 || intH > 2048) {
+            const s = 2048 / Math.max(intW, intH);
+            intW = Math.round(intW * s);
+            intH = Math.round(intH * s);
+        }
+
+        $('vEmpty').style.display = 'none';
+        $('canvasWrap').style.display = 'flex';
+
+        const container = $('canvasWrap');
+        const maxW = container.clientWidth - 32;
+        const maxH = container.clientHeight - 32;
+        const dispScale = Math.min(maxW / intW, maxH / intH, 1);
+        const dispW = Math.round(intW * dispScale);
+        const dispH = Math.round(intH * dispScale);
+
+        if (!fCanvas) {
+            fCanvas = new fabric.Canvas('mainCanvas', {
+                selection: false,
+                preserveObjectStacking: true,
+            });
+            fabric.Object.prototype.set({
+                cornerSize: 10,
+                cornerColor: '#1d1d1f',
+                cornerStyle: 'circle',
+                borderColor: '#1d1d1f',
+                transparentCorners: false,
+                borderScaleFactor: 1.5,
+                padding: 4,
+            });
+        }
+
+        fCanvas.clear();
+        productObj = null;
+
+        fCanvas.setWidth(dispW);
+        fCanvas.setHeight(dispH);
+
+        fabric.Image.fromURL(dataUri, function(fImg) {
+            fImg.set({
+                scaleX: dispW / fImg.width,
+                scaleY: dispH / fImg.height,
+                selectable: false,
+                evented: false,
+            });
+            fCanvas.setBackgroundImage(fImg, fCanvas.renderAll.bind(fCanvas));
+
+            if (pdCroppedSrc) {
+                addProductToCanvas(pdCroppedSrc);
+            }
+        });
+    };
+    img.src = dataUri;
+}
+
+function addProductToCanvas(src, savedPos) {
+    if (!fCanvas) return;
+
+    fabric.Image.fromURL(src, function(img) {
+        const targetW = fCanvas.getWidth() * 0.35;
+        const scale = targetW / img.width;
+
+        if (savedPos) {
+            img.set({
+                left: savedPos.left,
+                top: savedPos.top,
+                scaleX: savedPos.scaleX,
+                scaleY: savedPos.scaleY,
+                angle: savedPos.angle,
+            });
+        } else {
+            img.set({
+                left: (fCanvas.getWidth() - img.width * scale) / 2,
+                top: (fCanvas.getHeight() - img.height * scale) / 2,
+                scaleX: scale,
+                scaleY: scale,
+            });
+        }
+
+        img.set({ hasRotatingPoint: true, lockUniScaling: false });
+
+        fCanvas.add(img);
+        fCanvas.setActiveObject(img);
+        productObj = img;
+        fCanvas.renderAll();
+    });
+}
+
+function destroyCanvas() {
+    if (fCanvas) {
+        fCanvas.clear();
+        fCanvas.dispose();
+        fCanvas = null;
+        productObj = null;
+    }
+    $('canvasWrap').style.display = 'none';
+    const wrap = $('canvasWrap');
+    const oldC = $('mainCanvas');
+    if (oldC) oldC.remove();
+    const newC = document.createElement('canvas');
+    newC.id = 'mainCanvas';
+    wrap.insertBefore(newC, wrap.firstChild);
+}
+
+// ===== Export Canvas =====
+function exportComposite() {
+    if (!fCanvas || !productObj) return null;
+
+    const multiplier = bgNatW / fCanvas.getWidth();
+
+    const dataUrl = fCanvas.toDataURL({
+        format: 'png',
+        multiplier: multiplier,
+        quality: 1,
+    });
+
+    return dataUrl;
+}
+
+// ===== View Management =====
+function showView(v) {
+    $('vEmpty').style.display = v === 'e' ? 'flex' : 'none';
+    $('canvasWrap').style.display = (v === 'c' || v === 'e') && bgDataUri ? 'flex' : 'none';
+    if (v === 'e' && !bgDataUri) $('canvasWrap').style.display = 'none';
+    if (v === 'c') $('canvasWrap').style.display = 'flex';
+    $('vLoad').style.display = v === 'l' ? 'flex' : 'none';
+    $('vRes').style.display = v === 'r' ? 'block' : 'none';
+    $('vErr').style.display = v === 'x' ? 'block' : 'none';
+}
+
+function updateGenBtn() {
+    $('genBtn').disabled = !(bgDataUri && pdCroppedSrc);
+}
+
+// ===== Generate (Fusion API) =====
+async function generate() {
+    if (busy) return;
+    if (!bgDataUri || !pdCroppedSrc) return alert('请先上传背景图和产品图');
+
+    busy = true;
+    $('genBtn').disabled = true;
+
+    try {
+        const prompt = buildPrompt();
+        $('ldgTxt').textContent = '正在融合图片...';
+        $('ldgSub').textContent = '材质：' + MATERIAL_MAP[currentMaterial].label + ' | 大约15-30秒';
+        showView('l');
+
+        const compositeDataUri = exportComposite();
+        if (!compositeDataUri) throw new Error('画布导出失败');
+
+        const res = await fetch(ARK_API, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + ARK_API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: MODEL,
+                prompt: prompt,
+                image: compositeDataUri,
+                size: '2k',
+                guidance_scale: 7.5,
+                response_format: 'url',
+                watermark: false
+            })
+        });
+
+        const data = await res.json();
+
+        if (res.status !== 200) {
+            const errMsg = data.error ? data.error.message : JSON.stringify(data);
+            throw new Error('API调用失败: ' + errMsg);
+        }
+
+        if (data.data && data.data.length > 0) {
+            const item = data.data[0];
+            if (item.error) {
+                throw new Error('图片生成失败: ' + (item.error.message || '未知错误'));
+            }
+            if (item.url) {
+                showView('r');
+                $('resImg').src = item.url;
+                $('dlLink').href = item.url;
+            } else {
+                throw new Error('未获取到图片结果');
+            }
+        } else {
+            throw new Error('未获取到图片结果');
+        }
+
+    } catch (err) {
+        console.error(err);
+        showView('x');
+        $('errTxt').textContent = err.message || '请稍后重试';
+    } finally {
+        busy = false;
+        updateGenBtn();
+    }
+}
+
+// ===== Reset =====
+function resetAll() {
+    clearBg();
+    clearPd();
+    showView('e');
+}
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', () => {
+    showView('e');
+    updatePromptPreview();
+});
+</script>
+</body>
+</html>

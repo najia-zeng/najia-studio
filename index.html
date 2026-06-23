@@ -116,6 +116,7 @@
         .nav-ico-kuociq { background: rgba(59,130,246,.08); }
         .nav-ico-scene  { background: rgba(107,92,231,.08); }
         .nav-ico-fusion { background: rgba(16,185,129,.08); }
+        .nav-ico-fusion-plus { background: rgba(255,107,53,.08); }
         .nav-ico-tutorial { background: rgba(245,158,11,.08); }
         .nav-ico-ps     { background: rgba(6,182,212,.08); }
         .nav-ico-api    { background: rgba(244,63,94,.08); }
@@ -126,6 +127,7 @@
         .nav-btn.active .nav-ico-kuociq { background: rgba(59,130,246,.16); }
         .nav-btn.active .nav-ico-scene  { background: rgba(107,92,231,.16); }
         .nav-btn.active .nav-ico-fusion { background: rgba(16,185,129,.16); }
+        .nav-btn.active .nav-ico-fusion-plus { background: rgba(255,107,53,.16); }
 
         .nav-info { flex: 1; min-width: 0; }
         .nav-title {
@@ -552,6 +554,14 @@
                 </div>
             </button>
 
+            <button class="nav-btn" id="navFusionPlus" onclick="switchTool('fusionPlus')">
+                <div class="nav-ico nav-ico-fusion-plus">✦</div>
+                <div class="nav-info">
+                    <div class="nav-title">实拍融合AI·进阶版</div>
+                    <div class="nav-desc">材质精准控制，光影更自然</div>
+                </div>
+            </button>
+
             <button class="nav-btn" id="navPrecise" onclick="switchTool('precise')">
                 <div class="nav-ico" style="font-size:18px">🎯</div>
                 <div class="nav-info">
@@ -727,6 +737,7 @@ const tools = {
     kuociq: { url: 'kuociq.html', navId: 'navKuociq' },
     scene:  { url: 'scene-gen.html', navId: 'navScene' },
     fusion: { url: 'fusion-pro.html', navId: 'navFusion' },
+    fusionPlus: { url: 'fusion-pro-plus.html', navId: 'navFusionPlus' },
     precise: { url: 'fusion-precise.html', navId: 'navPrecise' }
 };
 let currentTool = null;
