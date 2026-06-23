@@ -249,7 +249,7 @@ function clearPd() {
     updateGenBtn();
 }
 
-// ===== Smart Crop: Edge-Guided Flood Fill + Distance Transform + Color Decontamination =====
+// ===== Smart Crop: Product-Seed Protection + Flood Fill + Distance Transform =====
 function smartCrop(imgSrc) {
     return new Promise(resolve => {
         const img = new Image();
@@ -265,49 +265,62 @@ function smartCrop(imgSrc) {
             const FEATHER_PX = 12;
             const DECONTAM_ZONE = 25;
             const PAD = FEATHER_PX + 4;
-            const BG_BRIGHT = 230;
-            const BG_SAT = 0.06;
-            const EDGE_THRESH = 10;
+            const PRODUCT_PROTECT = 80; // Protection radius: white pixels this close to colored features are kept
 
-            // Step 1: Compute gradient magnitude map (edge detection)
-            const grad = new Float32Array(w * h);
-            for (let y = 1; y < h - 1; y++) {
-                for (let x = 1; x < w - 1; x++) {
+            // Step 1: Identify "definitely product" seed pixels (non-white features)
+            // These are the product's colored parts: text, logos, colored areas
+            const isProductSeed = new Uint8Array(w * h);
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
                     const i = (y * w + x) * 4;
-                    const cR = d[i], cG = d[i+1], cB = d[i+2];
-                    let maxDiff = 0;
-                    const neighbors = [(y-1)*w+x, (y+1)*w+x, y*w+x-1, y*w+x+1];
-                    for (const ni of neighbors) {
-                        const pi = ni * 4;
-                        const diff = Math.max(Math.abs(cR - d[pi]), Math.abs(cG - d[pi+1]), Math.abs(cB - d[pi+2]));
-                        if (diff > maxDiff) maxDiff = diff;
-                    }
-                    grad[y * w + x] = maxDiff;
+                    const r = d[i], g = d[i+1], b = d[i+2];
+                    const maxC = Math.max(r, g, b), minC = Math.min(r, g, b);
+                    const sat = maxC > 0 ? (maxC - minC) / maxC : 0;
+                    // Non-white pixel = definitely part of the product
+                    if (maxC < 225 || sat > 0.08) isProductSeed[y*w+x] = 1;
                 }
             }
 
-            // Step 2: Flood fill from borders through white pixels, BLOCKED by edges
+            // Step 2: Distance transform from product seeds
+            // Tells us how far each pixel is from the nearest colored product feature
+            const prodDist = new Float32Array(w * h);
+            const INF = 1e5;
+            prodDist.fill(INF);
+            for (let y = 0; y < h; y++)
+                for (let x = 0; x < w; x++)
+                    if (isProductSeed[y*w+x]) prodDist[y*w+x] = 0;
+            for (let y = 1; y < h; y++)
+                for (let x = 1; x < w - 1; x++) {
+                    const i = y*w+x;
+                    prodDist[i] = Math.min(prodDist[i], prodDist[i-w]+1, prodDist[i-w-1]+1.4, prodDist[i-w+1]+1.4, prodDist[i-1]+1);
+                }
+            for (let y = h-2; y >= 0; y--)
+                for (let x = w-2; x >= 1; x--) {
+                    const i = y*w+x;
+                    prodDist[i] = Math.min(prodDist[i], prodDist[i+w]+1, prodDist[i+w-1]+1.4, prodDist[i+w+1]+1.4, prodDist[i+1]+1);
+                }
+
+            // Step 3: Flood fill from image borders through white pixels
             function isWhite(pi) {
                 const r = d[pi], g = d[pi+1], b = d[pi+2];
                 const maxC = Math.max(r, g, b), minC = Math.min(r, g, b);
                 const sat = maxC > 0 ? (maxC - minC) / maxC : 0;
-                return maxC >= BG_BRIGHT && sat < BG_SAT;
+                return maxC >= 230 && sat < 0.06;
             }
 
             const isBorderBg = new Uint8Array(w * h);
             const stack = [];
             for (let x = 0; x < w; x++) {
-                if (isWhite(x*4) && grad[x] < EDGE_THRESH) { isBorderBg[x] = 1; stack.push(x); }
+                if (isWhite(x*4)) { isBorderBg[x] = 1; stack.push(x); }
                 const bi = (h-1)*w + x;
-                if (isWhite(bi*4) && grad[bi] < EDGE_THRESH && !isBorderBg[bi]) { isBorderBg[bi] = 1; stack.push(bi); }
+                if (isWhite(bi*4) && !isBorderBg[bi]) { isBorderBg[bi] = 1; stack.push(bi); }
             }
             for (let y = 1; y < h - 1; y++) {
                 let li = y * w;
-                if (isWhite(li*4) && grad[li] < EDGE_THRESH && !isBorderBg[li]) { isBorderBg[li] = 1; stack.push(li); }
+                if (isWhite(li*4) && !isBorderBg[li]) { isBorderBg[li] = 1; stack.push(li); }
                 let ri = y * w + w - 1;
-                if (isWhite(ri*4) && grad[ri] < EDGE_THRESH && !isBorderBg[ri]) { isBorderBg[ri] = 1; stack.push(ri); }
+                if (isWhite(ri*4) && !isBorderBg[ri]) { isBorderBg[ri] = 1; stack.push(ri); }
             }
-
             const dx4 = [-1, 1, 0, 0], dy4 = [0, 0, -1, 1];
             let si = 0;
             while (si < stack.length) {
@@ -318,34 +331,44 @@ function smartCrop(imgSrc) {
                     if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
                     const ni = ny * w + nx;
                     if (isBorderBg[ni]) continue;
-                    if (grad[ni] >= EDGE_THRESH) continue;
                     if (isWhite(ni * 4)) { isBorderBg[ni] = 1; stack.push(ni); }
                 }
             }
 
-            // Morphological dilation: absorb near-white pixels adjacent to known bg
-            // (handles soft shadow / slight off-white at product boundary)
-            const bgMask = new Uint8Array(isBorderBg);
+            // Step 4: Final background mask = border-connected white AND far from product features
+            // White pixels near colored features are PROTECTED (they're the product's white body)
+            // White pixels far from colored features are BACKGROUND
+            const bgMask = new Uint8Array(w * h);
             for (let y = 0; y < h; y++) {
                 for (let x = 0; x < w; x++) {
                     const i = y * w + x;
-                    if (isBorderBg[i]) continue;
+                    if (isBorderBg[i] && prodDist[i] > PRODUCT_PROTECT) {
+                        bgMask[i] = 1;
+                    }
+                }
+            }
+
+            // Morphological dilation: absorb near-white pixels adjacent to known bg
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const i = y * w + x;
+                    if (bgMask[i]) continue;
                     let hasBgN = false;
                     for (let d4 = 0; d4 < 4; d4++) {
                         const nx = x + dx4[d4], ny = y + dy4[d4];
-                        if (nx >= 0 && nx < w && ny >= 0 && ny < h && isBorderBg[ny*w+nx]) { hasBgN = true; break; }
+                        if (nx >= 0 && nx < w && ny >= 0 && ny < h && bgMask[ny*w+nx]) { hasBgN = true; break; }
                     }
                     if (hasBgN) {
                         const pi = i * 4;
                         const maxC = Math.max(d[pi], d[pi+1], d[pi+2]);
                         const minC = Math.min(d[pi], d[pi+1], d[pi+2]);
                         const sat = maxC > 0 ? (maxC - minC) / maxC : 0;
-                        if (maxC >= 225 && sat < 0.08) bgMask[i] = 1;
+                        if (maxC >= 225 && sat < 0.08 && prodDist[i] > PRODUCT_PROTECT) bgMask[i] = 1;
                     }
                 }
             }
 
-            // Step 3: Find bounding box
+            // Step 5: Find bounding box
             let top = 0, bottom = h - 1, left = 0, right = w - 1;
             outer1: for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!bgMask[y*w+x]) { top = y; break outer1; }
             outer2: for (let y = h-1; y >= 0; y--) for (let x = 0; x < w; x++) if (!bgMask[y*w+x]) { bottom = y; break outer2; }
@@ -355,10 +378,9 @@ function smartCrop(imgSrc) {
             const cropW = right - left + 1;
             const cropH = bottom - top + 1;
 
-            // Step 4: Distance transform from background
+            // Step 6: Distance transform from background mask
             const cw = cropW, ch = cropH;
             const dist = new Float32Array(cw * ch);
-            const INF = 1e5;
             dist.fill(INF);
             for (let y = 0; y < ch; y++)
                 for (let x = 0; x < cw; x++)
@@ -374,7 +396,7 @@ function smartCrop(imgSrc) {
                     dist[i] = Math.min(dist[i], dist[i+cw]+1, dist[i+cw-1]+1.4, dist[i+cw+1]+1.4, dist[i+1]+1);
                 }
 
-            // Step 5: Create output with alpha + color decontamination
+            // Step 7: Create output with alpha + color decontamination
             const oc = document.createElement('canvas');
             oc.width = cropW + PAD * 2;
             oc.height = cropH + PAD * 2;
