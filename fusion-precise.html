@@ -249,7 +249,7 @@ function clearPd() {
     updateGenBtn();
 }
 
-// ===== Smart Crop with Distance Transform + Color Decontamination =====
+// ===== Smart Crop with Flood-Fill Background + Distance Transform + Color Decontamination =====
 function smartCrop(imgSrc) {
     return new Promise(resolve => {
         const img = new Image();
@@ -262,51 +262,83 @@ function smartCrop(imgSrc) {
             const d = id.data;
             const w = c.width, h = c.height;
 
-            const FEATHER_PX = 12;     // Edge feather zone width
-            const DECONTAM_ZONE = 25;  // White decontamination zone width (pixels from bg boundary)
+            const FEATHER_PX = 12;
+            const DECONTAM_ZONE = 25;
             const PAD = FEATHER_PX + 4;
+            const BG_THRESH = 230; // brightness threshold for white background
+            const BG_SAT = 0.06;   // saturation threshold
 
             // Helper: is this pixel likely white background?
-            function isWhiteBg(pi) {
+            function isWhite(pi) {
                 const r = d[pi], g = d[pi+1], b = d[pi+2];
                 const maxC = Math.max(r, g, b);
                 const minC = Math.min(r, g, b);
                 const sat = maxC > 0 ? (maxC - minC) / maxC : 0;
-                return maxC >= 230 && sat < 0.05;
+                return maxC >= BG_THRESH && sat < BG_SAT;
             }
 
-            // Step 1: Find bounding box of non-background pixels
+            // Step 1: Flood fill from image borders to find CONNECTED white background only
+            // This preserves white product interiors that are NOT connected to borders
+            const isBorderBg = new Uint8Array(w * h);
+            const stack = [];
+            // Seed from all 4 border edges
+            for (let x = 0; x < w; x++) {
+                if (isWhite(x*4)) { isBorderBg[x] = 1; stack.push(x); }
+                const bIdx = (h-1)*w + x;
+                if (isWhite(bIdx*4) && !isBorderBg[bIdx]) { isBorderBg[bIdx] = 1; stack.push(bIdx); }
+            }
+            for (let y = 1; y < h-1; y++) {
+                if (isWhite(y*w*4) && !isBorderBg[y*w]) { isBorderBg[y*w] = 1; stack.push(y*w); }
+                const bIdx = y*w + w-1;
+                if (isWhite(bIdx*4) && !isBorderBg[bIdx]) { isBorderBg[bIdx] = 1; stack.push(bIdx); }
+            }
+            // BFS flood fill
+            const dx4 = [-1, 1, 0, 0], dy4 = [0, 0, -1, 1];
+            let si = 0;
+            while (si < stack.length) {
+                const idx = stack[si++];
+                const cy = (idx / w) | 0, cx = idx % w;
+                for (let d4 = 0; d4 < 4; d4++) {
+                    const nx = cx + dx4[d4], ny = cy + dy4[d4];
+                    if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                    const ni = ny * w + nx;
+                    if (isBorderBg[ni]) continue;
+                    if (isWhite(ni * 4)) { isBorderBg[ni] = 1; stack.push(ni); }
+                }
+            }
+
+            // Step 2: Find bounding box based on non-background pixels
             let top = 0, bottom = h - 1, left = 0, right = w - 1;
-            outer1: for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!isWhiteBg((y*w+x)*4)) { top = y; break outer1; }
-            outer2: for (let y = h-1; y >= 0; y--) for (let x = 0; x < w; x++) if (!isWhiteBg((y*w+x)*4)) { bottom = y; break outer2; }
-            outer3: for (let x = 0; x < w; x++) for (let y = top; y <= bottom; y++) if (!isWhiteBg((y*w+x)*4)) { left = x; break outer3; }
-            outer4: for (let x = w-1; x >= 0; x--) for (let y = top; y <= bottom; y++) if (!isWhiteBg((y*w+x)*4)) { right = x; break outer4; }
+            outer1: for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!isBorderBg[y*w+x]) { top = y; break outer1; }
+            outer2: for (let y = h-1; y >= 0; y--) for (let x = 0; x < w; x++) if (!isBorderBg[y*w+x]) { bottom = y; break outer2; }
+            outer3: for (let x = 0; x < w; x++) for (let y = top; y <= bottom; y++) if (!isBorderBg[y*w+x]) { left = x; break outer3; }
+            outer4: for (let x = w-1; x >= 0; x--) for (let y = top; y <= bottom; y++) if (!isBorderBg[y*w+x]) { right = x; break outer4; }
 
             const cropW = right - left + 1;
             const cropH = bottom - top + 1;
 
-            // Step 2: Chamfer distance transform from white background
+            // Step 3: Distance transform from border-connected white background
             const cw = cropW, ch = cropH;
             const dist = new Float32Array(cw * ch);
             const INF = 1e5;
             dist.fill(INF);
             for (let y = 0; y < ch; y++)
                 for (let x = 0; x < cw; x++)
-                    if (isWhiteBg(((y+top)*w+(x+left))*4)) dist[y*cw+x] = 0;
-            // Forward pass (top-left → bottom-right)
+                    if (isBorderBg[(y+top)*w+(x+left)]) dist[y*cw+x] = 0;
+            // Forward pass
             for (let y = 1; y < ch; y++)
                 for (let x = 1; x < cw-1; x++) {
                     const i = y*cw+x;
                     dist[i] = Math.min(dist[i], dist[i-cw]+1, dist[i-cw-1]+1.4, dist[i-cw+1]+1.4, dist[i-1]+1);
                 }
-            // Backward pass (bottom-right → top-left)
+            // Backward pass
             for (let y = ch-2; y >= 0; y--)
                 for (let x = cw-2; x >= 1; x--) {
                     const i = y*cw+x;
                     dist[i] = Math.min(dist[i], dist[i+cw]+1, dist[i+cw-1]+1.4, dist[i+cw+1]+1.4, dist[i+1]+1);
                 }
 
-            // Step 3: Create output with alpha + color decontamination
+            // Step 4: Create output with alpha + color decontamination
             const oc = document.createElement('canvas');
             oc.width = cropW + PAD * 2;
             oc.height = cropH + PAD * 2;
@@ -323,15 +355,18 @@ function smartCrop(imgSrc) {
                     if (!inCrop) { px[i+3] = 0; continue; }
 
                     const cx = x - PAD, cy = y - PAD;
-                    const dd = dist[cy * cw + cx]; // distance from nearest white bg pixel
+                    const dd = dist[cy * cw + cx]; // distance from nearest border-connected white bg
 
-                    // Feather at mask boundary
+                    // Pixels deep inside product (far from bg) are 100% opaque
                     let alpha = 255;
+
+                    // Feather at mask boundary (where product meets connected bg)
                     if (dd < FEATHER_PX) {
                         alpha = Math.round(255 * Math.max(0, dd) / FEATHER_PX);
                     }
 
-                    // White decontamination within edge zone
+                    // White decontamination: only for pixels near the connected background boundary
+                    // Interior white pixels (dd large) are product color and fully preserved
                     if (dd < DECONTAM_ZONE) {
                         const r = px[i], g = px[i+1], b = px[i+2];
                         const maxC = Math.max(r, g, b);
@@ -340,16 +375,12 @@ function smartCrop(imgSrc) {
                         const brightness = maxC / 255;
 
                         if (brightness > 0.90 && sat < 0.12) {
-                            // Whiteness: how much of this pixel is white bg contamination
-                            // Stronger near boundary, weaker deeper into product
                             const zoneFactor = 1 - dd / DECONTAM_ZONE;
                             let whiteness = brightness * brightness * Math.max(0, 1 - sat / 0.12);
                             whiteness *= zoneFactor;
 
                             if (whiteness > 0.01) {
                                 const productAlpha = 1 - whiteness;
-                                // Color decontamination: unpremultiply against white
-                                // pixel = C * (1-w) + 255 * w  →  C = (pixel - 255*w) / (1-w)
                                 if (productAlpha > 0.05 && productAlpha < 0.98) {
                                     const inv = 1 / productAlpha;
                                     px[i]   = Math.min(255, Math.max(0, Math.round((r - 255 * whiteness) * inv)));
