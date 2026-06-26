@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>思辨·课外阅读地图</title>
+<style>
+:root{--primary:#8b5cf6;--primary-light:#f3f0ff;--accent:#e8913a;--accent-light:#fef3e6;--bg:#f7f8fa;--card:#fff;--text:#2c3e50;--text-light:#7f8c9b;--border:#e8ecf1;--success:#27ae60;--success-light:#e8f8ef;--warning:#f39c12;--warning-light:#fef9e7;--info:#3498db;--info-light:#e8f4fd;--danger:#e74c3c;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,0.06)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+.nav-bar{display:flex;justify-content:center;gap:12px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--border)}
+.nav-btn{padding:6px 18px;border-radius:20px;font-size:.85em;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text-light);transition:all .2s;text-decoration:none}
+.nav-btn:hover{border-color:var(--primary);color:var(--primary)}
+.nav-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.header{background:linear-gradient(135deg,#8b5cf6 0%,#6d28d9 100%);color:#fff;padding:28px 20px;text-align:center}
+.header h1{font-size:1.5em;font-weight:700;margin-bottom:6px;letter-spacing:1px}
+.header p{font-size:.88em;opacity:.85;font-weight:300}
+.stats-bar{display:flex;justify-content:center;gap:16px;padding:16px 20px;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-num{font-size:1.5em;font-weight:700}
+.stat-num.purple{color:var(--primary)}
+.stat-num.green{color:var(--success)}
+.stat-num.orange{color:var(--accent)}
+.stat-label{font-size:.72em;color:var(--text-light)}
+.container{max-width:720px;margin:0 auto;padding:20px 16px}
+.book-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;border:1px solid var(--border);transition:all .2s}
+.book-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.1)}
+.book-header{padding:16px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.book-header:hover{background:#fafbfc}
+.book-left{flex:1}
+.book-title{font-size:1.05em;font-weight:700;color:var(--text)}
+.book-meta{font-size:.8em;color:var(--text-light);margin-top:2px}
+.book-right{display:flex;align-items:center;gap:8px}
+.type-tag{font-size:.7em;padding:2px 10px;border-radius:10px;font-weight:600;white-space:nowrap}
+.type-tag.history{background:#fef3e6;color:#e8913a}
+.type-tag.lit{background:#f3f0ff;color:#8b5cf6}
+.progress-bar{width:60px;height:6px;background:#eee;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--success);border-radius:3px;transition:width .3s}
+.expand-icon{font-size:.8em;color:var(--text-light);transition:transform .2s}
+.book-card.expanded .expand-icon{transform:rotate(180deg)}
+.book-body{padding:0 18px;max-height:0;overflow:hidden;transition:all .3s ease}
+.book-card.expanded .book-body{padding:18px;max-height:12000px}
+.section-item{padding:10px 14px;border-left:3px solid var(--border);margin-bottom:8px;font-size:.88em;background:#fafbfc;border-radius:0 8px 8px 0;transition:all .2s}
+.section-item.pass{border-left-color:var(--success)}
+.section-item.progress{border-left-color:var(--accent)}
+.section-item.todo{border-left-color:#ddd}
+.section-title{font-weight:600;color:var(--text)}
+.section-sub{font-size:.82em;color:var(--text-light);margin-top:2px}
+.report-box{background:#f8f9fb;border-radius:10px;padding:16px;margin-top:14px;border:1px solid var(--border)}
+.report-box h4{font-size:.9em;color:var(--primary);margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:6px}
+.report-row{display:flex;align-items:center;padding:6px 0;border-bottom:1px solid #eee;font-size:.85em}
+.report-row:last-child{border-bottom:none}
+.report-label{color:var(--text-light);min-width:80px}
+.report-value{color:var(--text);font-weight:500}
+.report-value.green{color:var(--success)}
+.report-value.orange{color:var(--warning)}
+.observe-box{margin-top:12px;padding:12px 14px;background:#fff;border-radius:8px;border:1px solid var(--border)}
+.observe-row{display:flex;align-items:center;padding:4px 0;font-size:.84em}
+.observe-row .label{color:var(--text-light);min-width:80px}
+.observe-row .stars{color:var(--accent)}
+.observe-row .note{margin-left:8px;font-size:.8em;color:var(--text-light)}
+.method-box{margin-top:12px;padding:12px 14px;background:var(--primary-light);border-radius:8px;border-left:3px solid var(--primary);font-size:.86em}
+.method-box .label{font-weight:700;color:var(--primary)}
+.process-btn{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:20px;font-size:.85em;font-weight:600;cursor:pointer;transition:all .2s}
+.process-btn:hover{background:#6d28d9;transform:translateY(-1px)}
+.chat-panel{margin-top:14px;max-height:0;overflow:hidden;transition:all .3s ease}
+.chat-panel.open{max-height:6000px}
+.round-chat{margin-bottom:16px}
+.round-chat-header{font-size:.88em;font-weight:700;color:var(--primary);padding:8px 12px;background:var(--primary-light);border-radius:8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.chat-bubble{margin-bottom:8px;display:flex;gap:8px;align-items:flex-start}
+.chat-bubble.ai{flex-direction:row}
+.chat-bubble.kid{flex-direction:row-reverse}
+.chat-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8em;flex-shrink:0}
+.chat-avatar.ai-avatar{background:var(--primary-light);color:var(--primary)}
+.chat-avatar.kid-avatar{background:#fce4ec;color:#e91e63}
+.chat-content{max-width:80%;padding:10px 14px;border-radius:12px;font-size:.85em;line-height:1.6;word-break:break-word}
+.chat-content p{margin:0 0 4px}.chat-content p:last-child{margin:0}
+.chat-content strong{font-weight:700;color:inherit}
+.chat-content ul{margin:4px 0;padding-left:18px}.chat-content li{margin:2px 0}
+.chat-bubble.ai .chat-content{background:var(--primary-light);color:var(--text);border-top-left-radius:4px}
+.chat-bubble.kid .chat-content{background:#fce4ec;color:var(--text);border-top-right-radius:4px}
+.chat-eval{margin-top:4px;font-size:.78em;color:var(--success);font-weight:500}
+.chat-eval.wrong{color:var(--danger)}
+.motto-box{background:linear-gradient(135deg,#8b5cf6 0%,#6d28d9 100%);color:#fff;border-radius:10px;padding:14px 16px;margin-top:12px;font-size:.85em;font-weight:300;line-height:1.7;text-align:center}
+.footer{text-align:center;padding:20px;color:var(--text-light);font-size:.8em;border-top:1px solid var(--border);margin-top:20px}
+@media(max-width:480px){.header h1{font-size:1.3em}.stats-bar{gap:10px}.container{padding:12px 10px}.book-header{padding:12px}.chat-content{max-width:88%}}
+</style>
+</head>
+<body>
+
+<div class="nav-bar"><a class="nav-btn active" href="#">📚 课外阅读</a>
+</div>
+
+<div class="header">
+<h1>📚 思辨·课外阅读地图</h1>
+<p>事实检验 → 思辨检验 → 加辣追问</p>
+</div>
+
+<div class="stats-bar">
+<div class="stat-item"><div class="stat-num purple" id="stat-books">0</div><div class="stat-label">在读书目</div></div>
+<div class="stat-item"><div class="stat-num green" id="stat-passed">0</div><div class="stat-label">已通过段落</div></div>
+<div class="stat-item"><div class="stat-num orange" id="stat-total">0</div><div class="stat-label">总验收次数</div></div>
+</div>
+
+<div class="container" id="app"></div>
+
+<script>
+const BOOKS=[
+{id:"b1",title:"一读就入迷的中国史",type:"history",typeLabel:"史地政类",
+sections:[
+{id:"b1s1",range:"1~54页",desc:"第一章·帝王君主(10篇)+第二章·后宫韵事(前6篇)",report:{date:"2026-06-25",status:"pass",
+factCount:5,debateCount:2,
+observe:{think:3,fact:2,detail:2,highlight:"思辨力明显强于事实记忆，能拆解深层动机分出三层逻辑",weakness:"人名和细节偶有混淆"},
+method:"区分'不得不狠'和'本身也狠'，是读历史人物的关键",
+chat:{"fact": [{"who": "ai", "text": "好，1~54页内容我摸清了，涵盖第一章帝王君主10篇全部和第二章后宫韵事前6篇。来验收——\n\n## 一、事实检验（你读到了没有）\n\n1. 书里写了几个\"爱做生意的皇帝\"，你能说出至少3个吗？各自做了什么离谱的事？\n2. 汉灵帝卖官，给卖官的钱起了个什么好听的名字？\n3. 刘禅——就是那个\"扶不起的阿斗\"——书里觉得他真的是昏君吗？书里的核心论据是什么？\n4. 万历皇帝三十年不上朝，考古发现他身体有什么问题？\n5. 羊献容的皇后生涯有多离谱？\"五废六立\"是什么意思？\n\n## 二、思辨检验（你想到了没有）\n\n6. 汉灵帝明码标价卖官，买官的人上任后拼命捞钱回本，百姓遭殃。如果换个角度想——汉灵帝从小家境贫寒、12岁被外戚推上皇位、权力根本不在自己手里——他卖官，有没有可能不只是\"贪\"，还有别的原因？你怎么看？\n7. 吕雉被称为\"中国第一个独掌朝纲的女性\"，你对她的印象是什么？如果站在她的处境想——丈夫靠不住、儿子年幼、功臣集团虎视眈眈——她\"狠\"是性格使然，还是不得不狠？\n\n不用每题都答，挑你印象最深的来聊。"}, {"who": "kid", "text": "三位爱做生意的皇帝，分别是汉灵帝刘宏，他是东汉的。他设立西园，明码标价售卖全国官职，三公、郡守、县令。全部明码标价，可分期付款，设账上任。第二位是南齐东昏侯萧宝卷。他拆毁皇家园林，在皇宫里搭建完整市井集市，自己系围裙亲自摆摊。卖猪肉 宠妃潘玉儿担任集市总管，宫里人起争执由潘玉儿裁决，皇帝犯错也要受罚，整日沉迷市井经营，完全荒废朝政。第三位是北齐后主高纬。他在华林园设立贫穷村舍，自己扮成乞丐沿街乞讨做生意，同时垄断国内商贸资源 搜刮珍宝囤货牟利，还把封地官职当做商品随意赏赐交易。"}, {"who": "ai", "text": "前两位说得扎实，汉灵帝和萧宝卷的细节基本都对。第三位需要纠正一下——\n\n书里写的第三位不是高纬，是刘义符（南朝刘宋），他在华林园设商业街当掌柜。高纬是北齐的，你说的那些可能是别的来源看到的，但这本书1~54页里没写到他。\n\n还有一个小混：卖猪肉切肉分毫不差的是司马遹（西晋太子，晋惠帝的儿子），不是萧宝卷。萧宝卷在集市里的角色是潘贵妃手下的抄写员+客串肉铺伙计，不是专门卖肉的。\n\n另外书里其实提了四个爱做生意的——你漏了司马遹，这个太子卖肉的手艺才是最绝的。\n\n接下来答第2题吧——汉灵帝给卖官的钱起了什么好听的名字？"}, {"who": "kid", "text": "他把卖官所得的钱财 美其名曰为礼钱，对外宣称是官员主动献给朝廷的忠心礼物，以此粉饰腐败行为。"}, {"who": "ai", "text": "对，\"礼钱\"——赤胆忠心的官员给朝廷送的礼。名字好听了，买卖双方都不尴尬了。\n\n第3题——刘禅，书里觉得他真是扶不起的昏君吗？"}, {"who": "kid", "text": "书本不认为刘禅是纯粹昏君。第一点，刘禅是三国在位最久的君主，他在位了41年。诸葛亮去世后独立职权29年，朝堂无宗室内乱，无武将篡权。第二点，他推行休养生息政策。不强行穷兵黩武北伐。让属地百姓在乱世中长期免于大规模战火。第三点，亡国时开城投降，避免百姓惨遭屠城，乐不思蜀是保全自身于蜀中移民的自保谋略并非纯属愚笨，属于平庸守城之君，而非暴虐昏君。"}, {"who": "ai", "text": "三点都站得住，尤其是\"乐不思蜀是自保谋略\"这个点——很多人只看到表面，你能看出这可能是装傻求生，说明你读的时候动了脑子。\n\n不过有个小修正：书里说的不是\"不强行穷兵黩武北伐\"——刘禅在诸葛亮死后其实还支持了姜维多次北伐，不是完全停了。但他确实没像诸葛亮时期那样倾国之力，程度有控制。\n\n第4题——万历皇帝三十年不上朝，考古发现他身体有什么问题？"}, {"who": "kid", "text": "1958年考古复原骸骨证实万历皇帝右腿骨骼比左腿短3厘米左右，关节严重骨性关节炎，腰椎退行性变形，患有先天性严重足疾，行走剧痛，难以长时间站立，伴随重度蛀牙、牙槽溃烂，常年受牙病折磨，长期病痛让他无法完成上朝、祭祀等需要长时间站立的礼仪，是30年不上朝的核心原因之一。"}, {"who": "ai", "text": "细节很到位，足疾+脊椎+牙病，三重折磨，\"不上朝\"就不只是懒了。\n\n有个小点：\"先天性\"这个说法要谨慎——书里和其他资料更多说他是从小体弱、长期劳累导致的，不一定是天生的。但不管先天后天，疼是真的疼。\n\n第5题——羊献容，\"五废六立\"是什么意思？"}, {"who": "kid", "text": "意思是六次登上皇后之位，五次被废。一立是晋惠帝初封皇后，一废是司马伦叛乱。二立是司马越平定叛乱复位，二废是司马颖掌权，再次被废。三立三废，四立四废，五立五废，诸王反复夺权，轮番废立。第六次立后，西晋灭亡，前赵刘曜称帝，册封她为前赵皇后，完成六立。"}, {"who": "ai", "text": "六次登后、五次被废，脉络理得很清楚。最后嫁了两朝——晋和前赵——这个细节你抓住了，很好。\n\n事实题全部过关，进思辨题——\n\n第6题：汉灵帝卖官，买官的人上任后拼命捞钱，百姓遭殃，这是常识。但换个角度——刘宏12岁被外戚窦家推上皇位，权力根本不在自己手里，宦官和外戚斗来斗去，他什么都做不了。他卖官，有没有可能不只是\"贪\"，还有别的动机？"}], "debate": [{"who": "kid", "text": "不能只简单归为贪婪，存在多重现实困境。第一点，出生贫困带来的安全感缺失。他早年只是偏远宗室后裔。自幼清贫，12岁被外戚强行拥立为傀儡皇帝，从未掌控财政大权，极度缺乏财富安全感，囤积钱财是填补早年贫苦的心理缺口。第二点皇权对抗门阀的财政手段，东汉世家大族垄断土地。大规模偷税漏税，朝廷常规赋税收入枯竭，天灾，平叛持续消耗国库，常规财政无法支撑朝廷运转，卖官是绕过豪强，直接从官员手里获取财政收入的极端办法。第三点，皇帝傀儡的权力补偿 朝政长期被架空外戚士族等三方面分割。他没有实权调动军队，推行新政。卖官是他唯一能完全自主掌控。不受影响的权力行为，是无力掌控朝政下的权力宣泄。但无论何种客观理由，制度化卖官必然催生层层盘剥，彻底摧毁政治根基加速东汉覆灭，本质仍是损害天下百姓的短视之举。"}, {"who": "ai", "text": "这个回答有分量。\n\n三点逻辑链很清晰：安全感缺失→财政手段→权力补偿，每一点都从\"他为什么这么做\"往下挖，不是停在\"他贪\"的表面。最后还自己收了一刀——\"无论何种客观理由，制度化卖官必然催生层层盘剥\"——这一句很关键，说明你不是在替他洗白，是在理解他的处境之后依然守住判断。\n\n\"卖官是他唯一能完全自主掌控的权力行为\"——这句最独到，把卖官从\"贪\"重新定义为\"无力掌控朝政下的权力宣泄\"，这个洞察我没想到你会说出来。\n\n最后一题——\n\n第7题：吕雉，\"中国第一个独掌朝纲的女性\"。你对她的印象是什么？如果站在她的处境——丈夫靠不住、儿子年幼、功臣集团虎视眈眈——她\"狠\"是性格使然，还是不得不狠？"}, {"who": "kid", "text": "她的狠辣更多是绝境中自保、稳固政权的被迫选择，而非单纯天生残暴。第一点，生存处境极其凶险。丈夫刘邦早年常年在外征战，数次抛弃她和儿女。刘邦称帝后极度宠爱戚夫人，甚至打算废掉他儿子刘盈的太子之位。一旦失势，她与儿女都会性命不保。第二点朝堂制衡，刚需。刘邦开国后分封大量异姓功臣。韩信、彭越等军工集团势力庞大，幼王难以反制。刘邦去世后，功臣、诸侯王、刘氏、宗室三方势力虎视眈眈，若不主动清洗威胁皇权的势力，汉室江山极易分裂。第三点女性掌权的天然阻力。古代女性掌权没有法理支撑，朝野上下本就不排斥女性干政，温和手段无法震慑朝臣，唯有强硬铁手段才能树立权威，稳定朝堂秩序。不过他确实存在极端残酷的报复行为，带有私人性格里的阴狠底色，但执掌朝政期间推行休养生息，稳定律法，缓和民生。证明他的核心杀戮手段主要目的是守护儿子的皇权与汉王朝稳定。"}, {"who": "ai", "text": "这个回答的结构和你前面几题一样稳——先破\"天生残暴\"的标签，再用三层逻辑重构：被抛弃的生存危机→功臣集团的政治威胁→女性掌权的天然劣势。\n\n最后自己打了个补丁：\"确实存在极端残酷的报复行为，带有性格里的阴狠底色\"——这个分寸感很好，不是非黑即白，是把\"不得不狠\"和\"本身也狠\"分开了。\n\n\"温和手段无法震慑朝臣，唯有铁血手段才能树立权威\"——这一点放在女性掌权的语境下特别成立，如果是男性皇帝可能不需要这么极端，这是性别困境逼出来的。\n\n**《一读就入迷的中国史》1~54页验收全部通过 ✅**"}]}}},
+{id:"b1s2",range:"55~100页",desc:"第二章·后宫韵事(续)+后续章节",report:null},
+{id:"b1s3",range:"101~150页",desc:"后续章节",report:null}
+]}
+];
+
+function esc(s){return s.replace(/&/g,'\u0026amp;').replace(/</g,'\u0026lt;').replace(/>/g,'\u0026gt;').replace(/"/g,'\u0026quot;').replace(/'/g,'\u0026#39;')}
+function md(s){var h=esc(s);h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');h=h.replace(/^- (.+)$/gm,'<li>$1</li>');h=h.replace(/^(\d+)\. (.+)$/gm,'<li>$2</li>');h=h.replace(/((?:<li>[\s\S]*?<\/li>\s*)+)/g,'<ul>$1</ul>');h=h.replace(/\n\n/g,'</p><p>');h=h.replace(/\n/g,'<br>');return'<p>'+h+'</p>'}
+
+function updateStats(){
+var books=0,passed=0,total=0;
+BOOKS.forEach(function(b){
+var hasAny=false,hasPass=false;
+b.sections.forEach(function(s){if(s.report){total++;hasPass=true;hasAny=true}else{hasAny=true}});
+if(hasAny)books++;
+if(hasPass)passed+=b.sections.filter(function(s){return s.report&&s.report.status==='pass'}).length;
+});
+document.getElementById('stat-books').textContent=books;
+document.getElementById('stat-passed').textContent=passed;
+document.getElementById('stat-total').textContent=total;
+}
+
+function toggleCard(id){document.getElementById(id).classList.toggle('expanded')}
+function toggleChat(id){document.getElementById(id).classList.toggle('open')}
+
+function stars(n){var s='';for(var i=1;i<=3;i++)s+=(i<=n?'⭐':'☆');return s}
+
+function renderReport(sec,sid){
+var r=sec.report;if(!r)return '';
+var html='<div class="report-box"><h4>📋 验收报告 · '+esc(r.date)+'</h4>';
+html+='<div class="report-row"><span class="report-label">事实检验</span><span class="report-value green">✅ '+r.factCount+'道</span></div>';
+html+='<div class="report-row"><span class="report-label">思辨检验</span><span class="report-value green">✅ '+r.debateCount+'道</span></div>';
+
+if(r.observe){
+html+='<div class="observe-box">';
+html+='<div class="observe-row"><span class="label">思辨力</span><span class="stars">'+stars(r.observe.think)+'</span></div>';
+html+='<div class="observe-row"><span class="label">事实记忆</span><span class="stars">'+stars(r.observe.fact)+'</span></div>';
+html+='<div class="observe-row"><span class="label">人名细节</span><span class="stars">'+stars(r.observe.detail)+'</span></div>';
+if(r.observe.highlight)html+='<div style="margin-top:8px;font-size:.84em;color:var(--text)">🌟 '+esc(r.observe.highlight)+'</div>';
+if(r.observe.weakness)html+='<div style="margin-top:4px;font-size:.84em;color:var(--warning)">⚠️ '+esc(r.observe.weakness)+'</div>';
+html+='</div>';
+}
+
+if(r.method){
+html+='<div class="method-box"><span class="label">🧰 方法收获：</span>'+esc(r.method)+'</div>';
+}
+
+if(r.chat){
+html+='<button class="process-btn" onclick="toggleChat(\'chat-'+sid+'\')">💬 验收过程</button>';
+html+='<div class="chat-panel" id="chat-'+sid+'">';
+var stageKeys=['fact','debate'];
+var stageNames=['📋 事实检验','🔥 思辨检验'];
+stageKeys.forEach(function(sk,si){
+var msgs=r.chat[sk];
+if(!msgs)return;
+html+='<div class="round-chat"><div class="round-chat-header">'+stageNames[si]+'</div>';
+msgs.forEach(function(m){
+var who=m.who==='ai'?'ai':'kid';
+var avatar=who==='ai'?'🤖':'👧';
+var avatarCls=who==='ai'?'ai-avatar':'kid-avatar';
+html+='<div class="chat-bubble '+who+'">';
+html+='<div class="chat-avatar '+avatarCls+'">'+avatar+'</div>';
+html+='<div class="chat-content">'+md(m.text)+'</div>';
+html+='</div>';
+if(m.eval){
+html+='<div class="chat-eval'+(m.eval.indexOf('❌')>=0?' wrong':'')+'" style="'+(who==='kid'?'text-align:right':'')+'">'+esc(m.eval)+'</div>';
+}
+});
+html+='</div>';
+});
+html+='</div>';
+} else {
+html+='<div style="margin-top:12px;padding:10px 16px;background:#f0f0f0;border-radius:8px;font-size:.82em;color:#999;text-align:center">💬 验收过程待补录</div>';
+}
+
+html+='</div>';
+return html;
+}
+
+function render(){
+var app=document.getElementById('app');
+var html='';
+BOOKS.forEach(function(b){
+var typeCls=b.type==='history'?'history':'lit';
+var passCount=b.sections.filter(function(s){return s.report&&s.report.status==='pass'}).length;
+var pct=Math.round(passCount/b.sections.length*100);
+
+html+='<div class="book-card" id="card-'+b.id+'">';
+html+='<div class="book-header" onclick="toggleCard(\'card-'+b.id+'\')">';
+html+='<div class="book-left">';
+html+='<div class="book-title">📖 '+esc(b.title)+'</div>';
+html+='<div class="book-meta">'+passCount+'/'+b.sections.length+' 段落已完成</div>';
+html+='</div>';
+html+='<div class="book-right">';
+html+='<span class="type-tag '+typeCls+'">'+esc(b.typeLabel)+'</span>';
+html+='<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>';
+html+='<span class="expand-icon">▼</span>';
+html+='</div></div>';
+
+html+='<div class="book-body">';
+b.sections.forEach(function(sec){
+var cls=sec.report?(sec.report.status==='pass'?'pass':'progress'):'todo';
+html+='<div class="section-item '+cls+'">';
+html+='<div class="section-title">'+esc(sec.range)+'</div>';
+html+='<div class="section-sub">'+esc(sec.desc)+'</div>';
+if(sec.report){
+if(sec.report.status==='pass')html+=' <span style="font-size:.8em;color:var(--success);font-weight:600">✅ 已通过</span>';
+else html+=' <span style="font-size:.8em;color:var(--warning);font-weight:600">⚠️ 待复验</span>';
+}
+html+=renderReport(sec,sec.id);
+html+='</div>';
+});
+html+='</div></div>';
+});
+
+html+='<div class="footer">点击书目展开验收详情 · 点"验收过程"查看对话记录</div>';
+app.innerHTML=html;
+updateStats();
+}
+
+render();
+</script>
+</body>
+</html>

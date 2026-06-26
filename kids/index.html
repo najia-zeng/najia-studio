@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学习地图</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.container {
+  max-width: 400px;
+  width: 100%;
+}
+h1 {
+  color: #fff;
+  text-align: center;
+  font-size: 1.6em;
+  margin-bottom: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.subtitle {
+  color: rgba(255,255,255,0.75);
+  text-align: center;
+  font-size: 0.9em;
+  margin-bottom: 32px;
+}
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  display: block;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+.card-icon {
+  font-size: 2em;
+  margin-bottom: 8px;
+}
+.card-title {
+  font-size: 1.15em;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+.card-desc {
+  font-size: 0.85em;
+  color: #7f8c9b;
+  line-height: 1.5;
+}
+.card-tag {
+  display: inline-block;
+  font-size: 0.7em;
+  padding: 2px 10px;
+  border-radius: 10px;
+  margin-top: 10px;
+  font-weight: 600;
+}
+.tag-math { background: #e8f4fd; color: #3498db; }
+.tag-chinese { background: #e8f8ef; color: #27ae60; }
+.tag-reading { background: #fef3e6; color: #e8913a; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📚 学习地图</h1>
+  <p class="subtitle">人教版2024新课标 · 七年级上册</p>
+
+  <a class="card" href="数学验收看板.html">
+    <div class="card-icon">📐</div>
+    <div class="card-title">数学验收看板</div>
+    <div class="card-desc">有理数 → 有理数的运算 → 代数式<br>快问快答 · 费曼检验 · 笔头题 · 迁移闯关</div>
+    <span class="card-tag tag-math">数学</span>
+  </a>
+
+  <a class="card" href="语文思辨学习地图.html">
+    <div class="card-icon">🌿</div>
+    <div class="card-title">古诗文学习地图</div>
+    <div class="card-desc">观沧海 · 次北固山下 · 闻王昌龄左迁龙标遥有此寄…<br>理解 → 思辨 → 写作</div>
+    <span class="card-tag tag-chinese">语文</span>
+  </a>
+
+  <a class="card" href="课外阅读地图.html">
+    <div class="card-icon">📖</div>
+    <div class="card-title">课外阅读地图</div>
+    <div class="card-desc">一读就入迷的中国史…<br>事实检验 → 思辨检验 → 加辣追问</div>
+    <span class="card-tag tag-reading">课外阅读</span>
+  </a>
+</div>
+</body>
+</html>

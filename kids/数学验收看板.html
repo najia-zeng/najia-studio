@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>验收·七上数学学习看板</title>
+<style>
+:root{--primary:#3a5ba0;--primary-light:#e8edf6;--accent:#e86a3a;--accent-light:#fef0ea;--bg:#f7f8fa;--card:#fff;--text:#2c3e50;--text-light:#7f8c9b;--border:#e8ecf1;--success:#27ae60;--success-light:#e8f8ef;--warning:#f39c12;--warning-light:#fef9e7;--info:#3498db;--info-light:#e8f4fd;--danger:#e74c3c;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,0.06);--purple:#8e44ad;--purple-light:#f3e5f5;--teal:#16a085;--teal-light:#e0f7f3}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+.header{background:linear-gradient(135deg,#3a5ba0 0%,#2a4578 100%);color:#fff;padding:32px 20px;text-align:center}
+.header h1{font-size:1.6em;font-weight:700;margin-bottom:6px;letter-spacing:1px}
+.header p{font-size:.9em;opacity:.85;font-weight:300}
+.stats-bar{display:flex;justify-content:center;gap:20px;padding:16px 20px;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-num{font-size:1.5em;font-weight:700}
+.stat-num.blue{color:var(--primary)}
+.stat-num.green{color:var(--success)}
+.stat-num.orange{color:var(--warning)}
+.stat-num.purple{color:var(--purple)}
+.stat-num.teal{color:var(--teal)}
+.stat-label{font-size:.75em;color:var(--text-light)}
+.container{max-width:720px;margin:0 auto;padding:20px 16px}
+.chapter-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;border:1px solid var(--border);transition:all .2s}
+.chapter-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.1)}
+.chapter-header{padding:16px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.chapter-header:hover{background:#fafbfc}
+.chapter-left{flex:1}
+.chapter-title{font-size:1.05em;font-weight:700;color:var(--text)}
+.chapter-sub{font-size:.8em;color:var(--text-light);margin-top:2px}
+.chapter-right{display:flex;align-items:center;gap:10px}
+.status-tag{font-size:.75em;padding:3px 10px;border-radius:10px;font-weight:600;white-space:nowrap}
+.status-tag.pass{background:var(--success-light);color:var(--success)}
+.status-tag.progress{background:var(--warning-light);color:var(--warning)}
+.status-tag.todo{background:#f0f0f0;color:#aaa}
+.round-dots{display:flex;gap:3px}
+.rdot{width:10px;height:10px;border-radius:50%;background:#ddd;transition:all .2s}
+.rdot.done{background:var(--success)}
+.expand-icon{font-size:.8em;color:var(--text-light);transition:transform .2s}
+.chapter-card.expanded .expand-icon{transform:rotate(180deg)}
+.chapter-body{padding:0 18px;max-height:0;overflow:hidden;transition:all .3s ease}
+.chapter-card.expanded .chapter-body{padding:18px;max-height:12000px}
+.section-list{margin-bottom:14px}
+.section-item{padding:8px 12px;border-left:3px solid var(--border);margin-bottom:6px;font-size:.88em;color:var(--text);transition:all .2s}
+.section-item.done{border-left-color:var(--success);color:var(--text)}
+.section-item.current{border-left-color:var(--info);color:var(--text);font-weight:600}
+.report-box{background:#f8f9fb;border-radius:10px;padding:16px;margin-top:12px;border:1px solid var(--border)}
+.report-box h4{font-size:.9em;color:var(--primary);margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:6px}
+.report-row{display:flex;align-items:center;padding:6px 0;border-bottom:1px solid #eee;font-size:.85em}
+.report-row:last-child{border-bottom:none}
+.report-label{color:var(--text-light);min-width:80px}
+.report-value{color:var(--text);font-weight:500}
+.report-value.green{color:var(--success)}
+.report-value.red{color:var(--danger)}
+.report-value.orange{color:var(--warning)}
+.report-value.purple{color:var(--purple)}
+.process-btn{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:20px;font-size:.85em;font-weight:600;cursor:pointer;transition:all .2s}
+.process-btn:hover{background:#2a4a8a;transform:translateY(-1px)}
+.process-btn:active{transform:translateY(0)}
+.chat-panel{margin-top:14px;max-height:0;overflow:hidden;transition:all .3s ease}
+.chat-panel.open{max-height:6000px}
+.round-chat{margin-bottom:16px}
+.round-chat-header{font-size:.88em;font-weight:700;color:var(--primary);padding:8px 12px;background:var(--primary-light);border-radius:8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.round-chat-header.purple{background:var(--purple-light);color:var(--purple)}
+.round-chat-header.teal{background:var(--teal-light);color:var(--teal)}
+.chat-bubble{margin-bottom:8px;display:flex;gap:8px;align-items:flex-start}
+.chat-bubble.ai{flex-direction:row}
+.chat-bubble.kid{flex-direction:row-reverse}
+.chat-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8em;flex-shrink:0}
+.chat-avatar.ai-avatar{background:var(--primary-light);color:var(--primary)}
+.chat-avatar.kid-avatar{background:#fce4ec;color:#e91e63}
+.chat-content{max-width:80%;padding:10px 14px;border-radius:12px;font-size:.85em;line-height:1.6;word-break:break-word}
+.chat-content p{margin:0 0 4px}.chat-content p:last-child{margin:0}
+.chat-content strong{font-weight:700;color:inherit}
+.chat-content ul{margin:4px 0;padding-left:18px}.chat-content li{margin:2px 0}
+.chat-bubble.ai .chat-content{background:var(--primary-light);color:var(--text);border-top-left-radius:4px}
+.chat-bubble.kid .chat-content{background:#fce4ec;color:var(--text);border-top-right-radius:4px}
+.chat-eval{margin-top:4px;font-size:.78em;color:var(--success);font-weight:500}
+.chat-eval.wrong{color:var(--danger)}
+.detail-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.detail-section h5{font-size:.85em;color:var(--primary);margin-bottom:8px;font-weight:600}
+.round-detail{background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px}
+.round-title{font-size:.82em;font-weight:600;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.round-title .icon{font-size:1em}
+.round-result{font-size:.8em;color:var(--text-light)}
+.error-list{margin-top:10px}
+.error-item{background:#fff5f5;border:1px solid #fde2e2;border-radius:8px;padding:10px;margin-bottom:6px;font-size:.82em}
+.error-item .q{color:var(--danger);font-weight:600;margin-bottom:2px}
+.error-item .a{color:var(--text-light)}
+.tracking-item{background:var(--teal-light);border:1px solid #b2dfdb;border-radius:8px;padding:10px;margin-bottom:6px;font-size:.82em}
+.tracking-item .label{font-weight:600;color:var(--teal)}
+.tracking-item .detail{color:var(--text-light);margin-top:2px}
+.tracking-status{display:inline-block;font-size:.75em;padding:2px 8px;border-radius:8px;font-weight:600;margin-left:6px}
+.tracking-status.pending{background:#fff3e0;color:#e65100}
+.tracking-status.disputed{background:#fff8e1;color:#f57f17}
+.tracking-status.proven{background:var(--success-light);color:var(--success)}
+.migration-questions{margin-top:8px}
+.migration-q{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;font-size:.82em}
+.migration-q .q-type{font-weight:600;color:var(--purple);font-size:.78em}
+.migration-q .q-scene{color:var(--text);margin-top:2px}
+.migration-q .q-result{margin-top:2px}
+.migration-q .q-result.pass{color:var(--success)}
+.migration-q .q-result.fail{color:var(--danger)}
+.dispute-box{background:var(--purple-light);border:1px solid #e1bee7;border-radius:8px;padding:10px;margin-top:6px;font-size:.82em}
+.dispute-box .dispute-header{font-weight:600;color:var(--purple)}
+.dispute-box .dispute-detail{color:var(--text);margin-top:4px}
+.motto-box{background:linear-gradient(135deg,#3a5ba0 0%,#2a4578 100%);color:#fff;border-radius:10px;padding:14px 16px;margin-top:12px;font-size:.85em;font-weight:300;line-height:1.7;text-align:center}
+.footer{text-align:center;padding:20px;color:var(--text-light);font-size:.8em;border-top:1px solid var(--border);margin-top:20px}
+@media(max-width:480px){.header h1{font-size:1.3em}.stats-bar{gap:12px}.container{padding:12px 10px}.chapter-header{padding:12px 14px}.chat-content{max-width:88%}}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>📐 验收·七上数学学习看板</h1>
+<p>人教版2024新课标 · 快问→费曼→笔头→迁移</p>
+</div>
+
+<div class="stats-bar">
+<div class="stat-item"><div class="stat-num blue" id="stat-total">6</div><div class="stat-label">总章节</div></div>
+<div class="stat-item"><div class="stat-num green" id="stat-passed">0</div><div class="stat-label">已通过</div></div>
+<div class="stat-item"><div class="stat-num orange" id="stat-progress">0</div><div class="stat-label">验收中</div></div>
+<div class="stat-item"><div class="stat-num purple" id="stat-migrated">0</div><div class="stat-label">迁移通过</div></div>
+<div class="stat-item"><div class="stat-num teal" id="stat-tracking">0</div><div class="stat-label">待循证</div></div>
+</div>
+
+<div class="container" id="app"></div>
+
+<script>
+var CHAPTERS=[
+{id:"ch1",num:1,title:"有理数",
+sections:["1.1 正数和负数","1.2.1 有理数的概念","1.2.2 数轴","1.2.3 相反数","1.2.4 绝对值","1.2.5 有理数的大小比较"],
+keyPoints:"正负数·数轴·相反数·绝对值·大小比较",
+nextChapter:"有理数的运算",
+migrationHint:"多个有理数加在一起→有理数的运算",
+report:{date:"2026-06-25",status:"pass",
+round1:{name:"快问快答",result:"pass",detail:"5题全对，每道带理由。第5题口误“复数”应为“负数”"},
+round2:{name:"费曼检验",result:"pass",detail:"相反数和绝对值都能用自己的话讲清，有举例有数轴理解"},
+round3:{name:"笔头题",result:"pass",detail:"3题全对，步骤规范完整。绝对值求值/数轴距离/化简比较均掌握"},
+round4:{name:"迁移闯关",result:"pass",detail:"3题全对。航天倒计时正负号↔数轴左右、T+0=原点；AI激光雷达方向→正负号、距离计算正确；碳排放计算自然引出有理数加法。评级🌟🌟🌟",questions:[{type:"情境识别",scene:"航天倒计时",result:"pass"},{type:"跨学科调用",scene:"AI激光雷达测距",result:"pass"},{type:"前瞻种子",scene:"碳排放计算",result:"pass",seedFound:true}],disputes:[],seedNote:"孩子自然发现了多个有理数加在一起→第二章有理数的运算"},
+weakPoints:[],errors:[],tracking:[],
+motto:"概念理解到位，费曼检验有举例有理解，真学会了！",
+chat:{"round1": [{"who": "ai", "text": "好！验收开始 💪\n\n第一章「有理数」验收，按三关走：**快问快答 → 费曼检验 → 笔头题**\n\n---\n\n## 🔥 第一关：快问快答（5道，口答就行）\n\n**第1题：** 零是不是有理数？\n\n**第2题：** 在数轴上，原点右边的点表示的数是正数还是负数？\n\n**第3题：** -7 的相反数是多少？\n\n**第4题：** |-5| 等于多少？\n\n**第5题：** 比大小：-100 ___ -1（填 > 或 <）\n\n---\n\n一道一道答，或者全答完一起发我都可以！"}, {"who": "kid", "text": "第一题是0属于有理数，有理数包含整数和分数，0是整数。第二题，正数，数轴原点代表0，右侧 数字大于0为正数，左侧为负数。第三题，7互为相反数的两数和为0，-7+7等于0。第四题，5绝对值表示数轴上点到原点的距离，-5到原点距离是5。第五题，小于。两个复数比较，绝对值大的数值更小。"}, {"who": "ai", "text": "5题全对！而且不只是蒙对，每道都带着理由，说明不是死记的。✓✓✓✓✓\n\n小提醒：第5题你说的“两个**复数**比较”应该是“两个**负数**比较”，语音输入搞混了，考试写卷子可别写错字哦😄\n\n---\n\n第一关通过 ✅ 进入第二关！"}], "round2": [{"who": "ai", "text": "## 🗣️ 第二关：费曼检验（2个概念，用你自己的话说）\n\n不用背定义，就像给同学讲一样，讲明白就行。\n\n**概念1：用你自己的话说，什么叫相反数？**\n\n**概念2：用你自己的话说，绝对值是什么意思？**\n\n一个一个来也行，两个一起答也行！"}, {"who": "kid", "text": "概念一，相反数。两个数字只有正负符号不一样，数字本身大小相同，它们就互为相反数。举例子，7和负7，5和负5。0比较特殊，它的相反数就是它自己，因为0不分正负。把一对相反数放到数轴上看，它们会分别站在原点0的左右两边，到原点的距离完全相等。概念二，绝对值。绝对值就是一个数在数轴上对应的点离原 点0有多远的距离？距离不可能是负数，所以不管原来的数是正数还是负数，算完绝对值，结果一定是0或者正数。举例子，-5离原点距离是5。"}, {"who": "ai", "text": "讲得非常清楚！两个概念都过关了 👏\n\n**相反数** ✓\n- “只有正负符号不一样，数字大小相同” ✓——抓住了核心\n- “互为相反数” ✓——“互为”这个词用对了\n- “0的相反数是自己” ✓——特殊规则没漏\n- 还补了数轴上的对称关系——加分项，说明你真的理解了，不是背的\n\n**绝对值** ✓\n- “数轴上对应的点离原点有多远” ✓——本质就这一句话\n- “距离不可能是负数，结果一定是0或正数” ✓——非负性也理解了\n- 举例也到位\n\n---\n\n第二关通过 ✅ 最后一关！"}], "round3": [{"who": "ai", "text": "## ✏️ 第三关：笔头题（3道，写纸上拍照发我）\n\n**第1题：** 已知 |m| = 6，|n| = 3，且 m < 0，n > 0，求 m - n 的值。\n\n**第2题：** 在数轴上，与表示 2 的点距离为 5 个单位长度的点表示的数是多少？\n\n**第3题：** 化简并比较大小：-(-4) ___ -|+3|（填 >、< 或 =）\n\n写完拍照发我！"}, {"who": "kid", "text": "这是我的答案。（上传了手写解题照片）"}, {"who": "ai", "text": "3题全对！笔头题也过关了 👏👏\n\n**题1 ✓ 答案：-9**\n- m<0 → m=-6，n>0 → n=3，-6-3=-9\n- 绝对值展开→条件锁定→代入计算，步骤完整\n\n**题2 ✓ 答案：7 和 -3**\n- 左右两个方向都考虑了，没漏\n\n**题3 ✓ 答案：>**\n- 先化简再比较，4 > -3 没问题\n\n---\n\n## 🎉 验收报告\n\n| 关卡 | 结果 | 说明 |\n|------|------|------|\n| 第一关：快问快答 | ✅ 5/5 全对 | 概念记忆扎实 |\n| 第二关：费曼检验 | ✅ 两概念都讲清 | 不是死背的，是真的懂了 |\n| 第三关：笔头题 | ✅ 3/3 全对 | 解题规范，步骤完整 |\n\n**结论：第一章「有理数」验收通过 ✅ 无错题入库**\n\n整体评价：概念理解到位、解题思路清晰、步骤规范。特别是费曼检验那部分，你讲的“相反数”和“绝对值”都有例子、有数轴理解，说明是真学会了，不是背的。\n\n---\n\n学完第二章「有理数的运算」的时候再来找我"}],"round4":[{"who": "ai", "text": "好的！在开始第二章之前，我们先把第一章的“迁移闯关”补上。\n\n这一关不是考你课本原题，而是看你能不能把学过的知识用到“没见过的新场景”里。3道题，来试试：\n\n---\n\n**第1题·情境识别：航天倒计时**\n\n火箭发射时，倒计时用T表示发射时刻：\n- T-10 表示发射前10秒\n- T+5 表示发射后5秒\n\n① 这里的正号和负号，对应数轴上的什么？\n② T+0 表示什么？对应数轴上的什么？"}, {"who": "kid", "text": "第一题，关系说明一。符号含义对应数轴正负。加号代表发射后，对应数轴上原点发射时刻右边的正数。减号代表发射前，对应数轴上原点左侧的负数。T+0含义。T+0表示火箭发射的基准时刻，也就是发射瞬间。对应数轴上的原点0。"}, {"who": "ai", "text": "✅ 全对！\n\n- “T-”对应数轴原点左侧（负数），“T+”对应右侧（正数）——把抽象的正负号和具体场景对应起来了\n- T+0=发射瞬间=原点0——“0是分界点”这个概念用到了航天里\n\n---\n\n**第2题·跨学科调用：AI自动驾驶激光雷达**\n\nAI自动驾驶汽车的激光雷达探测到：\n- 车前方100米处有一个行人\n- 车后方50米处有一个路灯\n\n① 如果以车为原点0，前方为正方向，行人和路灯分别在数轴上怎么表示？\n② 行人和路灯之间相距多少米？"}, {"who": "kid", "text": "第二题，AI 自动驾驶，数轴表示以车辆自身位置为数轴原点0，车辆前进方向点左侧50个长度单位。距离计算，100-(-50)=150，行人与路灯 干 相距150米。"}, {"who": "ai", "text": "✅ 又全对！\n\n- 行人=+100，路灯=-50，方向用正负号表示——“方向→正负号”这个模型你已经能自己建了\n- 距离=100-(-50)=150米——数轴上两点距离=右边的数-左边的数，这个方法你掌握了\n\n---\n\n**第3题·前瞻种子：碳排放计算**\n\n某工厂一年碳排放情况：\n- 原始排放：50吨\n- 植树造林吸收了20吨\n- 节能改造减少了15吨\n\n① 用有理数表示这三个数据，列出计算式\n② 最终净排放是多少吨？怎么算的？"}, {"who": "kid", "text": "第三题，碳排放计算。列式逻辑是 原始排放为50吨，也就是正数。吸收回收会减少碳排放，用负数表示。所以列式是50+-20+-15，计算过程是50+-20+-15等于50-20-15，也就是15吨。"}, {"who": "ai", "text": "✅ 全对！而且你发现了吗——这道题里“50+(-20)+(-15)”这种多个有理数加在一起的计算，就是第二章「有理数的运算」要学的内容！\n\n你已经自己算出来了，说明你对有理数加法的直觉已经很好了 👍\n\n---\n\n## 🎉 第一章迁移闯关结果\n\n| 题号 | 类型 | 场景 | 结果 |\n|------|------|------|------|\n| 1 | 情境识别 | 航天倒计时 | ✅ 正负号↔数轴左右，T+0=原点 |\n| 2 | 跨学科 | AI激光雷达 | ✅ 方向→正负号，距离计算正确 |\n| 3 | 前瞻种子 | 碳排放计算 | ✅ 自然进入有理数加法 |\n\n**评级：🌟🌟🌟 满分！**\n\n不仅能认出知识点，还能解释场景、自己发现下一章的联系——迁移能力很强。\n\n**第一章「有理数」四轮验收全部通过 ✅**\n\n现在开始第二章「有理数的运算」的验收！"}]}}},
+{id:"ch2",num:2,title:"有理数的运算",
+sections:["2.1.1 有理数的加法","2.1.2 有理数的减法","2.2.1 有理数的乘法","2.2.2 有理数的除法","2.3.1 乘方","2.3.2 科学记数法","2.3.3 近似数"],
+keyPoints:"加减乘除·乘方·科学记数法·近似数",
+nextChapter:"代数式",
+migrationHint:"如果不知道具体数字，只用字母代替呢？→代数式",
+report:{date:"2026-06-26",status:"pass",
+round1:{name:"快问快答",result:"pass",detail:"5题全对，每道带理由。加法减法乘法除法乘方运算规则均掌握扎实"},
+round2:{name:"费曼检验",result:"pass",detail:"\"负负得正\"从规律推导、生活类比、本质总结三个角度讲清。减法转加法指出统一运算规则的好处，有一处小笔误(-8-3写成-8+3)但核心理解到位"},
+round3:{name:"笔头题",result:"pass",detail:"3题全对，步骤清晰。混合运算=12、含乘方运算=-1、气温变化应用题Day3=0°C，符号运算准确"},
+round4:{name:"迁移闯关",result:"pass",detail:"3题全对。一周碳排放列式计算正确70万吨日均10万吨、细菌分裂乘方2⁶=64正确、代数式预热主动给出(a-b)×m并分析正负含义。评级🌟🌟🌟",questions:[{type:"情境识别",scene:"一周碳排放计算",result:"pass"},{type:"跨学科调用",scene:"细菌分裂乘方",result:"pass"},{type:"前瞻种子",scene:"代数式预热",result:"pass",seedFound:true}],disputes:[],seedNote:"孩子主动用字母写出(a-b)×m表示净排放并分析正负含义，提前摸到第三章代数式"},
+weakPoints:[],errors:[],tracking:[],
+motto:"🌟 运算规则掌握扎实，费曼检验说到本质，迁移闯关发现前瞻种子——第三章代数式已经摸到门了！",
+chat:{round1:[{who:"ai",text:"好！现在正式开始**第二章「有理数的运算」**验收！\n\n🔥 第一轮：快问快答（5道，口答就行）\n\n第1题：\n(-3) + (-5) = ？\n\n第2题：\n(-8) - (-3) = ？\n\n第3题：\n(-4) × (-6) = ？\n\n第4题：\n0 ÷ (-7) = ？\n\n第5题：\n(-1)²⁰²⁶ = ？\n\n一道一道答，或者全答完一起发我都可以！"},{who:"kid",text:"第一题，负8。因为同号两数相加，取负号，绝对值相加，3+5=8，结果就是负8。第二题是负5，因为减去负数等于加它的相反数。第三题。答案是24，因为负负得正。第四题答案是0，因为0除以任何不为0的数，结果都是0。第五题答案是1，因为-1的偶数次幂，结果为一。20 026是偶数。"},{who:"ai",text:"第二章·第一轮 快问快答 评判：\n\n表格\n# 题目 你的答案 你的理由 结果\n1 (-3)+(-5) -8 同号取负号，绝对值相加3+5=8 ✅\n2 (-8)-(-3) -5 减去负数等于加它的相反数 ✅\n3 (-4)×(-6) 24 负负得正 ✅\n4 0÷(-7) 0 0除以任何不为0的数都是0 ✅\n5 (-1)^2026 1 -1的偶数次幂为1，2026是偶数 ✅\n\n5/5 全对，理由全对。\n\n快问快答通过 ✅\n\n第二轮 费曼检验 —— 用你自己的话讲，不能只说\"书上这么写的\"，要说清楚道理。\n\n问题1：\n为什么两个负数相乘，结果是正数？\"负负得正\"不能只背规则，你能说出背后的道理吗？\n\n问题2：\n有理数的减法，为什么要转成加法来算（减去一个数等于加上它的相反数）？直接减不行吗，为什么要绕这一步？\n\n两道题分别回答就行。"}],round2:[{who:"ai",text:"\第\二\轮\费\曼\检\验\—\—\用\你\自\己\的\话\讲\，\不\能\只\说\“\书\上\这\么\写\的\”\，\要\说\清\楚\道\理\。\问\题1\：\为\什\么\两\个\负\数\相\乘\，\结\果\是\正\数\？\“\负\负\得\正\”\不\能\只\背\规\则\，\你\能\说\出\背\后\的\道\理\吗\？\问\题2\：\有\理\数\的\减\法\，\为\什\么\要\转\成\加\法\来\算\（\减\去\一\个\数\等\于\加\上\它\的\相\反\数\）\？\直\接\减\不\行\吗\，\为\什\么\要\绕\这\一\步\？\两\道\题\分\别\回\答\就\行\。"},{who:"kid",text:"我们可以用生活场景加规律推导理解。一、先建立基础含义，3×-2。代表三次减少二，结果是负六。2观察符号变化规律，3×2=6， 3×-2=-6，-3×-2，乘数3变成-3，相当于把前一个结果取相反数值，-6的相反数 就是六。三、生活举例，规定收入为正，欠款为负，负3乘负2可以理解为取消三次，每 次，两元 的欠款相当于多拿到6元收入，结果为正。本质逻辑就是负数代表反向操作，两次相反操作叠加就变回正向，所以负负得正。问题二，有理数减法为什么要 转成加法，为什么不能直接减？第一点是因为整数减法只适用于大数减小数，引入负数后会出现小数减大数，也就是负8减 三之类的，没法靠传统的直接相减算出结果。第二点是因为转化成加法的好处是统一运算规则。有理数只有一套完整加法法则，那就是 是同号相加异号相 加 把减法全部转成加相反数后，我们只需要熟练掌握加法一套规则，不用额外记减法的多种特殊情况。第三点举例对比，直接算负8-3，没有直观计算方法，转化为负8+3，就能用异号两数相加的规则快速算出答案。简单 他说不是不能直接减，而是负数参与减法时没有统一。简单的计算方法转加减能简化整套运算体系。"},{who:"ai",text:"第二章·第二轮 费曼检验 评判：\n\n问题1 ✅ 三个角度全到位：规律推导（乘数变号→结果取反）、生活类比（取消欠款=多拿钱）、本质总结（两次反向叠加=正向）。尤其最后那句\"负数代表反向操作，两次相反就变回正向\"，说到本质了。\n\n问题2 ✅ 核心理解到位：①传统减法只能大减小，②转加法统一运算规则（这是关键），③举例简化运算。\n\n有一处小笔误要修正：你说\"负8减3转化为负8加3\"——这里转错了。-8-3 转成加法应该是 -8+(-3)=-11，不是 -8+3。你应该是想说快问快答那道 (-8)-(-3) → -8+3=-5，意思对，举例的时候写岔了。注意区分\"减去3\"和\"减去负3\"的转化结果。\n\n第二轮费曼检验通过 ✅\n\n第三轮 笔头题 —— 3道计算题，写在纸上，拍照片发过来。\n\n第1题：\n计算：(-5)×(-3) - (-24)÷(-6) + (-1)²⁰²⁶\n\n第2题：\n计算：(-2)³ + (-3)×(-4) - (-10)÷(-2)\n\n第3题：\n某地连续三天气温变化：第一天-3°C，第二天比第一天降了4°C，第三天比第二天升了7°C。求第三天的气温。\n\n写完拍照发过来。"}],round3:[{who:"ai",text:"\第\三\轮\笔\头\题\—\—3\道\计\算\题\，\写\在\纸\上\，\拍\照\片\发\过\来\。\第1\题\：\计\算\：(-5)\×(-3) - (-24)\÷(-6) + (-1)\²\⁰\²\⁶\第2\题\：\计\算\：(-2)\³ + (-3)\×(-4) - (-10)\÷(-2)\第3\题\：\某\地\连\续\三\天\气\温\变\化\：\第\一\天-3\°C\，\第\二\天\比\第\一\天\降\了4\°C\，\第\三\天\比\第\二\天\升\了7\°C\。\求\第\三\天\的\气\温\。\写\完\拍\照\发\过\来\。"},{who:"kid",text:"我写好了 IMG_20260626_154652.jpg"},{who:"ai",text:"照片拍到了。\n\n第二章·第三轮 笔头题 评判：\n\n表格\n# 题目 你的过程 结果\n1 (-5)×(-3)-(-24)÷(-6)+(-1)²⁰² 原式=15-4+1=11+1=12 ✅\n2 (-2)³+(-3)×(-4)-(-10)÷(-2) 原式=-8+12-5=4-5=-1 ✅\n3 气温变化题 Day1=-3, Day2=-3-4=-7, Day3=-7+7=0 ✅\n\n3/3 全对。\n\n步骤清晰，符号没搞混，符号运算准确。笔头题通过 ✅\n\n第四轮 迁移闯关 —— 三道题，情境识别→跨学科调用→前瞻种子。这次不需要写纸上，直接回答就行。\n\n第1题（情境识别 - 环保数据）：\n某城市一周碳排放监测数据（单位：万吨）：\n前3天每天排放 +20\n后2天采取减排措施降到 +10\n最后2天因大风天气空气流通好，净排放为 -5（碳汇大于排放）\n求这一周的总排放量。\n② 求平均每天的排放量。\n\n第2题（跨学科调用 - 生物×乘方）：\n一种细菌每30分钟分裂一次（1个变2个，2个变4个……），即每次分裂后数量变为原来的2倍。如果开始时有1个细菌，经过3小时（共分裂6次）：\n① 用乘方表示细菌数量的变化\n② 计算最终有多少个细菌\n\n第3题（前瞻种子 - 代数式预热）：\n思维游戏：假设不用具体数字，只用字母来表示——\n每天排放 a 吨，碳汇每天吸收 b 吨，工厂生产 m 天。\n你能试着用一个含字母的式子来表示净排放总量吗？\n这题没有标准答案，说说你的想法就行。"}],round4:[{who:"ai",text:"\第\四\轮\迁\移\闯\关\—\—\三\道\题\，\情\境\识\别\→\跨\学\科\调\用\→\前\瞻\种\子\。\这\次\不\需\要\写\纸\上\，\直\接\回\答\就\行\。\第1\题\（\情\境\识\别 - \环\保\数\据\）\：\某\城\市\一\周\碳\排\放\监\测\数\据\（\单\位\：\万\吨\）\：\前3\天\每\天\排\放 +20\后2\天\采\取\减\排\措\施\降\到 +10\最\后2\天\因\大\风\天\气\空\气\流\通\好\，\净\排\放\为 -5\（\碳\汇\大\于\排\放\）\求\这\一\周\的\总\排\放\量\。\② \求\平\均\每\天\的\排\放\量\。\第2\题\（\跨\学\科\调\用 - \生\物\×\乘\方\）\：\一\种\细\菌\每30\分\钟\分\裂\一\次\（1\个\变2\个\，2\个\变4\个\…\…\）\，\即\每\次\分\裂\后\数\量\变\为\原\来\的2\倍\。\如\果\开\始\时\有1\个\细\菌\，\经\过3\小\时\（\共\分\裂6\次\）\：\① \用\乘\方\表\示\细\菌\数\量\的\变\化\② \计\算\最\终\有\多\少\个\细\菌\第3\题\（\前\瞻\种\子 - \代\数\式\预\热\）\：\思\维\游\戏\：\假\设\不\用\具\体\数\字\，\只\用\字\母\来\表\示\—\—\每\天\排\放 a \吨\，\碳\汇\每\天\吸\收 b \吨\，\工\厂\生\产 m \天\。\你\能\试\着\用\一\个\含\字\母\的\式\子\来\表\示\净\排\放\总\量\吗\？\这\题\没\有\标\准\答\案\，\说\说\你\的\想\法\就\行\。"},{who:"kid",text:"第一题，一周总排放量列式计算。前三天3×20，后两天2×10，最后两天2×-5。总排放量3×20+2×10。10+2×(-5)。等于71，一周总排放70万吨，日均排放量是，一周共7天，70÷7=10，平均每天排放10万吨。第二题。细菌分裂乘方应用。乘方表示数量变化，初始一个，每分裂一次数量乘二，分裂六次记作二。记，第二步计算最终细菌数量。也就是二乘二乘二乘二乘二乘二乘等于六十四，最终有64个细菌。第三题，代数式预热，每天净排放等于每日排放减每日 碳汇吸收，也就是 A 减 B 一共生产 M 天，总净排放量 A M 哦 A 减 B 思路说明。一、先算单日差值，每天排出 A 吨，吸收抵消 B 吨，当天实际排放 A 减 B 总排放量是单日净排放乘生产天数 M。若 A 大于 B 结果为正，代表整体碳排放。若 A 小于 B 结果为负，代表碳吸收量大于排放。"},{who:"ai",text:"第二章·第四轮 迁移闯关 评判：\n\n第1题 ✅ 列式完全正确：3×20+2×10+2×(-5)=60+20+(-10)=70万吨，日均70÷7=10万吨。\n（\"等于71\"是语音识别串台了，实际计算没问题）\n\n第2题 ✅ 乘方表示2⁶，展开计算2×2×2×2×2×2=64个，完全正确。\n\n第3题 ✅✅ 这个答案超出了预期。不仅给出了式子 (a-b)×m，还主动分析了结果的正负含义——a>b为正代表净排放，a<b为负代表碳吸收大于排放。这就是第三章「代数式」要学的内容！\n\n---\n\n第二章「有理数的运算」四轮全部通过 ✅\n\n表格\n轮次 内容 结果\n第一轮 快问快答 5/5 ✅\n第二轮 费曼检验 2/2 ✅\n第三轮 笔头题 3/3 ✅\n第四轮 迁移闯关 3/3（前瞻种子发现） ✅\n\n评级：🌟🌟🌟 满分！\n\n更新验收报告和看板，稍等。"}]}}},
+{id:"ch3",num:3,title:"代数式",
+sections:["3.1 列代数式表示数量关系","3.2 代数式的值"],
+keyPoints:"列代数式·求值·单项·多项式",
+nextChapter:"整式的加减",
+migrationHint:"两个代数式合在一起会怎样？→整式的加减",
+report:null},
+{id:"ch4",num:4,title:"整式的加减",
+sections:["4.1 整式","4.2 整式的加法与减法"],
+keyPoints:"单项式·多项式·合并同类项·去括号",
+nextChapter:"一元一次方程",
+migrationHint:"等号两边都有式子会怎样？→一元一次方程",
+report:null},
+{id:"ch5",num:5,title:"一元一次方程",
+sections:["5.1.1 从算式到方程","5.1.2 等式的性质","5.2 解一元一次方程","5.3 实际问题与一元一次方程"],
+keyPoints:"方程·等式性质·解方程·实际应用",
+nextChapter:"几何图形初步",
+migrationHint:"方程不光能解数字，还能算几何里的边长、角度→几何图形",
+report:null},
+{id:"ch6",num:6,title:"几何图形初步",
+sections:["6.1.1 立体图形与平面图形","6.1.2 点、线、面、体","6.2.1 直线、射线、线段","6.2.2 线段的比较与运算","6.3.1 角的概念","6.3.2 角的比较与运算","6.3.3 余角和补角"],
+keyPoints:"立体与平面·线段·角·余角补角",
+nextChapter:null,
+migrationHint:"所有章节的知识在真实世界中如何串联",
+report:null}
+];
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function md(s){var h=esc(s);h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');h=h.replace(/^- (.+)$/gm,'<li>$1</li>');h=h.replace(/^(\d+)\. (.+)$/gm,'<li>$2</li>');h=h.replace(/(<li>[\s\S]*?<\/li>)/g,function(m){if(m.indexOf('<li>')===0){return m}return m});h=h.replace(/((?:<li>[\s\S]*?<\/li>\s*)+)/g,'<ul>$1</ul>');h=h.replace(/\n\n/g,'</p><p>');h=h.replace(/\n/g,'<br>');return'<p>'+h+'</p>'}
+
+function updateStats(){
+  var passed=0,progress=0,migrated=0,tracking=0;
+  CHAPTERS.forEach(function(ch){
+    if(ch.report){
+      if(ch.report.status==='pass')passed++;
+      else progress++;
+      if(ch.report.round4&&ch.report.round4.result==='pass')migrated++;
+      if(ch.report.tracking){tracking+=ch.report.tracking.filter(function(t){return t.status==='pending'||t.status==='disputed'}).length}
+    }
+  });
+  document.getElementById('stat-passed').textContent=passed;
+  document.getElementById('stat-progress').textContent=progress;
+  document.getElementById('stat-migrated').textContent=migrated;
+  document.getElementById('stat-tracking').textContent=tracking;
+}
+
+function toggleCard(id){var card=document.getElementById('card-'+id);card.classList.toggle('expanded')}
+function toggleChat(id){var panel=document.getElementById('chat-'+id);panel.classList.toggle('open')}
+
+function renderChat(ch){
+  if(!ch.report)return '';
+  if(!ch.report.chat){
+    return '<div style="margin-top:12px;padding:10px 16px;background:#f0f0f0;border-radius:8px;font-size:.82em;color:#999;text-align:center">💬 验收过程待补录</div>';
+  }
+  var html='<button class="process-btn" onclick="toggleChat(\''+ch.id+'\')">💬 验收过程</button>';
+  html+='<div class="chat-panel" id="chat-'+ch.id+'">';
+
+  var roundKeys=['round1','round2','round3','round4'];
+  var roundIcons=['⚡','👨‍🏫','✍️','🔬'];
+  var roundCls=['','','','purple'];
+  roundKeys.forEach(function(rk,ri){
+    var msgs=ch.report.chat[rk];
+    if(!msgs)return;
+    var rName=ch.report[rk]?ch.report[rk].name:'';
+    var headerCls=roundCls[ri]?' '+roundCls[ri]:'';
+    html+='<div class="round-chat">';
+    html+='<div class="round-chat-header'+headerCls+'">'+roundIcons[ri]+' '+esc(rName)+'</div>';
+    msgs.forEach(function(m){
+      var isAI=m.who==='ai';
+      var cls=isAI?'ai':'kid';
+      var avatar=isAI?'🤖':'👧';
+      var avatarCls=isAI?'ai-avatar':'kid-avatar';
+      html+='<div class="chat-bubble '+cls+'">';
+      html+='<div class="chat-avatar '+avatarCls+'">'+avatar+'</div>';
+      html+='<div class="chat-content">'+md(m.text);
+      if(m.eval){var evalCls=m.eval.indexOf('❌')>=0?'wrong':'';html+='<div class="chat-eval '+evalCls+'">'+esc(m.eval)+'</div>'}
+      html+='</div></div>';
+    });
+    html+='</div>';
+  });
+
+  html+='</div>';
+  return html;
+}
+
+function renderReport(r,ch){
+  if(!r)return '';
+  var html='<div class="report-box"><h4>📋 验收报告 · '+esc(r.date)+'</h4>';
+  html+='<div class="report-row"><span class="report-label">综合结果</span><span class="report-value '+(r.status==='pass'?'green':'orange')+'">'+(r.status==='pass'?'✅ 全部通过':'⚠️ 待复验')+'</span></div>';
+  if(r.round1)html+='<div class="report-row"><span class="report-label">'+esc(r.round1.name)+'</span><span class="report-value '+(r.round1.result==='pass'?'green':'red')+'">'+(r.round1.result==='pass'?'✅ 通过':'❌ 未通过')+'</span></div>';
+  if(r.round2)html+='<div class="report-row"><span class="report-label">'+esc(r.round2.name)+'</span><span class="report-value '+(r.round2.result==='pass'?'green':'red')+'">'+(r.round2.result==='pass'?'✅ 通过':'❌ 未通过')+'</span></div>';
+  if(r.round3)html+='<div class="report-row"><span class="report-label">'+esc(r.round3.name)+'</span><span class="report-value '+(r.round3.result==='pass'?'green':'red')+'">'+(r.round3.result==='pass'?'✅ 通过':'❌ 未通过')+'</span></div>';
+  if(r.round4){
+    var r4cls=r.round4.result==='pass'?'green':r.round4.result==='pending'?'orange':'red';
+    var r4text=r.round4.result==='pass'?'✅ 通过':r.round4.result==='pending'?'⏳ 待补走':'❌ 未通过';
+    html+='<div class="report-row"><span class="report-label">'+esc(r.round4.name)+'</span><span class="report-value '+r4cls+'">'+r4text+'</span></div>';
+  }
+  html+='</div>';
+
+  html+='<div class="detail-section"><h5>📃 各轮详情</h5>';
+  if(r.round1)html+='<div class="round-detail"><div class="round-title"><span class="icon">⚡</span>'+esc(r.round1.name)+'</div><div class="round-result">'+esc(r.round1.detail)+'</div></div>';
+  if(r.round2)html+='<div class="round-detail"><div class="round-title"><span class="icon">👨‍🏫</span>'+esc(r.round2.name)+'</div><div class="round-result">'+esc(r.round2.detail)+'</div></div>';
+  if(r.round3)html+='<div class="round-detail"><div class="round-title"><span class="icon">✍️</span>'+esc(r.round3.name)+'</div><div class="round-result">'+esc(r.round3.detail)+'</div></div>';
+  if(r.round4){
+    html+='<div class="round-detail" style="border-left:3px solid var(--purple)">';
+    html+='<div class="round-title"><span class="icon">🔬</span>'+esc(r.round4.name)+'</div>';
+    if(r.round4.detail)html+='<div class="round-result">'+esc(r.round4.detail)+'</div>';
+    if(r.round4.questions&&r.round4.questions.length>0){
+      html+='<div class="migration-questions">';
+      r.round4.questions.forEach(function(q){
+        var resultCls=q.result==='pass'?'pass':'fail';
+        var resultText=q.result==='pass'?'✅':'❌';
+        html+='<div class="migration-q"><div class="q-type">'+esc(q.type)+'</div><div class="q-scene">📍 '+esc(q.scene)+'</div><div class="q-result '+resultCls+'">'+resultText+(q.seedFound!==undefined?(q.seedFound?' 种子已发现':' 种子待发现'):'')+'</div></div>';
+      });
+      html+='</div>';
+    }
+    if(r.round4.disputes&&r.round4.disputes.length>0){
+      r.round4.disputes.forEach(function(d){
+        html+='<div class="dispute-box"><div class="dispute-header">⚖️ 异议记录（第'+d.question+'题）</div><div class="dispute-detail">';
+        html+='<strong>孩子的看法：</strong>'+esc(d.kidClaim)+'<br>';
+        html+='<strong>处理方式：</strong>'+esc(d.resolution)+'<br>';
+        html+='<strong>学到了什么：</strong>'+esc(d.learning);
+        html+='</div></div>';
+      });
+    }
+    html+='</div>';
+  }
+  html+='</div>';
+
+  if(r.tracking&&r.tracking.length>0){
+    html+='<div class="detail-section"><h5>📝 循证追踪本</h5>';
+    r.tracking.forEach(function(t){
+      var statusText=t.status==='pending'?'🔵 待循证':t.status==='disputed'?'🟡 有争议':'🟢 已自证';
+      var statusCls=t.status;
+      html+='<div class="tracking-item"><div class="label">📌 '+esc(t.scene)+'<span class="tracking-status '+statusCls+'">'+statusText+'</span></div>';
+      html+='<div class="detail"><strong>搜索建议：</strong>'+esc(t.searchSuggestion)+'</div>';
+      if(t.nextCheck)html+='<div class="detail">⏰ 下次验收复查</div>';
+      html+='</div>';
+    });
+    html+='</div>';
+  }
+
+  if(r.weakPoints&&r.weakPoints.length>0){
+    html+='<div class="detail-section"><h5>⚠️ 薄弱点</h5>';
+    r.weakPoints.forEach(function(w){html+='<div class="error-item"><div class="q">'+esc(w)+'</div></div>'});
+    html+='</div>';
+  }
+
+  if(r.errors&&r.errors.length>0){
+    html+='<div class="detail-section"><h5>❌ 错题入库</h5><div class="error-list">';
+    r.errors.forEach(function(e){html+='<div class="error-item"><div class="q">'+esc(e.q)+'</div><div class="a">错因：'+esc(e.reason)+'</div></div>'});
+    html+='</div></div>';
+  }
+
+  html+=renderChat(ch);
+
+  if(r.motto){html+='<div class="motto-box">🌟 '+esc(r.motto)+'</div>'}
+
+  return html;
+}
+
+function render(){
+  var app=document.getElementById('app');
+  var html='';
+  CHAPTERS.forEach(function(ch){
+    var r=ch.report;
+    var statusCls=r?(r.status==='pass'?'pass':'progress'):'todo';
+    var statusText=r?(r.status==='pass'?'✅ 已通过':'⚠️ 待复验'):'⏳ 未开始';
+    var totalRounds=4;
+    var roundsDone=r?((r.round1&&r.round1.result==='pass'?1:0)+(r.round2&&r.round2.result==='pass'?1:0)+(r.round3&&r.round3.result==='pass'?1:0)+(r.round4&&r.round4.result==='pass'?1:0)):0;
+
+    html+='<div class="chapter-card" id="card-'+ch.id+'">';
+    html+='<div class="chapter-header" onclick="toggleCard(\''+ch.id+'\')">';
+    html+='<div class="chapter-left">';
+    html+='<div class="chapter-title">第'+ch.num+'章 · '+esc(ch.title)+'</div>';
+    html+='<div class="chapter-sub">重点：'+esc(ch.keyPoints);
+    if(ch.migrationHint)html+=' · 🔬种子：'+esc(ch.migrationHint);
+    html+='</div>';
+    html+='</div>';
+    html+='<div class="chapter-right">';
+    html+='<span class="status-tag '+statusCls+'">'+statusText+'</span>';
+    html+='<div class="round-dots">';
+    for(var i=0;i<totalRounds;i++){html+='<span class="rdot'+(i<roundsDone?' done':'')+'"></span>'}
+    html+='</div>';
+    html+='<span class="expand-icon">▼</span>';
+    html+='</div></div>';
+
+    html+='<div class="chapter-body">';
+    html+='<div class="section-list">';
+    ch.sections.forEach(function(s){
+      var cls=r?(r.status==='pass'?'done':'current'):'';
+      html+='<div class="section-item '+cls+'">'+esc(s)+'</div>';
+    });
+    html+='</div>';
+
+    html+=renderReport(r,ch);
+
+    if(!r){html+='<div class="motto-box">💪 加油，这章还没开始验收哦！</div>'}
+
+    html+='</div></div>';
+  });
+
+  html+='<div class="footer">点击章节展开验收详情 · 点“验收过程”查看对话记录 · 四轮递进：记→懂→用→迁 · 数据随验收报告自动更新</div>';
+  app.innerHTML=html;
+  updateStats();
+}
+
+render();
+</script>
+</body>
+</html>
