@@ -269,23 +269,8 @@
         <!-- Left -->
         <div class="left">
             <div>
-                <div class="sec-title">创作模式</div>
-                <div style="display:flex;flex-direction:column;gap:8px">
-                    <div class="m-card on" id="m1" onclick="setMode(1)">
-                        <div class="m-head">
-                            <span class="m-label">模式一</span>
-                            <span class="m-name">仅产品图</span>
-                        </div>
-                        <div class="m-desc">上传一张产品图，生成3个不同场景的提示词</div>
-                    </div>
-                    <div class="m-card" id="m2" onclick="setMode(2)">
-                        <div class="m-head">
-                            <span class="m-label">模式二</span>
-                            <span class="m-name">产品图 + 参考图</span>
-                        </div>
-                        <div class="m-desc">上传产品图和参考风格图，生成融合风格的提示词</div>
-                    </div>
-                </div>
+                <span class="field-label">补充说明（选填）</span>
+                <textarea class="inp-textarea" id="desc" placeholder='例如：白色釉面陶瓷咖啡杯'></textarea>
             </div>
 
             <div>
@@ -302,8 +287,8 @@
                             </div>
                         </div>
                     </div>
-                    <div id="refSec" style="display:none">
-                        <span class="field-label">参考风格图</span>
+                    <div>
+                        <span class="field-label">参考风格图（选填）</span>
                         <div class="up-area" id="rArea" onclick="$('rFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'r')">
                             <input type="file" id="rFile" accept="image/*" style="display:none" onchange="fSel(event,'r')">
                             <div id="rContent">
@@ -314,11 +299,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div>
-                <span class="field-label">补充说明（选填）</span>
-                <textarea class="inp-textarea" id="desc" placeholder='例如：白色釉面陶瓷咖啡杯'></textarea>
             </div>
 
             <button class="gen-btn" id="genBtn" onclick="generate()">生成提示词</button>
@@ -363,18 +343,10 @@ const BOT_ID = '7648485634986115106';
 const API = 'https://api.coze.cn';
 const PAT = 'pat_V3wKxA8IXX28gEydvWtSTABYuKYzuRVQ7QkWH8EG9douyKWuajqd5bqbpGSnOHum';
 
-let mode = 1, pFile = null, rFile = null, busy = false;
+let pFile = null, rFile = null, busy = false;
 let uid = 'u_' + Math.random().toString(36).slice(2, 11);
 
 const $ = id => document.getElementById(id);
-
-function setMode(m) {
-    mode = m;
-    $('m1').classList.toggle('on', m === 1);
-    $('m2').classList.toggle('on', m === 2);
-    $('refSec').style.display = m === 2 ? 'block' : 'none';
-    if (m === 1) { rFile = null; resetArea('r'); }
-}
 
 function dOver(e, el) { e.preventDefault(); el.style.borderColor = 'var(--text-sec)'; el.style.background = '#f3f3f6'; }
 function dLeave(e, el) { if (!el.classList.contains('has')) { el.style.borderColor = ''; el.style.background = ''; } }
@@ -418,7 +390,6 @@ function showV(v) {
 async function generate() {
     if (busy) return;
     if (!pFile) return alert('请先上传产品图');
-    if (mode === 2 && !rFile) return alert('请上传参考风格图');
 
     busy = true;
     $('genBtn').disabled = true;
@@ -428,7 +399,7 @@ async function generate() {
         $('ldgTxt').textContent = '正在上传图片...';
         const pId = await uploadFile(pFile);
         let rId = null;
-        if (mode === 2 && rFile) rId = await uploadFile(rFile);
+        if (rFile) rId = await uploadFile(rFile);
 
         $('ldgTxt').textContent = '正在生成提示词...';
         const answer = await doChat(pId, rId);
@@ -462,19 +433,19 @@ async function doChat(pId, rId) {
     const desc = $('desc').value.trim();
     const parts = [];
 
-    if (mode === 1) {
-        let txt = '请根据我上传的产品图';
-        if (desc) txt += `（${desc}）`;
-        txt += '，生成3个不同场景的AI生图提示词。';
-        parts.push({ type: 'text', text: txt });
-        parts.push({ type: 'image', file_id: pId });
-    } else {
+    if (rId) {
         let txt = '第一张是产品图，第二张是参考风格图';
         if (desc) txt += `（产品：${desc}）`;
         txt += '。请生成融合参考图风格的AI生图提示词。';
         parts.push({ type: 'text', text: txt });
         parts.push({ type: 'image', file_id: pId });
-        if (rId) parts.push({ type: 'image', file_id: rId });
+        parts.push({ type: 'image', file_id: rId });
+    } else {
+        let txt = '请根据我上传的产品图';
+        if (desc) txt += `（${desc}）`;
+        txt += '，生成3个不同场景的AI生图提示词。';
+        parts.push({ type: 'text', text: txt });
+        parts.push({ type: 'image', file_id: pId });
     }
 
     const cr = await fetch(`${API}/v3/chat`, {
@@ -632,7 +603,7 @@ function copyPrompt(btn) {
 function resetAll() {
     uid = 'u_' + Math.random().toString(36).slice(2, 11);
     clearF('p');
-    if (mode === 2) clearF('r');
+    clearF('r');
     $('desc').value = '';
     showV('e');
 }
