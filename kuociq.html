@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智能体 · 提示词生成器</title>
+    <title>娜家扩词器</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -565,10 +565,20 @@ function renderResult(text) {
                 addPromptCard(container, `场景 ${idx + 1}`, cleanPrompt);
             });
         } else {
-            const div = document.createElement('div');
-            div.className = 'md-body';
-            div.innerHTML = marked.parse(text);
-            container.appendChild(div);
+            // 检测是否为完整摄影提示词（无场景标记的单段式输出）
+            const isPrompt = /摄影|构图[：:]|光影[：:]|画质[：:]|负面词[：:]/.test(text);
+            if (isPrompt) {
+                const st = document.createElement('div');
+                st.style.cssText = 'font-size:16px;font-weight:700;margin:28px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border)';
+                st.textContent = '提示词';
+                container.appendChild(st);
+                addPromptCard(container, 'AI摄影提示词', text.trim());
+            } else {
+                const div = document.createElement('div');
+                div.className = 'md-body';
+                div.innerHTML = marked.parse(text);
+                container.appendChild(div);
+            }
         }
         return;
     }
