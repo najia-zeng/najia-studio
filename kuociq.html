@@ -532,86 +532,96 @@ function renderResult(text) {
     const container = $('resBody');
     container.innerHTML = '';
 
-    const sceneRegex = /\*{0,2}场景[一二三四五六七八九十]+[：:·]/g;
-    const scenes = [];
-    let m;
+    // Step 1: 提取分析部分（产品分析、参考图分析）
+    let productAnalysis = '';
+    let referenceAnalysis = '';
+    let promptContent = text;
 
-    while ((m = sceneRegex.exec(text)) !== null) {
-        scenes.push({ start: m.index, matchLen: m[0].length });
+    // 匹配产品分析
+    const prodMatch = text.match(/(?:[\s\S]*?)(?:📦\s*)?\*{0,2}产品分析[：:]\*{0,2}\s*([\s\S]*?)(?=(?:[\s\S]*?)(?:🖼️|参考图分析)|---|\n*类型[：:]|$)/);
+    if (prodMatch) {
+        productAnalysis = prodMatch[1].trim();
+        // 找到产品分析之后的内容
+        const afterProdIdx = prodMatch.index + prodMatch[0].length;
+        const remaining = text.substring(afterProdIdx).trim();
+        if (remaining) promptContent = remaining;
     }
 
-    if (scenes.length === 0) {
-        const codeBlockRegex = /```[\w]*\n([\s\S]*?)```/g;
-        const codePrompts = [];
-        let cm;
-        while ((cm = codeBlockRegex.exec(text)) !== null) {
-            codePrompts.push(cm[1].trim());
-        }
+    // 匹配参考图分析
+    const refMatch = promptContent.match(/(?:[\s\S]*?)(?:🖼️[️]?\s*)?\*{0,2}参考图分析[：:]\*{0,2}\s*([\s\S]*?)(?=---|\n*类型[：:]|$)/);
+    if (refMatch) {
+        referenceAnalysis = refMatch[1].trim();
+        const afterRefIdx = refMatch.index + refMatch[0].length;
+        const remaining = promptContent.substring(afterRefIdx).trim();
+        if (remaining) promptContent = remaining;
+    }
 
-        if (codePrompts.length > 0) {
-            const analysisText = text.replace(/```[\w]*\n[\s\S]*?```/g, '').trim();
-            if (analysisText) {
-                const div = document.createElement('div');
-                div.className = 'md-body';
-                div.innerHTML = marked.parse(analysisText);
-                container.appendChild(div);
+    // 清理 promptContent 开头的 --- 分隔符
+    promptContent = promptContent.replace(/^\s*---+\s*/, '').trim();
+
+    // Step 2: 渲染提示词（在上面）
+    if (promptContent && /类型[：:]/.test(promptContent)) {
+        // 提示词标题
+        const st = document.createElement('div');
+        st.style.cssText = 'font-size:16px;font-weight:700;margin:0 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border)';
+        st.textContent = '提示词';
+        container.appendChild(st);
+
+        // 按 --- 分割多个场景提示词
+        const sections = promptContent.split(/---+/).filter(s => s.trim());
+        sections.forEach((section, idx) => {
+            // 移除可能的 "场景X:" 标题行
+            let cleanSection = section.trim();
+            const titleMatch = cleanSection.match(/^[\s*]*场景[一二三四五六七八九十0-9]+[：:][^\n]*\n/);
+            if (titleMatch) {
+                cleanSection = cleanSection.substring(titleMatch[0].length);
             }
+            // 清理代码块标记
+            cleanSection = cleanSection.replace(/```[\w]*\n?/g, '').replace(/```/g, '').trim();
+            addPromptCard(container, `场景 ${idx + 1}`, cleanSection);
+        });
+    } else if (promptContent) {
+        // 没有"类型："标记，但可能有内容
+        const isPrompt = /摄影|构图[：:]|光影[：:]|画质[：:]|负面词[：:]/.test(promptContent);
+        if (isPrompt) {
             const st = document.createElement('div');
-            st.style.cssText = 'font-size:16px;font-weight:700;margin:28px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border)';
+            st.style.cssText = 'font-size:16px;font-weight:700;margin:0 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border)';
             st.textContent = '提示词';
             container.appendChild(st);
-            codePrompts.forEach((prompt, idx) => {
-                let cleanPrompt = prompt.replace(/```[\w]*\n?/g, '').replace(/```/g, '').trim();
-                addPromptCard(container, `场景 ${idx + 1}`, cleanPrompt);
-            });
+            addPromptCard(container, 'AI摄影提示词', promptContent.trim());
         } else {
-            // 检测是否为完整摄影提示词（无场景标记的单段式输出）
-            const isPrompt = /摄影|构图[：:]|光影[：:]|画质[：:]|负面词[：:]/.test(text);
-            if (isPrompt) {
-                const st = document.createElement('div');
-                st.style.cssText = 'font-size:16px;font-weight:700;margin:28px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border)';
-                st.textContent = '提示词';
-                container.appendChild(st);
-                addPromptCard(container, 'AI摄影提示词', text.trim());
-            } else {
-                const div = document.createElement('div');
-                div.className = 'md-body';
-                div.innerHTML = marked.parse(text);
-                container.appendChild(div);
-            }
+            // 纯文本，直接渲染
+            const div = document.createElement('div');
+            div.className = 'md-body';
+            div.innerHTML = marked.parse(promptContent);
+            container.appendChild(div);
         }
-        return;
     }
 
-    const analysisText = text.substring(0, scenes[0].start).trim();
+    // Step 3: 渲染分析部分（在下面）
+    if (productAnalysis) {
+        const divider = document.createElement('div');
+        divider.style.cssText = 'margin:32px 0 16px;padding-top:16px;border-top:1px solid var(--border)';
+        divider.innerHTML = `<div style="font-size:14px;font-weight:600;color:var(--text-sec);margin-bottom:8px">📦 产品分析</div>`;
+        container.appendChild(divider);
 
-    if (analysisText) {
         const div = document.createElement('div');
         div.className = 'md-body';
-        div.innerHTML = marked.parse(analysisText);
+        div.innerHTML = marked.parse(productAnalysis);
         container.appendChild(div);
     }
 
-    const st = document.createElement('div');
-    st.style.cssText = 'font-size:16px;font-weight:700;margin:28px 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border)';
-    st.textContent = '提示词';
-    container.appendChild(st);
+    if (referenceAnalysis) {
+        const divider = document.createElement('div');
+        divider.style.cssText = 'margin:20px 0 16px';
+        divider.innerHTML = `<div style="font-size:14px;font-weight:600;color:var(--text-sec);margin-bottom:8px">🖼️ 参考图分析</div>`;
+        container.appendChild(divider);
 
-    scenes.forEach((scene, idx) => {
-        const nextStart = idx + 1 < scenes.length ? scenes[idx + 1].start : text.length;
-        let sceneText = text.substring(scene.start, nextStart).trim();
-
-        // Strip code fence markers (```python, ```, etc.)
-        sceneText = sceneText.replace(/```[\w]*\n?/g, '').replace(/```/g, '').trim();
-
-        const firstNewline = sceneText.indexOf('\n');
-        const titleLine = firstNewline > -1 ? sceneText.substring(0, firstNewline) : sceneText;
-        const bodyText = firstNewline > -1 ? sceneText.substring(firstNewline + 1).trim() : '';
-
-        let cleanTitle = titleLine.replace(/\*+/g, '').trim();
-
-        addPromptCard(container, cleanTitle, bodyText);
-    });
+        const div = document.createElement('div');
+        div.className = 'md-body';
+        div.innerHTML = marked.parse(referenceAnalysis);
+        container.appendChild(div);
+    }
 }
 
 function addPromptCard(container, title, body) {
