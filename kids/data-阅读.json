@@ -533,5 +533,38 @@
         }
       }
     ]
+  },
+  {
+    "id": "b2",
+    "title": "朝花夕拾",
+    "type": "literature",
+    "typeLabel": "文学类",
+    "sections": [
+      {
+        "id": "b2s1",
+        "range": "1~97页",
+        "desc": "《朝花夕拾》1~97页",
+        "report": {
+          "date": "2026-06-30",
+          "status": "pass",
+          "factCount": 5,
+          "debateCount": 4,
+          "chainCount": 2,
+          "observe": {
+            "think": 3,
+            "fact": 3,
+            "detail": 3,
+            "highlight": "横向对比《阿长》vs《二十四孝图》一真一伪提炼精准；《父亲的病》结尾三层拆解（内疚→愤怒→反思）有深度",
+            "weakness": "本次仅获取总结数据，详细问答待补充"
+          },
+          "method": "鲁迅散文每篇背后都有写的意图——批判、怀念、自省，笔法各异但都有明确指向",
+          "chat": {
+            "fact": [],
+            "debate": [],
+            "chain": []
+          }
+        }
+      }
+    ]
   }
 ]
