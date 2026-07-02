@@ -145,8 +145,8 @@ function setProgress(id,step){
 }
 
 // 加载数据
-const DATA = [];
-const UNIT_NAMES = {};
+var DATA = [];
+var UNIT_NAMES = {};
 
 fetch('./data-语文.json')
   .then(r => r.json())
