@@ -127,6 +127,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 <div class="container" id="app"></div>
 
 <script>
+function toggleCard(id){var card=document.getElementById('card-'+id);card.classList.toggle('expanded')}
+function toggleChat(id){var panel=document.getElementById('chat-'+id);panel.classList.toggle('open')}
+
 // 加载数据
 var CHAPTERS = [];
 
@@ -161,8 +164,6 @@ function updateStats(){
   document.getElementById('stat-tracking').textContent=tracking;
 }
 
-function toggleCard(id){var card=document.getElementById('card-'+id);card.classList.toggle('expanded')}
-function toggleChat(id){var panel=document.getElementById('chat-'+id);panel.classList.toggle('open')}
 
 function renderChat(ch){
   if(!ch.report)return '';
