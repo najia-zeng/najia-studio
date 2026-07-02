@@ -124,6 +124,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 <div class="container" id="app"></div>
 
 <script>
+function toggleCard(id){
+  var card=document.getElementById('card-'+id);
+  card.classList.toggle('expanded');
+}
+
+function toggleChat(id){
+  var panel=document.getElementById('chat-'+id);
+  panel.classList.toggle('open');
+}
+
+function setProgress(id,step){
+  var p=getProgress();
+  var cur=p[id]||0;
+  if(cur===step){p[id]=step-1}else{p[id]=step}
+  if(p[id]<0)p[id]=0;
+  saveProgress(p);
+  renderProgress(id);
+  updateStats();
+}
+
 // 加载数据
 const DATA = [];
 const UNIT_NAMES = {};
@@ -171,25 +191,8 @@ function updateStats(){
   document.getElementById('stat-verified').textContent=v;
 }
 
-function toggleCard(id){
-  var card=document.getElementById('card-'+id);
-  card.classList.toggle('expanded');
-}
 
-function toggleChat(id){
-  var panel=document.getElementById('chat-'+id);
-  panel.classList.toggle('open');
-}
 
-function setProgress(id,step){
-  var p=getProgress();
-  var cur=p[id]||0;
-  if(cur===step){p[id]=step-1}else{p[id]=step}
-  if(p[id]<0)p[id]=0;
-  saveProgress(p);
-  renderProgress(id);
-  updateStats();
-}
 
 function renderProgress(id){
   var p=getProgress();
