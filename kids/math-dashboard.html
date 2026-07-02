@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>验收·七上数学学习看板</title>
+<style>
+:root{--primary:#3a5ba0;--primary-light:#e8edf6;--accent:#e86a3a;--accent-light:#fef0ea;--bg:#f7f8fa;--card:#fff;--text:#2c3e50;--text-light:#7f8c9b;--border:#e8ecf1;--success:#27ae60;--success-light:#e8f8ef;--warning:#f39c12;--warning-light:#fef9e7;--info:#3498db;--info-light:#e8f4fd;--danger:#e74c3c;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,0.06);--purple:#8e44ad;--purple-light:#f3e5f5;--teal:#16a085;--teal-light:#e0f7f3}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+.header{background:linear-gradient(135deg,#3a5ba0 0%,#2a4578 100%);color:#fff;padding:32px 20px;text-align:center}
+.header h1{font-size:1.6em;font-weight:700;margin-bottom:6px;letter-spacing:1px}
+.header p{font-size:.9em;opacity:.85;font-weight:300}
+.stats-bar{display:flex;justify-content:center;gap:20px;padding:16px 20px;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-num{font-size:1.5em;font-weight:700}
+.stat-num.blue{color:var(--primary)}
+.stat-num.green{color:var(--success)}
+.stat-num.orange{color:var(--warning)}
+.stat-num.purple{color:var(--purple)}
+.stat-num.teal{color:var(--teal)}
+.stat-label{font-size:.75em;color:var(--text-light)}
+.container{max-width:720px;margin:0 auto;padding:20px 16px}
+.chapter-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;border:1px solid var(--border);transition:all .2s}
+.chapter-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.1)}
+.chapter-header{padding:16px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.chapter-header:hover{background:#fafbfc}
+.chapter-left{flex:1}
+.chapter-title{font-size:1.05em;font-weight:700;color:var(--text)}
+.chapter-sub{font-size:.8em;color:var(--text-light);margin-top:2px}
+.chapter-right{display:flex;align-items:center;gap:10px}
+.status-tag{font-size:.75em;padding:3px 10px;border-radius:10px;font-weight:600;white-space:nowrap}
+.status-tag.pass{background:var(--success-light);color:var(--success)}
+.status-tag.progress{background:var(--warning-light);color:var(--warning)}
+.status-tag.todo{background:#f0f0f0;color:#aaa}
+.round-dots{display:flex;gap:3px}
+.rdot{width:10px;height:10px;border-radius:50%;background:#ddd;transition:all .2s}
+.rdot.done{background:var(--success)}
+.expand-icon{font-size:.8em;color:var(--text-light);transition:transform .2s}
+.chapter-card.expanded .expand-icon{transform:rotate(180deg)}
+.chapter-body{padding:0 18px;max-height:0;overflow:hidden;transition:all .3s ease}
+.chapter-card.expanded .chapter-body{padding:18px;max-height:50000px}
+.section-list{margin-bottom:14px}
+.section-item{padding:8px 12px;border-left:3px solid var(--border);margin-bottom:6px;font-size:.88em;color:var(--text);transition:all .2s}
+.section-item.done{border-left-color:var(--success);color:var(--text)}
+.section-item.current{border-left-color:var(--info);color:var(--text);font-weight:600}
+.report-box{background:#f8f9fb;border-radius:10px;padding:16px;margin-top:12px;border:1px solid var(--border)}
+.report-box h4{font-size:.9em;color:var(--primary);margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:6px}
+.report-row{display:flex;align-items:center;padding:6px 0;border-bottom:1px solid #eee;font-size:.85em}
+.report-row:last-child{border-bottom:none}
+.report-label{color:var(--text-light);min-width:80px}
+.report-value{color:var(--text);font-weight:500}
+.report-value.green{color:var(--success)}
+.report-value.red{color:var(--danger)}
+.report-value.orange{color:var(--warning)}
+.report-value.purple{color:var(--purple)}
+.process-btn{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:20px;font-size:.85em;font-weight:600;cursor:pointer;transition:all .2s}
+.process-btn:hover{background:#2a4a8a;transform:translateY(-1px)}
+.process-btn:active{transform:translateY(0)}
+.chat-panel{margin-top:14px;max-height:0;overflow:hidden;transition:all .3s ease}
+.chat-panel.open{max-height:6000px}
+.round-chat{margin-bottom:16px}
+.round-chat-header{font-size:.88em;font-weight:700;color:var(--primary);padding:8px 12px;background:var(--primary-light);border-radius:8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.round-chat-header.purple{background:var(--purple-light);color:var(--purple)}
+.round-chat-header.teal{background:var(--teal-light);color:var(--teal)}
+.chat-bubble{margin-bottom:8px;display:flex;gap:8px;align-items:flex-start}
+.chat-bubble.ai{flex-direction:row}
+.chat-bubble.kid{flex-direction:row-reverse}
+.chat-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8em;flex-shrink:0}
+.chat-avatar.ai-avatar{background:var(--primary-light);color:var(--primary)}
+.chat-avatar.kid-avatar{background:#fce4ec;color:#e91e63}
+.chat-content{max-width:80%;padding:10px 14px;border-radius:12px;font-size:.85em;line-height:1.6;word-break:break-word}
+.chat-content p{margin:0 0 4px}.chat-content p:last-child{margin:0}
+.chat-content strong{font-weight:700;color:inherit}
+.chat-content ul{margin:4px 0;padding-left:18px}.chat-content li{margin:2px 0}
+.chat-bubble.ai .chat-content{background:var(--primary-light);color:var(--text);border-top-left-radius:4px}
+.chat-bubble.kid .chat-content{background:#fce4ec;color:var(--text);border-top-right-radius:4px}
+.chat-eval{margin-top:4px;font-size:.78em;color:var(--success);font-weight:500}
+.chat-eval.wrong{color:var(--danger)}
+.detail-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.detail-section h5{font-size:.85em;color:var(--primary);margin-bottom:8px;font-weight:600}
+.round-detail{background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px}
+.round-title{font-size:.82em;font-weight:600;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.round-title .icon{font-size:1em}
+.round-result{font-size:.8em;color:var(--text-light)}
+.error-list{margin-top:10px}
+.error-item{background:#fff5f5;border:1px solid #fde2e2;border-radius:8px;padding:10px;margin-bottom:6px;font-size:.82em}
+.error-item .q{color:var(--danger);font-weight:600;margin-bottom:2px}
+.error-item .a{color:var(--text-light)}
+.tracking-item{background:var(--teal-light);border:1px solid #b2dfdb;border-radius:8px;padding:10px;margin-bottom:6px;font-size:.82em}
+.tracking-item .label{font-weight:600;color:var(--teal)}
+.tracking-item .detail{color:var(--text-light);margin-top:2px}
+.tracking-status{display:inline-block;font-size:.75em;padding:2px 8px;border-radius:8px;font-weight:600;margin-left:6px}
+.tracking-status.pending{background:#fff3e0;color:#e65100}
+.tracking-status.disputed{background:#fff8e1;color:#f57f17}
+.tracking-status.proven{background:var(--success-light);color:var(--success)}
+.migration-questions{margin-top:8px}
+.migration-q{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;font-size:.82em}
+.migration-q .q-type{font-weight:600;color:var(--purple);font-size:.78em}
+.migration-q .q-scene{color:var(--text);margin-top:2px}
+.migration-q .q-result{margin-top:2px}
+.migration-q .q-result.pass{color:var(--success)}
+.migration-q .q-result.fail{color:var(--danger)}
+.dispute-box{background:var(--purple-light);border:1px solid #e1bee7;border-radius:8px;padding:10px;margin-top:6px;font-size:.82em}
+.dispute-box .dispute-header{font-weight:600;color:var(--purple)}
+.dispute-box .dispute-detail{color:var(--text);margin-top:4px}
+.motto-box{background:linear-gradient(135deg,#3a5ba0 0%,#2a4578 100%);color:#fff;border-radius:10px;padding:14px 16px;margin-top:12px;font-size:.85em;font-weight:300;line-height:1.7;text-align:center}
+.footer{text-align:center;padding:20px;color:var(--text-light);font-size:.8em;border-top:1px solid var(--border);margin-top:20px}
+@media(max-width:480px){.header h1{font-size:1.3em}.stats-bar{gap:12px}.container{padding:12px 10px}.chapter-header{padding:12px 14px}.chat-content{max-width:88%}}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>📐 验收·七上数学学习看板</h1>
+<p>人教版2024新课标 · 快问→费曼→笔头→迁移</p>
+</div>
+
+<div class="stats-bar">
+<div class="stat-item"><div class="stat-num blue" id="stat-total">6</div><div class="stat-label">总章节</div></div>
+<div class="stat-item"><div class="stat-num green" id="stat-passed">0</div><div class="stat-label">已通过</div></div>
+<div class="stat-item"><div class="stat-num orange" id="stat-progress">0</div><div class="stat-label">验收中</div></div>
+<div class="stat-item"><div class="stat-num purple" id="stat-migrated">0</div><div class="stat-label">迁移通过</div></div>
+<div class="stat-item"><div class="stat-num teal" id="stat-tracking">0</div><div class="stat-label">待循证</div></div>
+</div>
+
+<div class="container" id="app"></div>
+
+<script>
+// 加载数据
+var CHAPTERS = [];
+
+fetch('./data-math.json')
+  .then(r => r.json())
+  .then(data => {
+    CHAPTERS = data;
+    initAndRender();
+  })
+  .catch(err => {
+    document.getElementById('app').innerHTML = '<p style="color:red;text-align:center;padding:2rem;">数据加载失败：' + err.message + '</p>';
+  });
+
+function initAndRender() {
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function md(s){var h=esc(s);h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');h=h.replace(/^- (.+)$/gm,'<li>$1</li>');h=h.replace(/^(\d+)\. (.+)$/gm,'<li>$2</li>');h=h.replace(/(<li>[\s\S]*?<\/li>)/g,function(m){if(m.indexOf('<li>')===0){return m}return m});h=h.replace(/((?:<li>[\s\S]*?<\/li>\s*)+)/g,'<ul>$1</ul>');h=h.replace(/\n\n/g,'</p><p>');h=h.replace(/\n/g,'<br>');return'<p>'+h+'</p>'}
+
+function updateStats(){
+  var passed=0,progress=0,migrated=0,tracking=0;
+  CHAPTERS.forEach(function(ch){
+    if(ch.report){
+      if(ch.report.status==='pass')passed++;
+      else progress++;
+      if(ch.report.round4&&ch.report.round4.result==='pass')migrated++;
+      if(ch.report.tracking){tracking+=ch.report.tracking.filter(function(t){return t.status==='pending'||t.status==='disputed'}).length}
+    }
+  });
+  document.getElementById('stat-passed').textContent=passed;
+  document.getElementById('stat-progress').textContent=progress;
+  document.getElementById('stat-migrated').textContent=migrated;
+  document.getElementById('stat-tracking').textContent=tracking;
+}
+
+function toggleCard(id){var card=document.getElementById('card-'+id);card.classList.toggle('expanded')}
+function toggleChat(id){var panel=document.getElementById('chat-'+id);panel.classList.toggle('open')}
+
+function renderChat(ch){
+  if(!ch.report)return '';
+  if(!ch.report.chat){
+    return '<div style="margin-top:12px;padding:10px 16px;background:#f0f0f0;border-radius:8px;font-size:.82em;color:#999;text-align:center">💬 验收过程待补录</div>';
+  }
+  var html='<button class="process-btn" onclick="toggleChat(\''+ch.id+'\')">💬 验收过程</button>';
+  html+='<div class="chat-panel" id="chat-'+ch.id+'">';
+
+  var roundKeys=['round1','round2','round3','round4'];
+  var roundIcons=['⚡','👨‍🏫','✍️','🔬'];
+  var roundCls=['','','','purple'];
+  roundKeys.forEach(function(rk,ri){
+    var msgs=ch.report.chat[rk];
+    if(!msgs)return;
+    var rName=ch.report[rk]?ch.report[rk].name:'';
+    var headerCls=roundCls[ri]?' '+roundCls[ri]:'';
+    html+='<div class="round-chat">';
+    html+='<div class="round-chat-header'+headerCls+'">'+roundIcons[ri]+' '+esc(rName)+'</div>';
+    msgs.forEach(function(m){
+      var isAI=m.who==='ai';
+      var cls=isAI?'ai':'kid';
+      var avatar=isAI?'🤖':'👧';
+      var avatarCls=isAI?'ai-avatar':'kid-avatar';
+      html+='<div class="chat-bubble '+cls+'">';
+      html+='<div class="chat-avatar '+avatarCls+'">'+avatar+'</div>';
+      html+='<div class="chat-content">'+md(m.text);
+      if(m.eval){var evalCls=m.eval.indexOf('❌')>=0?'wrong':'';html+='<div class="chat-eval '+evalCls+'">'+esc(m.eval)+'</div>'}
+      html+='</div></div>';
+    });
+    html+='</div>';
+  });
+
+  html+='</div>';
+  return html;
+}
+
+function renderReport(r,ch){
+  if(!r)return '';
+  var html='<div class="report-box"><h4>📋 验收报告 · '+esc(r.date)+'</h4>';
+  html+='<div class="report-row"><span class="report-label">综合结果</span><span class="report-value '+(r.status==='pass'?'green':'orange')+'">'+(r.status==='pass'?'✅ 全部通过':'⚠️ 待复验')+'</span></div>';
+  if(r.round1)html+='<div class="report-row"><span class="report-label">'+esc(r.round1.name)+'</span><span class="report-value '+(r.round1.result==='pass'?'green':'red')+'">'+(r.round1.result==='pass'?'✅ 通过':'❌ 未通过')+'</span></div>';
+  if(r.round2)html+='<div class="report-row"><span class="report-label">'+esc(r.round2.name)+'</span><span class="report-value '+(r.round2.result==='pass'?'green':'red')+'">'+(r.round2.result==='pass'?'✅ 通过':'❌ 未通过')+'</span></div>';
+  if(r.round3)html+='<div class="report-row"><span class="report-label">'+esc(r.round3.name)+'</span><span class="report-value '+(r.round3.result==='pass'?'green':'red')+'">'+(r.round3.result==='pass'?'✅ 通过':'❌ 未通过')+'</span></div>';
+  if(r.round4){
+    var r4cls=r.round4.result==='pass'?'green':r.round4.result==='pending'?'orange':'red';
+    var r4text=r.round4.result==='pass'?'✅ 通过':r.round4.result==='pending'?'⏳ 待补走':'❌ 未通过';
+    html+='<div class="report-row"><span class="report-label">'+esc(r.round4.name)+'</span><span class="report-value '+r4cls+'">'+r4text+'</span></div>';
+  }
+  html+='</div>';
+
+  html+='<div class="detail-section"><h5>📃 各轮详情</h5>';
+  if(r.round1)html+='<div class="round-detail"><div class="round-title"><span class="icon">⚡</span>'+esc(r.round1.name)+'</div><div class="round-result">'+esc(r.round1.detail)+'</div></div>';
+  if(r.round2)html+='<div class="round-detail"><div class="round-title"><span class="icon">👨‍🏫</span>'+esc(r.round2.name)+'</div><div class="round-result">'+esc(r.round2.detail)+'</div></div>';
+  if(r.round3)html+='<div class="round-detail"><div class="round-title"><span class="icon">✍️</span>'+esc(r.round3.name)+'</div><div class="round-result">'+esc(r.round3.detail)+'</div></div>';
+  if(r.round4){
+    html+='<div class="round-detail" style="border-left:3px solid var(--purple)">';
+    html+='<div class="round-title"><span class="icon">🔬</span>'+esc(r.round4.name)+'</div>';
+    if(r.round4.detail)html+='<div class="round-result">'+esc(r.round4.detail)+'</div>';
+    if(r.round4.questions&&r.round4.questions.length>0){
+      html+='<div class="migration-questions">';
+      r.round4.questions.forEach(function(q){
+        var resultCls=q.result==='pass'?'pass':'fail';
+        var resultText=q.result==='pass'?'✅':'❌';
+        html+='<div class="migration-q"><div class="q-type">'+esc(q.type)+'</div><div class="q-scene">📍 '+esc(q.scene)+'</div><div class="q-result '+resultCls+'">'+resultText+(q.seedFound!==undefined?(q.seedFound?' 种子已发现':' 种子待发现'):'')+'</div></div>';
+      });
+      html+='</div>';
+    }
+    if(r.round4.disputes&&r.round4.disputes.length>0){
+      r.round4.disputes.forEach(function(d){
+        html+='<div class="dispute-box"><div class="dispute-header">⚖️ 异议记录（第'+d.question+'题）</div><div class="dispute-detail">';
+        html+='<strong>孩子的看法：</strong>'+esc(d.kidClaim)+'<br>';
+        html+='<strong>处理方式：</strong>'+esc(d.resolution)+'<br>';
+        html+='<strong>学到了什么：</strong>'+esc(d.learning);
+        html+='</div></div>';
+      });
+    }
+    html+='</div>';
+  }
+  html+='</div>';
+
+  if(r.tracking&&r.tracking.length>0){
+    html+='<div class="detail-section"><h5>📝 循证追踪本</h5>';
+    r.tracking.forEach(function(t){
+      var statusText=t.status==='pending'?'🔵 待循证':t.status==='disputed'?'🟡 有争议':'🟢 已自证';
+      var statusCls=t.status;
+      html+='<div class="tracking-item"><div class="label">📌 '+esc(t.scene)+'<span class="tracking-status '+statusCls+'">'+statusText+'</span></div>';
+      html+='<div class="detail"><strong>搜索建议：</strong>'+esc(t.searchSuggestion)+'</div>';
+      if(t.nextCheck)html+='<div class="detail">⏰ 下次验收复查</div>';
+      html+='</div>';
+    });
+    html+='</div>';
+  }
+
+  if(r.weakPoints&&r.weakPoints.length>0){
+    html+='<div class="detail-section"><h5>⚠️ 薄弱点</h5>';
+    r.weakPoints.forEach(function(w){html+='<div class="error-item"><div class="q">'+esc(w)+'</div></div>'});
+    html+='</div>';
+  }
+
+  if(r.errors&&r.errors.length>0){
+    html+='<div class="detail-section"><h5>❌ 错题入库</h5><div class="error-list">';
+    r.errors.forEach(function(e){html+='<div class="error-item"><div class="q">'+esc(e.q)+'</div><div class="a">错因：'+esc(e.reason)+'</div></div>'});
+    html+='</div></div>';
+  }
+
+  html+=renderChat(ch);
+
+  if(r.motto){html+='<div class="motto-box">🌟 '+esc(r.motto)+'</div>'}
+
+  return html;
+}
+
+function render(){
+  var app=document.getElementById('app');
+  var html='';
+  CHAPTERS.forEach(function(ch){
+    var r=ch.report;
+    var statusCls=r?(r.status==='pass'?'pass':'progress'):'todo';
+    var statusText=r?(r.status==='pass'?'✅ 已通过':'⚠️ 待复验'):'⏳ 未开始';
+    var totalRounds=4;
+    var roundsDone=r?((r.round1&&r.round1.result==='pass'?1:0)+(r.round2&&r.round2.result==='pass'?1:0)+(r.round3&&r.round3.result==='pass'?1:0)+(r.round4&&r.round4.result==='pass'?1:0)):0;
+
+    html+='<div class="chapter-card" id="card-'+ch.id+'">';
+    html+='<div class="chapter-header" onclick="toggleCard(\''+ch.id+'\')">';
+    html+='<div class="chapter-left">';
+    html+='<div class="chapter-title">第'+ch.num+'章 · '+esc(ch.title)+'</div>';
+    html+='<div class="chapter-sub">重点：'+esc(ch.keyPoints);
+    if(ch.migrationHint)html+=' · 🔬种子：'+esc(ch.migrationHint);
+    html+='</div>';
+    html+='</div>';
+    html+='<div class="chapter-right">';
+    html+='<span class="status-tag '+statusCls+'">'+statusText+'</span>';
+    html+='<div class="round-dots">';
+    for(var i=0;i<totalRounds;i++){html+='<span class="rdot'+(i<roundsDone?' done':'')+'"></span>'}
+    html+='</div>';
+    html+='<span class="expand-icon">▼</span>';
+    html+='</div></div>';
+
+    html+='<div class="chapter-body">';
+    html+='<div class="section-list">';
+    ch.sections.forEach(function(s){
+      var cls=r?(r.status==='pass'?'done':'current'):'';
+      html+='<div class="section-item '+cls+'">'+esc(s)+'</div>';
+    });
+    html+='</div>';
+
+    html+=renderReport(r,ch);
+
+    if(!r){html+='<div class="motto-box">💪 加油，这章还没开始验收哦！</div>'}
+
+    html+='</div></div>';
+  });
+
+  html+='<div class="footer">点击章节展开验收详情 · 点“验收过程”查看对话记录 · 四轮递进：记→懂→用→迁 · 数据随验收报告自动更新</div>';
+  app.innerHTML=html;
+  updateStats();
+}
+
+  render();
+}
+</script>
+</body>
+</html>
