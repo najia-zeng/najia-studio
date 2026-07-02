@@ -1,0 +1,18 @@
+# GitHub Pages configuration
+title: "娜家工作室"
+description: "Kids Learning Dashboard"
+url: "https://najia-zeng.github.io"
+baseurl: "/najia-studio"
+
+# Disable Jekyll processing for specific files
+include:
+  - kids
+
+# Exclude unnecessary files
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+
+# Markdown processor
+markdown: kramdown
