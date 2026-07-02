@@ -133,7 +133,7 @@ function toggleChat(id){var panel=document.getElementById('chat-'+id);panel.clas
 // 加载数据
 var CHAPTERS = [];
 
-fetch('./data-数学.json')
+fetch('./data-math.json')
   .then(r => r.json())
   .then(data => {
     CHAPTERS = data;

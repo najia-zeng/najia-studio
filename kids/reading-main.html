@@ -537,7 +537,7 @@
         var selectedSection = null;
 
         function loadData() {
-            fetch('./data-阅读.json')
+            fetch('./data-reading.json')
                 .then(function(response) {
                     if (!response.ok) {
                         throw new Error('数据加载失败');
@@ -553,7 +553,7 @@
                 .catch(function(error) {
                     console.error('Error loading data:', error);
                     document.getElementById('treeContainer').innerHTML = 
-                        '<div class="tree-empty"><div class="tree-empty-icon">📭</div><div class="tree-empty-text">数据加载失败</div><div class="tree-empty-hint">请确保 data-阅读.json 文件存在</div></div>';
+                        '<div class="tree-empty"><div class="tree-empty-icon">📭</div><div class="tree-empty-text">数据加载失败</div><div class="tree-empty-hint">请确保 data-reading.json 文件存在</div></div>';
                 });
         }
 

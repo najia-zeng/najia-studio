@@ -105,13 +105,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 <div class="container" id="app"></div>
 
 <script>
-function toggleCard(id){document.getElementById(id).classList.toggle('expanded')}
-function toggleChat(id){document.getElementById(id).classList.toggle('open')}
-
 // 加载数据
 var BOOKS = [];
 
-fetch('./data-阅读.json')
+fetch('./data-reading.json')
   .then(r => r.json())
   .then(data => {
     BOOKS = data;
@@ -139,6 +136,8 @@ document.getElementById('stat-passed').textContent=passed;
 document.getElementById('stat-total').textContent=total;
 }
 
+function toggleCard(id){document.getElementById(id).classList.toggle('expanded')}
+function toggleChat(id){document.getElementById(id).classList.toggle('open')}
 
 function stars(n){var s='';for(var i=1;i<=3;i++)s+=(i<=n?'⭐':'☆');return s}
 
