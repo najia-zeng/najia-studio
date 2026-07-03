@@ -371,15 +371,7 @@ function renderMainArea(bookId){
   html+='<span class="type-tag '+typeCls+'">'+esc(b.typeLabel)+'</span>';
   html+='<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>';
   html+='</div>';
-  html+='<div class="book-card" id="card-'+b.id+'">';
-  html+='<div class="book-header" onclick="toggleCard(\'card-'+b.id+'\')">';
-  html+='<div class="book-left">';
-  html+='<div class="book-title">📚 全部互动</div>';
-  html+='<div class="book-meta">本书共互动 '+b.sections.length+' 次</div>';
-  html+='</div>';
-  html+='<div class="book-right">';
-  html+='<span class="expand-icon">▶</span>';
-  html+='</div></div>';
+  html+='<div class="book-card expanded" id="card-'+b.id+'">';
   html+='<div class="book-body">';
   b.sections.forEach(function(sec){
     var cls=sec.report?(sec.report.status==='pass'?'pass':'progress'):'todo';
@@ -394,7 +386,7 @@ function renderMainArea(bookId){
     html+='</div>';
   });
   html+='</div></div>';
-  html+='<div class="footer">点击「全部互动」展开详情 · 点"互动过程"查看对话记录</div>';
+  html+='<div class="footer">点"互动过程"查看对话记录</div>';
   main.innerHTML=html;
 }
 
