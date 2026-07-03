@@ -367,7 +367,7 @@ function renderMainArea(bookId){
   var isFinished=(passCount===b.sections.length);
   var statusTag=isFinished?'<span class="book-status-tag finished">已读完</span>':'<span class="book-status-tag reading">阅读中</span>';
   html+='<span class="main-book-title">📖 '+esc(b.title)+statusTag+'</span>';
-  html+='<span class="main-book-meta">'+passCount+'/'+b.sections.length+' 段落已完成</span>';
+  html+='<span class="main-book-meta">已完成 '+passCount+' 次互动</span>';
   html+='<span class="type-tag '+typeCls+'">'+esc(b.typeLabel)+'</span>';
   html+='<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>';
   html+='</div>';
