@@ -11,6 +11,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 .header{background:linear-gradient(135deg,#3a5ba0 0%,#2a4578 100%);color:#fff;padding:32px 20px;text-align:center}
 .header h1{font-size:1.6em;font-weight:700;margin-bottom:6px;letter-spacing:1px}
 .header p{font-size:.9em;opacity:.85;font-weight:300}
+
+/* Tab导航 */
+.tab-nav{display:flex;background:#fff;border-bottom:2px solid var(--border);position:sticky;top:0;z-index:100}
+.tab-btn{flex:1;padding:14px 12px;text-align:center;font-size:.95em;font-weight:600;color:var(--text-light);background:none;border:none;cursor:pointer;transition:all .2s;position:relative}
+.tab-btn:hover{background:#fafbfc;color:var(--text)}
+.tab-btn.active{color:var(--primary)}
+.tab-btn.active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:3px;background:var(--primary);border-radius:3px 3px 0 0}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
 .stats-bar{display:flex;justify-content:center;gap:20px;padding:16px 20px;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap}
 .stat-item{text-align:center}
 .stat-num{font-size:1.5em;font-weight:700}
@@ -105,8 +115,56 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 .dispute-box .dispute-header{font-weight:600;color:var(--purple)}
 .dispute-box .dispute-detail{color:var(--text);margin-top:4px}
 .motto-box{background:linear-gradient(135deg,#3a5ba0 0%,#2a4578 100%);color:#fff;border-radius:10px;padding:14px 16px;margin-top:12px;font-size:.85em;font-weight:300;line-height:1.7;text-align:center}
+
+/* 知识点总纲样式 */
+.outline-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;border:1px solid var(--border);transition:all .2s}
+.outline-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.1)}
+.outline-header{padding:16px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.outline-header:hover{background:#fafbfc}
+.outline-title{font-size:1.05em;font-weight:700;color:var(--text)}
+.outline-sub{font-size:.8em;color:var(--text-light);margin-top:2px}
+.outline-body{padding:0 18px;max-height:0;overflow:hidden;transition:all .3s ease}
+.outline-card.expanded .outline-body{padding:18px;max-height:5000px}
+.kp-list{list-style:none}
+.kp-item{padding:8px 12px;border-left:3px solid var(--border);margin-bottom:6px;font-size:.88em;color:var(--text);transition:all .2s}
+.kp-item.done{border-left-color:var(--success)}
+.kp-item.current{border-left-color:var(--info);font-weight:600}
+
+/* 错题本样式 */
+.error-summary{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:16px;border:1px solid var(--border)}
+.error-summary h3{font-size:1em;color:var(--primary);margin-bottom:12px;font-weight:700}
+.error-stats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.error-stat{flex:1;min-width:100px;text-align:center;padding:12px;background:#f8f9fb;border-radius:8px}
+.error-stat-num{font-size:1.3em;font-weight:700}
+.error-stat-num.green{color:var(--success)}
+.error-stat-num.red{color:var(--danger)}
+.error-stat-num.orange{color:var(--warning)}
+.error-stat-label{font-size:.75em;color:var(--text-light);margin-top:4px}
+.error-table{width:100%;border-collapse:collapse;font-size:.85em}
+.error-table th{background:#f8f9fb;padding:10px;text-align:left;font-weight:600;color:var(--text);border-bottom:2px solid var(--border)}
+.error-table td{padding:10px;border-bottom:1px solid var(--border)}
+.error-table tr:hover{background:#fafbfc}
+.error-severity{font-size:.8em}
+.error-severity.high{color:var(--danger)}
+.error-severity.medium{color:var(--warning)}
+.error-severity.low{color:var(--info)}
+.error-status{display:inline-block;padding:2px 8px;border-radius:8px;font-size:.75em;font-weight:600}
+.error-status.passed{background:var(--success-light);color:var(--success)}
+.error-status.pending{background:var(--warning-light);color:var(--warning)}
+
+.kp-status-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:16px;border:1px solid var(--border)}
+.kp-status-card h3{font-size:1em;color:var(--primary);margin-bottom:12px;font-weight:700}
+.kp-status-table{width:100%;border-collapse:collapse;font-size:.85em}
+.kp-status-table th{background:#f8f9fb;padding:10px;text-align:left;font-weight:600;color:var(--text);border-bottom:2px solid var(--border)}
+.kp-status-table td{padding:10px;border-bottom:1px solid var(--border)}
+.kp-status-table tr:hover{background:#fafbfc}
+.kp-status{display:inline-block;padding:2px 8px;border-radius:8px;font-size:.75em;font-weight:600}
+.kp-status.mastered{background:var(--success-light);color:var(--success)}
+.kp-status.practicing{background:var(--warning-light);color:var(--warning)}
+.kp-status.unmastered{background:#ffebee;color:var(--danger)}
+
 .footer{text-align:center;padding:20px;color:var(--text-light);font-size:.8em;border-top:1px solid var(--border);margin-top:20px}
-@media(max-width:480px){.header h1{font-size:1.3em}.stats-bar{gap:12px}.container{padding:12px 10px}.chapter-header{padding:12px 14px}.chat-content{max-width:88%}}
+@media(max-width:480px){.header h1{font-size:1.3em}.stats-bar{gap:12px}.container{padding:12px 10px}.chapter-header{padding:12px 14px}.chat-content{max-width:88%}.tab-btn{padding:12px 8px;font-size:.88em}}
 </style>
 </head>
 <body>
@@ -116,6 +174,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 <p>人教版2024新课标 · 快问→费曼→笔头→迁移</p>
 </div>
 
+<div class="tab-nav">
+<button class="tab-btn active" onclick="switchTab('chapters')">📚 章节验收</button>
+<button class="tab-btn" onclick="switchTab('outline')">📋 知识点总纲</button>
+<button class="tab-btn" onclick="switchTab('errors')">📝 错题本</button>
+</div>
+
+<div id="tab-chapters" class="tab-content active">
 <div class="stats-bar">
 <div class="stat-item"><div class="stat-num blue" id="stat-total">6</div><div class="stat-label">总章节</div></div>
 <div class="stat-item"><div class="stat-num green" id="stat-passed">0</div><div class="stat-label">已通过</div></div>
@@ -123,15 +188,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 <div class="stat-item"><div class="stat-num purple" id="stat-migrated">0</div><div class="stat-label">迁移通过</div></div>
 <div class="stat-item"><div class="stat-num teal" id="stat-tracking">0</div><div class="stat-label">待循证</div></div>
 </div>
-
 <div class="container" id="app"></div>
+</div>
+
+<div id="tab-outline" class="tab-content">
+<div class="container" id="outline-app"></div>
+</div>
+
+<div id="tab-errors" class="tab-content">
+<div class="container" id="error-app"></div>
+</div>
 
 <script>
 function toggleCard(id){var card=document.getElementById('card-'+id);card.classList.toggle('expanded')}
 function toggleChat(id){var panel=document.getElementById('chat-'+id);panel.classList.toggle('open')}
+function toggleOutline(id){var card=document.getElementById('outline-'+id);card.classList.toggle('expanded')}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(content=>content.classList.remove('active'));
+  document.querySelector('.tab-btn[onclick*="'+tab+'"]').classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+}
 
 // 加载数据
 var CHAPTERS = [];
+var ERROR_BOOK = [];
 
 fetch('./data-math.json')
   .then(r => r.json())
@@ -142,6 +224,97 @@ fetch('./data-math.json')
   .catch(err => {
     document.getElementById('app').innerHTML = '<p style="color:red;text-align:center;padding:2rem;">数据加载失败：' + err.message + '</p>';
   });
+
+// 错题本数据
+var ERROR_BOOK_DATA = {
+  summary: {
+    total: 9,
+    passed: 9,
+    pending: 0,
+    verificationDate: '2026-07-03'
+  },
+  errors: [
+    {id:'e1', question:'第6题', topic:'分类讨论', errorType:'分类讨论遗漏', severity:'medium', status:'passed', verifyDate:'2026-07-03'},
+    {id:'e2', question:'第8题', topic:'方程建模', errorType:'等量关系列错', severity:'high', status:'passed', verifyDate:'2026-07-03'},
+    {id:'e3', question:'第20题', topic:'解方程步骤', errorType:'步骤不规范', severity:'low', status:'passed', verifyDate:'2026-07-03'},
+    {id:'e4', question:'第21题', topic:'化简求值', errorType:'代数运算出错', severity:'medium', status:'passed', verifyDate:'2026-07-03'},
+    {id:'e5', question:'第22题', topic:'统计计算', errorType:'基础计算错误', severity:'low', status:'passed', verifyDate:'2026-07-03'},
+    {id:'e6', question:'第23题', topic:'数轴路程', errorType:'绝对值求和算错', severity:'low', status:'passed', verifyDate:'2026-07-03'},
+    {id:'e7', question:'第24题', topic:'线段综合', errorType:'关系理解有误', severity:'medium', status:'passed', verifyDate:'2026-07-03'},
+    {id:'e8', question:'第25题', topic:'相遇追及', errorType:'方程模型混淆', severity:'high', status:'passed', verifyDate:'2026-07-03'},
+    {id:'e9', question:'第26题', topic:'角度综合', errorType:'角度关系推导错误', severity:'medium', status:'passed', verifyDate:'2026-07-03'}
+  ],
+  residualIssues: ['分数转小数计算（1/6≈0.167写成0.83），属计算粗心'],
+  knowledgeStatus: [
+    {topic:'分类讨论', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
+    {topic:'方程建模', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
+    {topic:'解方程步骤', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
+    {topic:'化简求值', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
+    {topic:'统计计算', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
+    {topic:'数轴路程', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
+    {topic:'线段综合', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
+    {topic:'相遇追及', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
+    {topic:'角度综合', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'}
+  ],
+  verificationRounds: [
+    {round:'第一轮', content:'快问快答（5题）', result:'5/5 ✅'},
+    {round:'第二轮', content:'费曼检验（2题）', result:'2/2 ✅'},
+    {round:'第三轮', content:'笔头题（3题）', result:'3/3 ✅'},
+    {round:'第四轮', content:'迁移闯关（3题）', result:'2.5/3 ⚠️'}
+  ]
+};
+
+// 知识点总纲数据
+var OUTLINE_DATA = [
+  {
+    id: 'ch1',
+    num: 1,
+    title: '有理数',
+    keyPoints: '正负数·数轴·相反数·绝对值·大小比较',
+    sections: ['1.1 正数和负数', '1.2.1 有理数的概念', '1.2.2 数轴', '1.2.3 相反数', '1.2.4 绝对值', '1.2.5 有理数的大小比较'],
+    status: 'done'
+  },
+  {
+    id: 'ch2',
+    num: 2,
+    title: '有理数的运算',
+    keyPoints: '加减乘除·乘方·科学记数法·近似数',
+    sections: ['2.1.1 有理数的加法', '2.1.2 有理数的减法', '2.2.1 有理数的乘法', '2.2.2 有理数的除法', '2.3.1 乘方', '2.3.2 科学记数法', '2.3.3 近似数'],
+    status: 'done'
+  },
+  {
+    id: 'ch3',
+    num: 3,
+    title: '代数式',
+    keyPoints: '列代数式·求值·单项·多项式',
+    sections: ['3.1 列代数式表示数量关系', '3.2 代数式的值'],
+    status: 'done'
+  },
+  {
+    id: 'ch4',
+    num: 4,
+    title: '整式的加减',
+    keyPoints: '单项式与多项式·合并同类项·去括号',
+    sections: ['4.1 单项式与多项式', '4.2 合并同类项', '4.3 去括号'],
+    status: 'done'
+  },
+  {
+    id: 'ch5',
+    num: 5,
+    title: '一元一次方程',
+    keyPoints: '方程·等式性质·解方程·实际应用',
+    sections: ['5.1.1 从算式到方程', '5.1.2 等式的性质', '5.2 解一元一次方程', '5.3 实际问题与一元一次方程'],
+    status: 'done'
+  },
+  {
+    id: 'ch6',
+    num: 6,
+    title: '几何图形初步',
+    keyPoints: '立体与平面·线段·角·余角补角',
+    sections: ['6.1.1 立体图形与平面图形', '6.1.2 点、线、面、体', '6.2.1 直线、射线、线段', '6.2.2 线段的比较与运算', '6.3.1 角的概念', '6.3.2 角的比较与运算', '6.3.3 余角和补角'],
+    status: 'done'
+  }
+];
 
 function initAndRender() {
 
@@ -318,12 +491,126 @@ function render(){
     html+='</div></div>';
   });
 
-  html+='<div class="footer">点击章节展开验收详情 · 点“验收过程”查看对话记录 · 四轮递进：记→懂→用→迁 · 数据随验收报告自动更新</div>';
+  html+='<div class="footer">点击章节展开验收详情 · 点"验收过程"查看对话记录 · 四轮递进：记→懂→用→迁 · 数据随验收报告自动更新</div>';
   app.innerHTML=html;
   updateStats();
 }
 
+function renderOutline(){
+  var app=document.getElementById('outline-app');
+  var html='<div class="error-summary"><h3>📋 七上数学知识点总纲</h3>';
+  html+='<p style="font-size:.88em;color:var(--text-light);margin-bottom:16px">人教版2024新课标 · 共6章 · 先分章学习，再整体复习</p>';
+  html+='</div>';
+
+  OUTLINE_DATA.forEach(function(ch){
+    var statusText=ch.status==='done'?'✅ 已验收':'⏳ 未开始';
+    var statusCls=ch.status==='done'?'pass':'todo';
+
+    html+='<div class="outline-card" id="outline-'+ch.id+'">';
+    html+='<div class="outline-header" onclick="toggleOutline(\''+ch.id+'\')">';
+    html+='<div class="chapter-left">';
+    html+='<div class="outline-title">第'+ch.num+'章 · '+esc(ch.title)+'</div>';
+    html+='<div class="outline-sub">'+esc(ch.keyPoints)+'</div>';
+    html+='</div>';
+    html+='<div class="chapter-right">';
+    html+='<span class="status-tag '+statusCls+'">'+statusText+'</span>';
+    html+='<span class="expand-icon">▼</span>';
+    html+='</div></div>';
+
+    html+='<div class="outline-body">';
+    html+='<ul class="kp-list">';
+    ch.sections.forEach(function(s){
+      html+='<li class="kp-item '+(ch.status==='done'?'done':'')+'">'+esc(s)+'</li>';
+    });
+    html+='</ul>';
+    html+='</div></div>';
+  });
+
+  html+='<div class="footer">点击章节展开查看知识点详情 · 学习路径：分章验收 → 知识点总纲 → 错题本</div>';
+  app.innerHTML=html;
+}
+
+function renderErrorBook(){
+  var app=document.getElementById('error-app');
+  var data=ERROR_BOOK_DATA;
+  var html='';
+
+  // 错题摘要
+  html+='<div class="error-summary">';
+  html+='<h3>📝 错题本 · 验收总览</h3>';
+  html+='<div class="error-stats">';
+  html+='<div class="error-stat"><div class="error-stat-num blue">'+data.summary.total+'</div><div class="error-stat-label">错题总数</div></div>';
+  html+='<div class="error-stat"><div class="error-stat-num green">'+data.summary.passed+'</div><div class="error-stat-label">已过关</div></div>';
+  html+='<div class="error-stat"><div class="error-stat-num orange">'+data.summary.pending+'</div><div class="error-stat-label">待验收</div></div>';
+  html+='</div>';
+  html+='<p style="font-size:.85em;color:var(--text-light)">验收日期：'+data.summary.verificationDate+'</p>';
+  html+='</div>';
+
+  // 验收轮次
+  html+='<div class="kp-status-card">';
+  html+='<h3>📊 验收轮次</h3>';
+  html+='<table class="kp-status-table">';
+  html+='<tr><th>轮次</th><th>内容</th><th>结果</th></tr>';
+  data.verificationRounds.forEach(function(r){
+    html+='<tr><td>'+esc(r.round)+'</td><td>'+esc(r.content)+'</td><td>'+esc(r.result)+'</td></tr>';
+  });
+  html+='</table></div>';
+
+  // 错题清单
+  html+='<div class="kp-status-card">';
+  html+='<h3>📋 错题清单</h3>';
+  html+='<table class="error-table">';
+  html+='<tr><th>题号</th><th>知识点</th><th>错误类型</th><th>严重程度</th><th>状态</th></tr>';
+  data.errors.forEach(function(e){
+    var sevCls=e.severity==='high'?'high':e.severity==='medium'?'medium':'low';
+    var stars=e.severity==='high'?'★★★★':e.severity==='medium'?'★★★':'★★';
+    var statusText=e.status==='passed'?'✅ 已过关':'⏳ 待验收';
+    var statusCls=e.status==='passed'?'passed':'pending';
+    html+='<tr>';
+    html+='<td>'+esc(e.question)+'</td>';
+    html+='<td>'+esc(e.topic)+'</td>';
+    html+='<td>'+esc(e.errorType)+'</td>';
+    html+='<td><span class="error-severity '+sevCls+'">'+stars+'</span></td>';
+    html+='<td><span class="error-status '+statusCls+'">'+statusText+'</span></td>';
+    html+='</tr>';
+  });
+  html+='</table></div>';
+
+  // 知识点掌握状态
+  html+='<div class="kp-status-card">';
+  html+='<h3>🎯 知识点掌握状态</h3>';
+  html+='<table class="kp-status-table">';
+  html+='<tr><th>知识点</th><th>状态</th><th>验收日期</th><th>下次复验</th></tr>';
+  data.knowledgeStatus.forEach(function(kp){
+    var statusText=kp.status==='mastered'?'✅ 已掌握':kp.status==='practicing'?'🔄 练习中':'❌ 未掌握';
+    var statusCls=kp.status;
+    html+='<tr>';
+    html+='<td>'+esc(kp.topic)+'</td>';
+    html+='<td><span class="kp-status '+statusCls+'">'+statusText+'</span></td>';
+    html+='<td>'+esc(kp.verifyDate)+'</td>';
+    html+='<td>'+esc(kp.nextReview)+'</td>';
+    html+='</tr>';
+  });
+  html+='</table></div>';
+
+  // 残留问题
+  if(data.residualIssues&&data.residualIssues.length>0){
+    html+='<div class="kp-status-card">';
+    html+='<h3>⚠️ 残留问题</h3>';
+    html+='<ul style="font-size:.88em;color:var(--text);padding-left:20px">';
+    data.residualIssues.forEach(function(issue){
+      html+='<li style="margin-bottom:8px">'+esc(issue)+'</li>';
+    });
+    html+='</ul></div>';
+  }
+
+  html+='<div class="footer">错题本动态更新 · 掌握状态：已掌握/练习中/未掌握 · 定期复验巩固</div>';
+  app.innerHTML=html;
+}
+
   render();
+  renderOutline();
+  renderErrorBook();
 }
 </script>
 </body>
