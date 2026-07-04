@@ -149,8 +149,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 .error-severity.medium{color:var(--warning)}
 .error-severity.low{color:var(--info)}
 .error-status{display:inline-block;padding:2px 8px;border-radius:8px;font-size:.75em;font-weight:600}
-.error-status.passed{background:var(--success-light);color:var(--success)}
-.error-status.pending{background:var(--warning-light);color:var(--warning)}
+.error-status.graduated{background:var(--success-light);color:var(--success)}
+.error-status.reviewing{background:var(--warning-light);color:var(--warning)}
+.error-status.entered{background:#ffebee;color:var(--danger)}
+
+/* 打卡记录样式 */
+.checkin-round{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:12px;border:1px solid var(--border);overflow:hidden}
+.checkin-header{padding:14px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .15s}
+.checkin-header:hover{background:#fafbfc}
+.checkin-header-left{flex:1}
+.checkin-title{font-size:.95em;font-weight:700;color:var(--text)}
+.checkin-meta{font-size:.78em;color:var(--text-light);margin-top:2px}
+.checkin-badge{font-size:.72em;padding:3px 10px;border-radius:10px;font-weight:600;white-space:nowrap}
+.checkin-badge.enter{background:#ffebee;color:var(--danger)}
+.checkin-badge.review{background:var(--info-light);color:var(--info)}
+.checkin-badge.mixed{background:var(--purple-light);color:var(--purple)}
+.checkin-expand{font-size:.8em;color:var(--text-light);transition:transform .2s;margin-left:8px}
+.checkin-round.expanded .checkin-expand{transform:rotate(180deg)}
+.checkin-body{display:none;padding:0 18px 16px;border-top:1px solid var(--border)}
+.checkin-round.expanded .checkin-body{display:block}
+.checkin-section{margin-top:14px}
+.checkin-section-title{font-size:.82em;font-weight:700;color:var(--primary);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.checkin-section-title .count{background:var(--primary-light);color:var(--primary);padding:1px 7px;border-radius:8px;font-size:.85em}
+.checkin-error-row{display:flex;align-items:center;padding:8px 12px;background:#f8f9fb;border-radius:8px;margin-bottom:6px;font-size:.85em;gap:8px}
+.checkin-error-row .topic{font-weight:600;min-width:70px}
+.checkin-error-row .detail{flex:1;color:var(--text-light);font-size:.9em}
+.checkin-error-row .result-tag{font-size:.75em;padding:2px 8px;border-radius:8px;font-weight:600}
+.result-tag.pass{background:var(--success-light);color:var(--success)}
+.result-tag.fail{background:#ffebee;color:var(--danger)}
+.result-tag.enter{background:#fff3e0;color:#e65100}
+.checkin-summary{font-size:.85em;color:var(--text);padding:10px 12px;background:#f0f7ff;border-radius:8px;border-left:3px solid var(--primary);margin-top:10px;line-height:1.5}
+.checkin-residual{font-size:.83em;color:var(--warning);padding:8px 12px;background:var(--warning-light);border-radius:8px;margin-top:8px}
+.error-stat-num.blue{color:var(--primary)}
 
 .kp-status-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:16px;border:1px solid var(--border)}
 .kp-status-card h3{font-size:1em;color:var(--primary);margin-bottom:12px;font-weight:700}
@@ -165,24 +195,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 
 .footer{text-align:center;padding:20px;color:var(--text-light);font-size:.8em;border-top:1px solid var(--border);margin-top:20px}
 @media(max-width:480px){.header h1{font-size:1.3em}.stats-bar{gap:12px}.container{padding:12px 10px}.chapter-header{padding:12px 14px}.chat-content{max-width:88%}.tab-btn{padding:12px 8px;font-size:.88em}}
-
-/* 错题本回归轮次卡片 */
-.review-round-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;border:1px solid var(--border);transition:all .2s}
-.review-round-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.1)}
-.review-round-header{padding:16px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
-.review-round-header:hover{background:#fafbfc}
-.review-round-title{font-size:1em;font-weight:700;color:var(--text)}
-.review-round-sub{font-size:.8em;color:var(--text-light);margin-top:2px}
-.review-round-body{padding:0 18px;max-height:0;overflow:hidden;transition:all .3s ease}
-.review-round-card.expanded .review-round-body{padding:18px;max-height:50000px}
-.error-round-item{padding:10px 14px;border-left:3px solid var(--border);margin-bottom:8px;font-size:.85em;border-radius:0 8px 8px 0;background:#f8f9fb;transition:all .2s}
-.error-round-item.pass{border-left-color:var(--success);background:var(--success-light)}
-.error-round-item.fail{border-left-color:var(--danger);background:#fff5f5}
-.error-round-item .eq-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.error-round-item .eq-question{font-weight:700;color:var(--text)}
-.error-round-item .eq-topic{font-size:.85em;color:var(--text-light);margin-top:2px}
-.error-round-item .eq-reason{font-size:.82em;color:var(--danger);margin-top:4px}
-.round-summary-text{font-size:.88em;color:var(--text-light);margin-bottom:12px;padding:8px 12px;background:#f8f9fb;border-radius:8px}
 </style>
 </head>
 <body>
@@ -243,60 +255,65 @@ fetch('./data-math.json')
     document.getElementById('app').innerHTML = '<p style="color:red;text-align:center;padding:2rem;">数据加载失败：' + err.message + '</p>';
   });
 
-// 错题本数据（多轮回归结构）
+// 错题本数据
 var ERROR_BOOK_DATA = {
   summary: {
-    total: 9,
+    totalEntered: 9,
     graduated: 9,
     inReview: 0
   },
-  reviewRounds: [
+  allErrors: [
+    {id:'e1', question:'第6题', topic:'分类讨论', errorType:'分类讨论遗漏', severity:'medium', status:'graduated'},
+    {id:'e2', question:'第8题', topic:'方程建模', errorType:'等量关系列错', severity:'high', status:'graduated'},
+    {id:'e3', question:'第20题', topic:'解方程步骤', errorType:'步骤不规范', severity:'low', status:'graduated'},
+    {id:'e4', question:'第21题', topic:'化简求值', errorType:'代数运算出错', severity:'medium', status:'graduated'},
+    {id:'e5', question:'第22题', topic:'统计计算', errorType:'基础计算错误', severity:'low', status:'graduated'},
+    {id:'e6', question:'第23题', topic:'数轴路程', errorType:'绝对值求和算错', severity:'low', status:'graduated'},
+    {id:'e7', question:'第24题', topic:'线段综合', errorType:'关系理解有误', severity:'medium', status:'graduated'},
+    {id:'e8', question:'第25题', topic:'相遇追及', errorType:'方程模型混淆', severity:'high', status:'graduated'},
+    {id:'e9', question:'第26题', topic:'角度综合', errorType:'角度关系推导错误', severity:'medium', status:'graduated'}
+  ],
+  checkins: [
     {
       round: 1,
       date: '2026-07-03',
-      title: '全章验收·错题入库',
-      errors: [
-        {id:'e1', question:'第6题', topic:'分类讨论', result:'fail', reason:'分类讨论遗漏'},
-        {id:'e2', question:'第8题', topic:'方程建模', result:'fail', reason:'等量关系列错'},
-        {id:'e3', question:'第20题', topic:'解方程步骤', result:'fail', reason:'步骤不规范'},
-        {id:'e4', question:'第21题', topic:'化简求值', result:'fail', reason:'代数运算出错'},
-        {id:'e5', question:'第22题', topic:'统计计算', result:'fail', reason:'基础计算错误'},
-        {id:'e6', question:'第23题', topic:'数轴路程', result:'fail', reason:'绝对值求和算错'},
-        {id:'e7', question:'第24题', topic:'线段综合', result:'fail', reason:'关系理解有误'},
-        {id:'e8', question:'第25题', topic:'相遇追及', result:'fail', reason:'方程模型混淆'},
-        {id:'e9', question:'第26题', topic:'角度综合', result:'fail', reason:'角度关系推导错误'}
+      title: '错题入库 · 一元一次方程',
+      type: 'enter',
+      newErrors: [
+        {id:'e1', topic:'分类讨论', errorType:'分类讨论遗漏', severity:'medium'},
+        {id:'e2', topic:'方程建模', errorType:'等量关系列错', severity:'high'},
+        {id:'e3', topic:'解方程步骤', errorType:'步骤不规范', severity:'low'},
+        {id:'e4', topic:'化简求值', errorType:'代数运算出错', severity:'medium'},
+        {id:'e5', topic:'统计计算', errorType:'基础计算错误', severity:'low'},
+        {id:'e6', topic:'数轴路程', errorType:'绝对值求和算错', severity:'low'},
+        {id:'e7', topic:'线段综合', errorType:'关系理解有误', severity:'medium'},
+        {id:'e8', topic:'相遇追及', errorType:'方程模型混淆', severity:'high'},
+        {id:'e9', topic:'角度综合', errorType:'角度关系推导错误', severity:'medium'}
       ],
-      summary: '9题入库，全部首次答错'
+      reviewErrors: [],
+      residualIssues: ['分数转小数计算（1/6≈0.167写成0.83），属计算粗心'],
+      summary: '一元一次方程验收发现9类错题，全部入库待回归'
     },
     {
       round: 2,
       date: '2026-07-03',
-      title: '第1轮回归',
-      errors: [
-        {id:'e1', question:'第6题', topic:'分类讨论', result:'pass'},
-        {id:'e2', question:'第8题', topic:'方程建模', result:'pass'},
-        {id:'e3', question:'第20题', topic:'解方程步骤', result:'pass'},
-        {id:'e4', question:'第21题', topic:'化简求值', result:'pass'},
-        {id:'e5', question:'第22题', topic:'统计计算', result:'pass'},
-        {id:'e6', question:'第23题', topic:'数轴路程', result:'pass'},
-        {id:'e7', question:'第24题', topic:'线段综合', result:'pass'},
-        {id:'e8', question:'第25题', topic:'相遇追及', result:'pass'},
-        {id:'e9', question:'第26题', topic:'角度综合', result:'pass'}
+      title: '第一次回归',
+      type: 'review',
+      newErrors: [],
+      reviewErrors: [
+        {id:'e1', topic:'分类讨论', result:'pass'},
+        {id:'e2', topic:'方程建模', result:'pass'},
+        {id:'e3', topic:'解方程步骤', result:'pass'},
+        {id:'e4', topic:'化简求值', result:'pass'},
+        {id:'e5', topic:'统计计算', result:'pass'},
+        {id:'e6', topic:'数轴路程', result:'pass'},
+        {id:'e7', topic:'线段综合', result:'pass'},
+        {id:'e8', topic:'相遇追及', result:'pass'},
+        {id:'e9', topic:'角度综合', result:'pass'}
       ],
-      summary: '9题全部通过 ✅ 毕业'
+      residualIssues: [],
+      summary: '9类错题全部回归通过，已毕业 🎉'
     }
-  ],
-  residualIssues: ['分数转小数计算（1/6≈0.167写成0.83），属计算粗心'],
-  knowledgeStatus: [
-    {topic:'分类讨论', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
-    {topic:'方程建模', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
-    {topic:'解方程步骤', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
-    {topic:'化简求值', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
-    {topic:'统计计算', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
-    {topic:'数轴路程', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
-    {topic:'线段综合', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
-    {topic:'相遇追及', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
-    {topic:'角度综合', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'}
   ]
 };
 
@@ -571,79 +588,117 @@ function renderErrorBook(){
   var data=ERROR_BOOK_DATA;
   var html='';
 
-  // 顶部统计区
+  // ===== 板块一：错题总览 =====
   html+='<div class="error-summary">';
-  html+='<h3>📝 错题本</h3>';
+  html+='<h3>📝 错题总览</h3>';
   html+='<div class="error-stats">';
-  html+='<div class="error-stat"><div class="error-stat-num blue">'+data.summary.total+'</div><div class="error-stat-label">总入库</div></div>';
+  html+='<div class="error-stat"><div class="error-stat-num blue">'+data.summary.totalEntered+'</div><div class="error-stat-label">累计入库</div></div>';
   html+='<div class="error-stat"><div class="error-stat-num green">'+data.summary.graduated+'</div><div class="error-stat-label">已毕业</div></div>';
   html+='<div class="error-stat"><div class="error-stat-num orange">'+data.summary.inReview+'</div><div class="error-stat-label">回归中</div></div>';
   html+='</div>';
-  html+='</div>';
 
-  // 按回归轮次展示
-  data.reviewRounds.forEach(function(rd){
-    var passCount=rd.errors.filter(function(e){return e.result==='pass'}).length;
-    var totalCount=rd.errors.length;
-    var dateStr=rd.date?rd.date.slice(5).replace('-','/'):' ';
-    var cardId='round-'+rd.round;
+  // 汇总表
+  html+='<table class="error-table">';
+  html+='<tr><th>题号</th><th>知识点</th><th>错因</th><th>严重</th><th>状态</th></tr>';
+  data.allErrors.forEach(function(e){
+    var sevCls=e.severity==='high'?'high':e.severity==='medium'?'medium':'low';
+    var stars=e.severity==='high'?'★★★':e.severity==='medium'?'★★':'★';
+    var statusText=e.status==='graduated'?'✅ 已毕业':e.status==='reviewing'?'🔄 回归中':'📥 待回归';
+    var statusCls=e.status;
+    html+='<tr>';
+    html+='<td>'+esc(e.question)+'</td>';
+    html+='<td style="font-weight:600">'+esc(e.topic)+'</td>';
+    html+='<td>'+esc(e.errorType)+'</td>';
+    html+='<td><span class="error-severity '+sevCls+'">'+stars+'</span></td>';
+    html+='<td><span class="error-status '+statusCls+'">'+statusText+'</span></td>';
+    html+='</tr>';
+  });
+  html+='</table></div>';
 
-    html+='<div class="review-round-card" id="'+cardId+'">';
-    html+='<div class="review-round-header" onclick="toggleRound('+rd.round+')">';
-    html+='<div class="chapter-left">';
-    html+='<div class="review-round-title">📌 '+esc(rd.title)+'（'+dateStr+'）</div>';
-    html+='<div class="review-round-sub">'+esc(rd.summary)+'</div>';
+  // ===== 板块二：打卡记录 =====
+  html+='<div style="margin-top:20px">';
+  html+='<h3 style="font-size:1em;color:var(--primary);margin-bottom:12px;font-weight:700">📅 打卡记录</h3>';
+
+  data.checkins.forEach(function(c, idx){
+    var badgeCls=c.type==='enter'?'enter':c.type==='review'?'review':'mixed';
+    var badgeText=c.type==='enter'?'新入库':c.type==='review'?'回归复验':'混合';
+    var newCount=c.newErrors?c.newErrors.length:0;
+    var reviewPass=c.reviewErrors?c.reviewErrors.filter(function(r){return r.result==='pass'}).length:0;
+    var reviewFail=c.reviewErrors?c.reviewErrors.filter(function(r){return r.result!=='pass'}).length:0;
+
+    // 统计摘要
+    var metaParts=[];
+    if(newCount>0) metaParts.push('新入库 '+newCount+' 类');
+    if(c.reviewErrors&&c.reviewErrors.length>0) metaParts.push('复验 '+c.reviewErrors.length+' 类（过 '+reviewPass+' / 未过 '+reviewFail+'）');
+    var metaText=metaParts.length>0?metaParts.join(' · '):'';
+
+    html+='<div class="checkin-round" id="checkin-'+idx+'">';
+    html+='<div class="checkin-header" onclick="toggleCheckin('+idx+')">';
+    html+='<div class="checkin-header-left">';
+    html+='<div class="checkin-title">'+esc(c.title)+'</div>';
+    html+='<div class="checkin-meta">'+esc(c.date)+(metaText?' · '+metaText:'')+'</div>';
     html+='</div>';
-    html+='<div class="chapter-right">';
-    html+='<span class="status-tag '+(passCount===totalCount?'pass':'progress')+'">'+passCount+'/'+totalCount+'</span>';
-    html+='<span class="expand-icon">▼</span>';
-    html+='</div>';
+    html+='<span class="checkin-badge '+badgeCls+'">'+badgeText+'</span>';
+    html+='<span class="checkin-expand">▼</span>';
     html+='</div>';
 
-    html+='<div class="review-round-body">';
-    rd.errors.forEach(function(e){
-      var itemCls=e.result==='pass'?'pass':'fail';
-      var icon=e.result==='pass'?'✅':'❌';
-      html+='<div class="error-round-item '+itemCls+'">';
-      html+='<div class="eq-top"><span class="eq-question">'+icon+' '+esc(e.question)+'</span><span>'+esc(e.topic)+'</span></div>';
-      if(e.reason)html+='<div class="eq-reason">错因：'+esc(e.reason)+'</div>';
+    html+='<div class="checkin-body">';
+
+    // 新入库部分
+    if(c.newErrors&&c.newErrors.length>0){
+      html+='<div class="checkin-section">';
+      html+='<div class="checkin-section-title">📥 新入库 <span class="count">'+c.newErrors.length+'</span></div>';
+      c.newErrors.forEach(function(e){
+        var sevCls=e.severity==='high'?'high':e.severity==='medium'?'medium':'low';
+        var stars=e.severity==='high'?'★★★':e.severity==='medium'?'★★':'★';
+        html+='<div class="checkin-error-row">';
+        html+='<span class="topic">'+esc(e.topic)+'</span>';
+        html+='<span class="detail">'+esc(e.errorType)+' <span class="error-severity '+sevCls+'">'+stars+'</span></span>';
+        html+='<span class="result-tag enter">入库</span>';
+        html+='</div>';
+      });
       html+='</div>';
-    });
-    html+='</div></div>';
+    }
+
+    // 回归复验部分
+    if(c.reviewErrors&&c.reviewErrors.length>0){
+      html+='<div class="checkin-section">';
+      html+='<div class="checkin-section-title">🔄 回归复验 <span class="count">'+c.reviewErrors.length+'</span></div>';
+      c.reviewErrors.forEach(function(r){
+        var resultCls=r.result==='pass'?'pass':'fail';
+        var resultText=r.result==='pass'?'✅ 通过':'❌ 未过';
+        html+='<div class="checkin-error-row">';
+        html+='<span class="topic">'+esc(r.topic)+'</span>';
+        html+='<span class="detail"></span>';
+        html+='<span class="result-tag '+resultCls+'">'+resultText+'</span>';
+        html+='</div>';
+      });
+      html+='</div>';
+    }
+
+    // 小结
+    if(c.summary){
+      html+='<div class="checkin-summary">'+esc(c.summary)+'</div>';
+    }
+
+    // 残留问题
+    if(c.residualIssues&&c.residualIssues.length>0){
+      html+='<div class="checkin-residual">⚠️ 残留：'+esc(c.residualIssues.join('；'))+'</div>';
+    }
+
+    html+='</div>'; // checkin-body
+    html+='</div>'; // checkin-round
   });
 
-  // 知识点掌握状态
-  if(data.knowledgeStatus&&data.knowledgeStatus.length>0){
-    html+='<div class="kp-status-card">';
-    html+='<h3>🎯 知识点掌握状态</h3>';
-    html+='<table class="kp-status-table">';
-    html+='<tr><th>知识点</th><th>状态</th><th>验收日期</th><th>下次复验</th></tr>';
-    data.knowledgeStatus.forEach(function(kp){
-      var statusText=kp.status==='mastered'?'✅ 已掌握':kp.status==='practicing'?'🔄 练习中':'❌ 未掌握';
-      var statusCls=kp.status;
-      html+='<tr>';
-      html+='<td>'+esc(kp.topic)+'</td>';
-      html+='<td><span class="kp-status '+statusCls+'">'+statusText+'</span></td>';
-      html+='<td>'+esc(kp.verifyDate)+'</td>';
-      html+='<td>'+esc(kp.nextReview)+'</td>';
-      html+='</tr>';
-    });
-    html+='</table></div>';
-  }
+  html+='</div>';
 
-  // 残留问题
-  if(data.residualIssues&&data.residualIssues.length>0){
-    html+='<div class="kp-status-card">';
-    html+='<h3>⚠️ 残留问题</h3>';
-    html+='<ul style="font-size:.88em;color:var(--text);padding-left:20px">';
-    data.residualIssues.forEach(function(issue){
-      html+='<li style="margin-bottom:8px">'+esc(issue)+'</li>';
-    });
-    html+='</ul></div>';
-  }
-
-  html+='<div class="footer">错题本 · 按回归轮次展示 · 点击展开查看每轮详情 · 定期复验巩固</div>';
+  html+='<div class="footer">错题本动态更新 · 每次打卡自动记录 · 艾宾浩斯回归巩固</div>';
   app.innerHTML=html;
+}
+
+function toggleCheckin(idx){
+  var el=document.getElementById('checkin-'+idx);
+  if(el) el.classList.toggle('expanded');
 }
 
   render();
