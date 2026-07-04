@@ -233,6 +233,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 function toggleCard(id){var card=document.getElementById('card-'+id);card.classList.toggle('expanded')}
 function toggleChat(id){var panel=document.getElementById('chat-'+id);panel.classList.toggle('open')}
 function toggleOutline(id){var card=document.getElementById('outline-'+id);card.classList.toggle('expanded')}
+function toggleCheckin(idx){var el=document.getElementById('checkin-'+idx);if(el) el.classList.toggle('expanded')}
 
 function switchTab(tab){
   document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active'));
@@ -694,11 +695,6 @@ function renderErrorBook(){
 
   html+='<div class="footer">错题本动态更新 · 每次打卡自动记录 · 艾宾浩斯回归巩固</div>';
   app.innerHTML=html;
-}
-
-function toggleCheckin(idx){
-  var el=document.getElementById('checkin-'+idx);
-  if(el) el.classList.toggle('expanded');
 }
 
   render();
