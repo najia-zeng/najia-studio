@@ -319,7 +319,7 @@ function renderReport(sec,sid){
   var html='<div class="report-box"><h4>📋 互动记录 · '+esc(r.date)+'</h4>';
   var factSummary=(r.observe&&r.observe.weakness)?' — '+esc(r.observe.weakness):'';
   var debateSummary=(r.observe&&r.observe.highlight)?' — '+esc(r.observe.highlight):'';
-  var chainSummary=(r.observe&&r.observe.highlight)?' — '+esc(r.observe.highlight):'';
+  var chainSummary=(r.observe&&r.observe.chainHighlight)?' — '+esc(r.observe.chainHighlight):'';
   html+='<div class="report-row"><span class="report-label">事实记忆</span><span class="report-value green">✅ '+r.factCount+'道</span><span style="color:var(--text-light);font-size:.82em;margin-left:8px">'+factSummary+'</span></div>';
   html+='<div class="report-row"><span class="report-label">思辨分析</span><span class="report-value green">✅ '+r.debateCount+'道</span><span style="color:var(--text-light);font-size:.82em;margin-left:8px">'+debateSummary+'</span></div>';
   if(r.chainCount){html+='<div class="report-row"><span class="report-label">跨点串联</span><span class="report-value green">✅ '+r.chainCount+'道</span><span style="color:var(--text-light);font-size:.82em;margin-left:8px">'+chainSummary+'</span></div>';}
