@@ -531,6 +531,46 @@
             ]
           }
         }
+      },
+      {
+        "id": "b1s5",
+        "range": "55~90页",
+        "desc": "",
+        "report": {
+          "date": "2026-06-27",
+          "status": "retry",
+          "factCount": 5,
+          "debateCount": 4,
+          "observe": {
+            "think": 1,
+            "fact": 1,
+            "detail": 0,
+            "highlight": "",
+            "weakness": ""
+          },
+          "method": "",
+          "chat": {}
+        }
+      },
+      {
+        "id": "b1s6",
+        "range": "91~152页",
+        "desc": "",
+        "report": {
+          "date": "2026-06-28",
+          "status": "retry",
+          "factCount": 5,
+          "debateCount": 4,
+          "observe": {
+            "think": 1,
+            "fact": 1,
+            "detail": 0,
+            "highlight": "",
+            "weakness": ""
+          },
+          "method": "",
+          "chat": {}
+        }
       }
     ]
   },
