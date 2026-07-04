@@ -243,24 +243,48 @@ fetch('./data-math.json')
     document.getElementById('app').innerHTML = '<p style="color:red;text-align:center;padding:2rem;">数据加载失败：' + err.message + '</p>';
   });
 
-// 错题本数据
+// 错题本数据（多轮回归结构）
 var ERROR_BOOK_DATA = {
   summary: {
     total: 9,
-    passed: 9,
-    pending: 0,
-    verificationDate: '2026-07-03'
+    graduated: 9,
+    inReview: 0
   },
-  errors: [
-    {id:'e1', question:'第6题', topic:'分类讨论', errorType:'分类讨论遗漏', severity:'medium', status:'passed', verifyDate:'2026-07-03'},
-    {id:'e2', question:'第8题', topic:'方程建模', errorType:'等量关系列错', severity:'high', status:'passed', verifyDate:'2026-07-03'},
-    {id:'e3', question:'第20题', topic:'解方程步骤', errorType:'步骤不规范', severity:'low', status:'passed', verifyDate:'2026-07-03'},
-    {id:'e4', question:'第21题', topic:'化简求值', errorType:'代数运算出错', severity:'medium', status:'passed', verifyDate:'2026-07-03'},
-    {id:'e5', question:'第22题', topic:'统计计算', errorType:'基础计算错误', severity:'low', status:'passed', verifyDate:'2026-07-03'},
-    {id:'e6', question:'第23题', topic:'数轴路程', errorType:'绝对值求和算错', severity:'low', status:'passed', verifyDate:'2026-07-03'},
-    {id:'e7', question:'第24题', topic:'线段综合', errorType:'关系理解有误', severity:'medium', status:'passed', verifyDate:'2026-07-03'},
-    {id:'e8', question:'第25题', topic:'相遇追及', errorType:'方程模型混淆', severity:'high', status:'passed', verifyDate:'2026-07-03'},
-    {id:'e9', question:'第26题', topic:'角度综合', errorType:'角度关系推导错误', severity:'medium', status:'passed', verifyDate:'2026-07-03'}
+  reviewRounds: [
+    {
+      round: 1,
+      date: '2026-07-03',
+      title: '全章验收·错题入库',
+      errors: [
+        {id:'e1', question:'第6题', topic:'分类讨论', result:'fail', reason:'分类讨论遗漏'},
+        {id:'e2', question:'第8题', topic:'方程建模', result:'fail', reason:'等量关系列错'},
+        {id:'e3', question:'第20题', topic:'解方程步骤', result:'fail', reason:'步骤不规范'},
+        {id:'e4', question:'第21题', topic:'化简求值', result:'fail', reason:'代数运算出错'},
+        {id:'e5', question:'第22题', topic:'统计计算', result:'fail', reason:'基础计算错误'},
+        {id:'e6', question:'第23题', topic:'数轴路程', result:'fail', reason:'绝对值求和算错'},
+        {id:'e7', question:'第24题', topic:'线段综合', result:'fail', reason:'关系理解有误'},
+        {id:'e8', question:'第25题', topic:'相遇追及', result:'fail', reason:'方程模型混淆'},
+        {id:'e9', question:'第26题', topic:'角度综合', result:'fail', reason:'角度关系推导错误'}
+      ],
+      summary: '9题入库，全部首次答错'
+    },
+    {
+      round: 2,
+      date: '2026-07-03',
+      title: '第1轮回归',
+      errors: [
+        {id:'e1', question:'第6题', topic:'分类讨论', result:'pass'},
+        {id:'e2', question:'第8题', topic:'方程建模', result:'pass'},
+        {id:'e3', question:'第20题', topic:'解方程步骤', result:'pass'},
+        {id:'e4', question:'第21题', topic:'化简求值', result:'pass'},
+        {id:'e5', question:'第22题', topic:'统计计算', result:'pass'},
+        {id:'e6', question:'第23题', topic:'数轴路程', result:'pass'},
+        {id:'e7', question:'第24题', topic:'线段综合', result:'pass'},
+        {id:'e8', question:'第25题', topic:'相遇追及', result:'pass'},
+        {id:'e9', question:'第26题', topic:'角度综合', result:'pass'}
+      ],
+      summary: '9题全部通过 ✅ 毕业'
+    }
   ],
   residualIssues: ['分数转小数计算（1/6≈0.167写成0.83），属计算粗心'],
   knowledgeStatus: [
@@ -273,12 +297,6 @@ var ERROR_BOOK_DATA = {
     {topic:'线段综合', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
     {topic:'相遇追及', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'},
     {topic:'角度综合', status:'mastered', verifyDate:'2026-07-03', nextReview:'2026-07-10'}
-  ],
-  verificationRounds: [
-    {round:'第一轮', content:'快问快答（5题）', result:'5/5 ✅'},
-    {round:'第二轮', content:'费曼检验（2题）', result:'2/2 ✅'},
-    {round:'第三轮', content:'笔头题（3题）', result:'3/3 ✅'},
-    {round:'第四轮', content:'迁移闯关（3题）', result:'2.5/3 ⚠️'}
   ]
 };
 
