@@ -165,6 +165,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 
 .footer{text-align:center;padding:20px;color:var(--text-light);font-size:.8em;border-top:1px solid var(--border);margin-top:20px}
 @media(max-width:480px){.header h1{font-size:1.3em}.stats-bar{gap:12px}.container{padding:12px 10px}.chapter-header{padding:12px 14px}.chat-content{max-width:88%}.tab-btn{padding:12px 8px;font-size:.88em}}
+
+/* 错题本回归轮次卡片 */
+.review-round-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;border:1px solid var(--border);transition:all .2s}
+.review-round-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.1)}
+.review-round-header{padding:16px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.review-round-header:hover{background:#fafbfc}
+.review-round-title{font-size:1em;font-weight:700;color:var(--text)}
+.review-round-sub{font-size:.8em;color:var(--text-light);margin-top:2px}
+.review-round-body{padding:0 18px;max-height:0;overflow:hidden;transition:all .3s ease}
+.review-round-card.expanded .review-round-body{padding:18px;max-height:50000px}
+.error-round-item{padding:10px 14px;border-left:3px solid var(--border);margin-bottom:8px;font-size:.85em;border-radius:0 8px 8px 0;background:#f8f9fb;transition:all .2s}
+.error-round-item.pass{border-left-color:var(--success);background:var(--success-light)}
+.error-round-item.fail{border-left-color:var(--danger);background:#fff5f5}
+.error-round-item .eq-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.error-round-item .eq-question{font-weight:700;color:var(--text)}
+.error-round-item .eq-topic{font-size:.85em;color:var(--text-light);margin-top:2px}
+.error-round-item .eq-reason{font-size:.82em;color:var(--danger);margin-top:4px}
+.round-summary-text{font-size:.88em;color:var(--text-light);margin-bottom:12px;padding:8px 12px;background:#f8f9fb;border-radius:8px}
 </style>
 </head>
 <body>
@@ -535,63 +553,65 @@ function renderErrorBook(){
   var data=ERROR_BOOK_DATA;
   var html='';
 
-  // 错题摘要
+  // 顶部统计区
   html+='<div class="error-summary">';
-  html+='<h3>📝 错题本 · 验收总览</h3>';
+  html+='<h3>📝 错题本</h3>';
   html+='<div class="error-stats">';
-  html+='<div class="error-stat"><div class="error-stat-num blue">'+data.summary.total+'</div><div class="error-stat-label">错题总数</div></div>';
-  html+='<div class="error-stat"><div class="error-stat-num green">'+data.summary.passed+'</div><div class="error-stat-label">已过关</div></div>';
-  html+='<div class="error-stat"><div class="error-stat-num orange">'+data.summary.pending+'</div><div class="error-stat-label">待验收</div></div>';
+  html+='<div class="error-stat"><div class="error-stat-num blue">'+data.summary.total+'</div><div class="error-stat-label">总入库</div></div>';
+  html+='<div class="error-stat"><div class="error-stat-num green">'+data.summary.graduated+'</div><div class="error-stat-label">已毕业</div></div>';
+  html+='<div class="error-stat"><div class="error-stat-num orange">'+data.summary.inReview+'</div><div class="error-stat-label">回归中</div></div>';
   html+='</div>';
-  html+='<p style="font-size:.85em;color:var(--text-light)">验收日期：'+data.summary.verificationDate+'</p>';
   html+='</div>';
 
-  // 验收轮次
-  html+='<div class="kp-status-card">';
-  html+='<h3>📊 验收轮次</h3>';
-  html+='<table class="kp-status-table">';
-  html+='<tr><th>轮次</th><th>内容</th><th>结果</th></tr>';
-  data.verificationRounds.forEach(function(r){
-    html+='<tr><td>'+esc(r.round)+'</td><td>'+esc(r.content)+'</td><td>'+esc(r.result)+'</td></tr>';
-  });
-  html+='</table></div>';
+  // 按回归轮次展示
+  data.reviewRounds.forEach(function(rd){
+    var passCount=rd.errors.filter(function(e){return e.result==='pass'}).length;
+    var totalCount=rd.errors.length;
+    var dateStr=rd.date?rd.date.slice(5).replace('-','/'):' ';
+    var cardId='round-'+rd.round;
 
-  // 错题清单
-  html+='<div class="kp-status-card">';
-  html+='<h3>📋 错题清单</h3>';
-  html+='<table class="error-table">';
-  html+='<tr><th>题号</th><th>知识点</th><th>错误类型</th><th>严重程度</th><th>状态</th></tr>';
-  data.errors.forEach(function(e){
-    var sevCls=e.severity==='high'?'high':e.severity==='medium'?'medium':'low';
-    var stars=e.severity==='high'?'★★★★':e.severity==='medium'?'★★★':'★★';
-    var statusText=e.status==='passed'?'✅ 已过关':'⏳ 待验收';
-    var statusCls=e.status==='passed'?'passed':'pending';
-    html+='<tr>';
-    html+='<td>'+esc(e.question)+'</td>';
-    html+='<td>'+esc(e.topic)+'</td>';
-    html+='<td>'+esc(e.errorType)+'</td>';
-    html+='<td><span class="error-severity '+sevCls+'">'+stars+'</span></td>';
-    html+='<td><span class="error-status '+statusCls+'">'+statusText+'</span></td>';
-    html+='</tr>';
+    html+='<div class="review-round-card" id="'+cardId+'">';
+    html+='<div class="review-round-header" onclick="toggleRound('+rd.round+')">';
+    html+='<div class="chapter-left">';
+    html+='<div class="review-round-title">📌 '+esc(rd.title)+'（'+dateStr+'）</div>';
+    html+='<div class="review-round-sub">'+esc(rd.summary)+'</div>';
+    html+='</div>';
+    html+='<div class="chapter-right">';
+    html+='<span class="status-tag '+(passCount===totalCount?'pass':'progress')+'">'+passCount+'/'+totalCount+'</span>';
+    html+='<span class="expand-icon">▼</span>';
+    html+='</div>';
+    html+='</div>';
+
+    html+='<div class="review-round-body">';
+    rd.errors.forEach(function(e){
+      var itemCls=e.result==='pass'?'pass':'fail';
+      var icon=e.result==='pass'?'✅':'❌';
+      html+='<div class="error-round-item '+itemCls+'">';
+      html+='<div class="eq-top"><span class="eq-question">'+icon+' '+esc(e.question)+'</span><span>'+esc(e.topic)+'</span></div>';
+      if(e.reason)html+='<div class="eq-reason">错因：'+esc(e.reason)+'</div>';
+      html+='</div>';
+    });
+    html+='</div></div>';
   });
-  html+='</table></div>';
 
   // 知识点掌握状态
-  html+='<div class="kp-status-card">';
-  html+='<h3>🎯 知识点掌握状态</h3>';
-  html+='<table class="kp-status-table">';
-  html+='<tr><th>知识点</th><th>状态</th><th>验收日期</th><th>下次复验</th></tr>';
-  data.knowledgeStatus.forEach(function(kp){
-    var statusText=kp.status==='mastered'?'✅ 已掌握':kp.status==='practicing'?'🔄 练习中':'❌ 未掌握';
-    var statusCls=kp.status;
-    html+='<tr>';
-    html+='<td>'+esc(kp.topic)+'</td>';
-    html+='<td><span class="kp-status '+statusCls+'">'+statusText+'</span></td>';
-    html+='<td>'+esc(kp.verifyDate)+'</td>';
-    html+='<td>'+esc(kp.nextReview)+'</td>';
-    html+='</tr>';
-  });
-  html+='</table></div>';
+  if(data.knowledgeStatus&&data.knowledgeStatus.length>0){
+    html+='<div class="kp-status-card">';
+    html+='<h3>🎯 知识点掌握状态</h3>';
+    html+='<table class="kp-status-table">';
+    html+='<tr><th>知识点</th><th>状态</th><th>验收日期</th><th>下次复验</th></tr>';
+    data.knowledgeStatus.forEach(function(kp){
+      var statusText=kp.status==='mastered'?'✅ 已掌握':kp.status==='practicing'?'🔄 练习中':'❌ 未掌握';
+      var statusCls=kp.status;
+      html+='<tr>';
+      html+='<td>'+esc(kp.topic)+'</td>';
+      html+='<td><span class="kp-status '+statusCls+'">'+statusText+'</span></td>';
+      html+='<td>'+esc(kp.verifyDate)+'</td>';
+      html+='<td>'+esc(kp.nextReview)+'</td>';
+      html+='</tr>';
+    });
+    html+='</table></div>';
+  }
 
   // 残留问题
   if(data.residualIssues&&data.residualIssues.length>0){
@@ -604,7 +624,7 @@ function renderErrorBook(){
     html+='</ul></div>';
   }
 
-  html+='<div class="footer">错题本动态更新 · 掌握状态：已掌握/练习中/未掌握 · 定期复验巩固</div>';
+  html+='<div class="footer">错题本 · 按回归轮次展示 · 点击展开查看每轮详情 · 定期复验巩固</div>';
   app.innerHTML=html;
 }
 
