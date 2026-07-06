@@ -25,8 +25,11 @@ html, body {
   padding: 0 16px;
   padding-top: env(safe-area-inset-top, 0px);
   box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-  position: relative;
-  z-index: 1001;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
 }
 #custom-header .title {
   color: #fff;
@@ -36,24 +39,24 @@ html, body {
 #chat-container {
   width: 100%;
   height: calc(100vh - 52px);
-  position: relative;
-}
-#loading {
   position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  color: #999;
+  top: 52px;
+  left: 0;
+  overflow: hidden;
 }
-#loading .spinner {
-  width: 36px; height: 36px;
-  border: 3px solid #e0e0e0;
-  border-top: 3px solid #667eea;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto 12px;
+/* 隐藏 SDK 默认 UI */
+.coze-web-sdk-footer,
+[class*="coze-footer"],
+[class*="footer-powered"] { display: none !important; }
+/* 强制 SDK 聊天窗口占满容器 */
+#chat-container iframe,
+#chat-container .coze-chatbot,
+#chat-container [class*="chat"],
+#chat-container [class*="chatbot"],
+#chat-container > div {
+  width: 100% !important;
+  height: 100% !important;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -69,12 +72,15 @@ html, body {
 (function() {
   var chatContainer = document.getElementById('chat-container');
 
+  // 调试日志
+  console.log('Chat SDK loading...', typeof CozeWebSDK);
+
   try {
     var client = new CozeWebSDK.WebChatClient({
       config: {
         type: 'bot',
         bot_id: '7659326952666726409',
-        isIframe: false
+        isIframe: true
       },
       auth: {
         type: 'token',
@@ -86,14 +92,14 @@ html, body {
       ui: {
         base: {
           lang: 'zh-CN',
-          zIndex: 999
+          zIndex: 9999
         },
         header: {
           isShow: true,
           isNeedClose: false
         },
         asstBtn: {
-          isNeed: false
+          isNeed: true
         },
         footer: {
           isShow: false
@@ -111,13 +117,27 @@ html, body {
       }
     });
 
-    // 主动打开聊天窗口
-    if (client && typeof client.openChatBot === 'function') {
-      client.openChatBot();
-    }
+    console.log('Chat SDK initialized', client);
+
+    // 延迟打开
+    setTimeout(function() {
+      try {
+        if (client && typeof client.openChatBot === 'function') {
+          client.openChatBot();
+          console.log('openChatBot() called');
+        } else if (client && typeof client.showChatBot === 'function') {
+          client.showChatBot();
+          console.log('showChatBot() called');
+        } else {
+          console.log('No open method found on client');
+        }
+      } catch(e) {
+        console.error('Open chat error:', e);
+      }
+    }, 500);
 
   } catch(e) {
-    console.error('Chat SDK error:', e);
+    console.error('Chat SDK init error:', e);
     chatContainer.innerHTML = '<div style="padding:20px;color:#e74c3c;text-align:center;">加载失败：' + e.message + '</div>';
   }
 })();
