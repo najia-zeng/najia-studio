@@ -190,6 +190,7 @@ async function sendMessage() {
   statusEl.textContent = '思考中...';
 
   try {
+    // Step 1: Create chat (POST)
     var res = await fetch(API + '/chat', {
       method: 'POST',
       headers: {
@@ -209,17 +210,15 @@ async function sendMessage() {
       })
     });
     var data = await res.json();
-    console.log('Create chat response:', data);
 
     if (data.code !== 0) {
-      throw new Error(data.msg || JSON.stringify(data));
+      throw new Error(data.msg || '发起对话失败');
     }
 
     var chatId = data.data.id;
     var convId = data.data.conversation_id;
 
-    console.log('Chat ID:', chatId, 'Conv ID:', convId);
-
+    // Step 2: Poll for completion (GET with query params)
     var answer = await pollChat(chatId, convId);
     removeTyping();
     addMessage('bot', answer);
@@ -227,8 +226,7 @@ async function sendMessage() {
 
   } catch(e) {
     removeTyping();
-    console.error('Error:', e);
-    addMessage('bot', '出了点问题：' + e.message + '\n请重试一下。');
+    addMessage('bot', '出了点问题：' + e.message);
     statusEl.textContent = '';
   }
 
@@ -238,47 +236,40 @@ async function sendMessage() {
 }
 
 async function pollChat(chatId, convId) {
-  for (var i = 0; i < 90; i++) {
-    await sleep(2000);
-    statusEl.textContent = '思考中... (' + (i+1) + ')';
-    
-    var res = await fetch(API + '/chat/retrieve', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + PAT,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        conversation_id: convId,
-        chat_id: chatId
-      })
+  for (var i = 0; i < 60; i++) {
+    await sleep(1500);
+    statusEl.textContent = '思考中...';
+
+    // GET request with query parameters
+    var url = API + '/chat/retrieve?conversation_id=' + encodeURIComponent(convId) + '&chat_id=' + encodeURIComponent(chatId);
+    var res = await fetch(url, {
+      method: 'GET',
+      headers: { 'Authorization': 'Bearer ' + PAT }
     });
     var data = await res.json();
-    console.log('Poll response:', data);
 
     if (data.code !== 0) {
-      throw new Error('API错误: ' + (data.msg || JSON.stringify(data)));
+      throw new Error(data.msg || '查询失败');
     }
 
     var status = data.data.status;
-    console.log('Chat status:', status);
-    
     if (status === 'completed') {
       return await getMessages(convId, chatId);
     } else if (status === 'failed') {
       throw new Error('Bot处理失败');
     }
+    // in_progress or created, continue polling
   }
   throw new Error('超时了，请重试');
 }
 
 async function getMessages(convId, chatId) {
-  var res = await fetch(API + '/chat/message/list?conversation_id=' + convId + '&chat_id=' + chatId, {
+  var url = API + '/chat/message/list?conversation_id=' + encodeURIComponent(convId) + '&chat_id=' + encodeURIComponent(chatId);
+  var res = await fetch(url, {
     headers: { 'Authorization': 'Bearer ' + PAT }
   });
   var data = await res.json();
-  console.log('Messages response:', data);
-  
+
   if (data.code !== 0) {
     throw new Error(data.msg || '获取回复失败');
   }
