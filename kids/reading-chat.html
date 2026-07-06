@@ -15,8 +15,6 @@ html, body {
   overflow: hidden;
   background: #f7f7f8;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -webkit-tap-highlight-color: transparent;
 }
 #custom-header {
   height: 52px;
@@ -34,7 +32,6 @@ html, body {
   color: #fff;
   font-size: 17px;
   font-weight: 600;
-  letter-spacing: 0.5px;
 }
 #chat-container {
   width: 100%;
@@ -57,7 +54,6 @@ html, body {
   margin: 0 auto 12px;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-#loading .text { font-size: 14px; }
 </style>
 </head>
 <body>
@@ -66,18 +62,12 @@ html, body {
   <span class="title">📖 阅读验收搭档</span>
 </div>
 
-<div id="chat-container">
-  <div id="loading">
-    <div class="spinner"></div>
-    <div class="text">正在加载...</div>
-  </div>
-</div>
+<div id="chat-container"></div>
 
-<script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.20/libs/cn/index.js?v=20260706"></script>
+<script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.20/libs/cn/index.js"></script>
 <script>
 (function() {
   var chatContainer = document.getElementById('chat-container');
-  var loadingEl = document.getElementById('loading');
 
   try {
     var client = new CozeWebSDK.WebChatClient({
@@ -99,7 +89,7 @@ html, body {
           zIndex: 999
         },
         header: {
-          isShow: false,
+          isShow: true,
           isNeedClose: false
         },
         asstBtn: {
@@ -111,6 +101,7 @@ html, body {
         chatBot: {
           el: chatContainer,
           title: '阅读验收搭档',
+          width: 500,
           isNeedFunctionCallMessage: false,
           uploadable: false,
           isNeedFeedback: false,
@@ -120,15 +111,14 @@ html, body {
       }
     });
 
-    setTimeout(function() {
-      if (loadingEl) loadingEl.style.display = 'none';
-    }, 3000);
+    // 主动打开聊天窗口
+    if (client && typeof client.openChatBot === 'function') {
+      client.openChatBot();
+    }
 
   } catch(e) {
     console.error('Chat SDK error:', e);
-    if (loadingEl) {
-      loadingEl.innerHTML = '<div class="text" style="color:#e74c3c;">加载失败，请刷新重试<br><small>' + e.message + '</small></div>';
-    }
+    chatContainer.innerHTML = '<div style="padding:20px;color:#e74c3c;text-align:center;">加载失败：' + e.message + '</div>';
   }
 })();
 </script>
