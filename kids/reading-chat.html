@@ -4,143 +4,306 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <title>阅读验收搭档</title>
 <style>
+:root {
+  --primary: #667eea;
+  --primary-dark: #5a6fd6;
+  --bg: #f5f6fa;
+  --user-bubble: #667eea;
+  --bot-bubble: #ffffff;
+  --text: #333;
+  --text-light: #888;
+  --border: #e8e8e8;
+}
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body {
   height: 100%; width: 100%;
   overflow: hidden;
-  background: #f7f7f8;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
-#custom-header {
-  height: 52px;
+/* Header */
+.header {
+  height: 56px; padding-top: env(safe-area-inset-top, 0px);
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 16px;
-  padding-top: env(safe-area-inset-top, 0px);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 10000;
+  display: flex; align-items: center; justify-content: center;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-#custom-header .title {
-  color: #fff;
-  font-size: 17px;
-  font-weight: 600;
-}
-#chat-container {
-  width: 100%;
-  height: calc(100vh - 52px);
+.header .title { color: #fff; font-size: 17px; font-weight: 600; }
+.header .status { color: rgba(255,255,255,0.7); font-size: 11px; margin-left: 8px; }
+
+/* Chat Area */
+.chat-area {
   position: absolute;
-  top: 52px;
-  left: 0;
-  overflow: hidden;
+  top: 56px; bottom: 56px; left: 0; right: 0;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 16px 12px;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
-/* 隐藏 SDK 默认 UI */
-.coze-web-sdk-footer,
-[class*="coze-footer"],
-[class*="footer-powered"] { display: none !important; }
-/* 强制 SDK 聊天窗口占满容器 */
-#chat-container iframe,
-#chat-container .coze-chatbot,
-#chat-container [class*="chat"],
-#chat-container [class*="chatbot"],
-#chat-container > div {
-  width: 100% !important;
-  height: 100% !important;
+.chat-area::-webkit-scrollbar { display: none; }
+
+/* Messages */
+.msg { display: flex; margin-bottom: 16px; animation: fadeIn 0.3s ease; }
+.msg.user { justify-content: flex-end; }
+.msg.bot { justify-content: flex-start; }
+
+.bubble {
+  max-width: 78%; padding: 12px 16px;
+  border-radius: 18px; font-size: 15px; line-height: 1.6;
+  word-break: break-word; white-space: pre-wrap;
 }
+.msg.user .bubble {
+  background: var(--user-bubble); color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.msg.bot .bubble {
+  background: var(--bot-bubble); color: var(--text);
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+/* Typing indicator */
+.typing { display: flex; gap: 4px; padding: 8px 0; }
+.typing span {
+  width: 8px; height: 8px; background: #ccc; border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out;
+}
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce {
+  0%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-8px); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Input Area */
+.input-area {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #fff; border-top: 1px solid var(--border);
+  padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: flex-end; gap: 8px;
+}
+.input-area textarea {
+  flex: 1; border: 1px solid var(--border); border-radius: 20px;
+  padding: 10px 16px; font-size: 15px; line-height: 1.4;
+  resize: none; outline: none; max-height: 100px;
+  font-family: inherit; background: var(--bg);
+}
+.input-area textarea:focus { border-color: var(--primary); }
+.send-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--primary); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background 0.2s;
+}
+.send-btn:active { background: var(--primary-dark); }
+.send-btn:disabled { background: #ccc; cursor: not-allowed; }
+.send-btn svg { width: 20px; height: 20px; fill: #fff; }
+
+/* Welcome */
+.welcome {
+  text-align: center; padding: 40px 20px;
+  color: var(--text-light);
+}
+.welcome .emoji { font-size: 48px; margin-bottom: 12px; }
+.welcome .text { font-size: 15px; line-height: 1.6; }
 </style>
 </head>
 <body>
 
-<div id="custom-header">
+<div class="header">
   <span class="title">📖 阅读验收搭档</span>
+  <span class="status" id="status"></span>
 </div>
 
-<div id="chat-container"></div>
+<div class="chat-area" id="chatArea">
+  <div class="welcome" id="welcome">
+    <div class="emoji">📖</div>
+    <div class="text">你好！我是你的阅读验收搭档<br>你要验收哪本书？读到哪了？</div>
+  </div>
+</div>
 
-<script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.20/libs/cn/index.js"></script>
+<div class="input-area">
+  <textarea id="input" rows="1" placeholder="输入消息..." 
+    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"
+    oninput="autoResize(this)"></textarea>
+  <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+  </button>
+</div>
+
 <script>
-(function() {
-  var chatContainer = document.getElementById('chat-container');
+var BOT_ID = '7659326952666726409';
+var PAT = 'pat_Ij3tQZyg7s8g2QwZxqkyo9dTUQgxxKgcbJjHbxVjN2FYxR4iUpM1m9fynC0XNPz2';
+var API = 'https://api.coze.cn/v3';
 
-  // 调试日志
-  console.log('Chat SDK loading...', typeof CozeWebSDK);
+var chatArea = document.getElementById('chatArea');
+var input = document.getElementById('input');
+var sendBtn = document.getElementById('sendBtn');
+var statusEl = document.getElementById('status');
+var welcome = document.getElementById('welcome');
+
+var conversationId = null;
+var userId = 'user_' + Math.random().toString(36).substr(2, 9);
+var isSending = false;
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+function addMessage(role, text) {
+  if (welcome && welcome.parentNode) welcome.remove();
+  var div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.innerHTML = '<div class="bubble">' + escapeHtml(text) + '</div>';
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+  return div;
+}
+
+function addTyping() {
+  var div = document.createElement('div');
+  div.className = 'msg bot';
+  div.id = 'typing-indicator';
+  div.innerHTML = '<div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function removeTyping() {
+  var el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+function escapeHtml(text) {
+  var d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+async function sendMessage() {
+  var text = input.value.trim();
+  if (!text || isSending) return;
+
+  isSending = true;
+  sendBtn.disabled = true;
+  input.value = '';
+  input.style.height = 'auto';
+
+  addMessage('user', text);
+  addTyping();
+  statusEl.textContent = '思考中...';
 
   try {
-    var client = new CozeWebSDK.WebChatClient({
-      config: {
-        type: 'bot',
-        bot_id: '7659326952666726409',
-        isIframe: true
+    // Step 1: Create chat
+    var chatRes = await fetch(API + '/chat', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + PAT,
+        'Content-Type': 'application/json'
       },
-      auth: {
-        type: 'token',
-        token: 'pat_Ij3tQZyg7s8g2QwZxqkyo9dTUQgxxKgcbJjHbxVjN2FYxR4iUpM1m9fynC0XNPz2',
-        onRefreshToken: function() {
-          return 'pat_Ij3tQZyg7s8g2QwZxqkyo9dTUQgxxKgcbJjHbxVjN2FYxR4iUpM1m9fynC0XNPz2';
-        }
-      },
-      ui: {
-        base: {
-          lang: 'zh-CN',
-          zIndex: 9999
-        },
-        header: {
-          isShow: true,
-          isNeedClose: false
-        },
-        asstBtn: {
-          isNeed: true
-        },
-        footer: {
-          isShow: false
-        },
-        chatBot: {
-          el: chatContainer,
-          title: '阅读验收搭档',
-          width: 500,
-          isNeedFunctionCallMessage: false,
-          uploadable: false,
-          isNeedFeedback: false,
-          isNeedAddNewConversation: false,
-          conversations: { isNeed: false }
-        }
-      }
+      body: JSON.stringify({
+        bot_id: BOT_ID,
+        user_id: userId,
+        conversation_id: conversationId,
+        stream: false,
+        auto_save_history: true,
+        additional_messages: [{
+          role: 'user',
+          content: text,
+          content_type: 'text'
+        }]
+      })
     });
+    var chatData = await chatRes.json();
+    
+    if (chatData.code !== 0) {
+      throw new Error(chatData.msg || '发送失败');
+    }
 
-    console.log('Chat SDK initialized', client);
+    conversationId = chatData.data.conversation_id;
+    var chatId = chatData.data.id;
 
-    // 延迟打开
-    setTimeout(function() {
-      try {
-        if (client && typeof client.openChatBot === 'function') {
-          client.openChatBot();
-          console.log('openChatBot() called');
-        } else if (client && typeof client.showChatBot === 'function') {
-          client.showChatBot();
-          console.log('showChatBot() called');
-        } else {
-          console.log('No open method found on client');
-        }
-      } catch(e) {
-        console.error('Open chat error:', e);
-      }
-    }, 500);
+    // Step 2: Poll for completion
+    var answer = await pollChat(chatId, conversationId);
+    removeTyping();
+    addMessage('bot', answer);
+    statusEl.textContent = '';
 
   } catch(e) {
-    console.error('Chat SDK init error:', e);
-    chatContainer.innerHTML = '<div style="padding:20px;color:#e74c3c;text-align:center;">加载失败：' + e.message + '</div>';
+    removeTyping();
+    addMessage('bot', '出了点问题：' + e.message + '\n请重试一下。');
+    statusEl.textContent = '';
   }
-})();
+
+  isSending = false;
+  sendBtn.disabled = false;
+  input.focus();
+}
+
+async function pollChat(chatId, convId) {
+  for (var i = 0; i < 60; i++) {
+    await sleep(2000);
+    
+    var res = await fetch(API + '/chat/retrieve', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + PAT,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        conversation_id: convId,
+        chat_id: chatId
+      })
+    });
+    var data = await res.json();
+    
+    if (data.code !== 0) {
+      throw new Error(data.msg || '查询失败');
+    }
+
+    var status = data.data.status;
+    if (status === 'completed') {
+      return await getMessages(convId, chatId);
+    } else if (status === 'failed') {
+      throw new Error('Bot 处理失败');
+    }
+    // in_progress, continue polling
+  }
+  throw new Error('超时了，请重试');
+}
+
+async function getMessages(convId, chatId) {
+  var res = await fetch(API + '/chat/message/list?conversation_id=' + convId + '&chat_id=' + chatId, {
+    headers: { 'Authorization': 'Bearer ' + PAT }
+  });
+  var data = await res.json();
+  
+  if (data.code !== 0) {
+    throw new Error(data.msg || '获取回复失败');
+  }
+
+  // Find the assistant's answer
+  var messages = data.data || [];
+  for (var i = 0; i < messages.length; i++) {
+    if (messages[i].type === 'answer') {
+      return messages[i].content;
+    }
+  }
+  return '（未收到回复）';
+}
+
+function sleep(ms) {
+  return new Promise(function(resolve) { setTimeout(resolve, ms); });
+}
 </script>
 </body>
 </html>
