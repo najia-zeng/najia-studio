@@ -102,6 +102,13 @@ html, body {
 }
 .welcome .emoji { font-size: 48px; margin-bottom: 12px; }
 .welcome .text { font-size: 15px; line-height: 1.6; }
+.new-chat-btn {
+  position: fixed; top: 64px; right: 12px; z-index: 99;
+  background: rgba(255,255,255,0.9); border: 1px solid var(--border);
+  border-radius: 20px; padding: 6px 14px; font-size: 13px;
+  color: var(--primary); cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
 </style>
 </head>
 <body>
@@ -110,6 +117,8 @@ html, body {
   <span class="title">📖 阅读验收搭档</span>
   <span class="status" id="status"></span>
 </div>
+
+<button class="new-chat-btn" id="newChatBtn" onclick="newChat()" style="display:none">➕ 新对话</button>
 
 <div class="chat-area" id="chatArea">
   <div class="welcome" id="welcome">
@@ -137,8 +146,10 @@ var inputEl = document.getElementById('input');
 var sendBtn = document.getElementById('sendBtn');
 var statusEl = document.getElementById('status');
 var welcome = document.getElementById('welcome');
+var newChatBtn = document.getElementById('newChatBtn');
 
 var userId = 'u_' + Math.random().toString(36).substr(2, 9);
+var conversationId = null;  // 记住会话ID，保持上下文
 var isSending = false;
 
 function autoResize(el) {
@@ -175,6 +186,18 @@ function createBotBubble() {
   return div.querySelector('.bubble');
 }
 
+function newChat() {
+  conversationId = null;
+  chatArea.innerHTML = '';
+  var w = document.createElement('div');
+  w.className = 'welcome';
+  w.id = 'welcome';
+  w.innerHTML = '<div class="emoji">📖</div><div class="text">你好！我是你的阅读验收搭档<br>你要验收哪本书？读到哪了？</div>';
+  chatArea.appendChild(w);
+  welcome = w;
+  newChatBtn.style.display = 'none';
+}
+
 async function sendMessage() {
   var text = inputEl.value.trim();
   if (!text || isSending) return;
@@ -191,23 +214,29 @@ async function sendMessage() {
   var gotAnswer = false;
 
   try {
+    // 构造请求体，如果有 conversationId 就带上（保持上下文）
+    var body = {
+      bot_id: BOT_ID,
+      user_id: userId,
+      stream: true,
+      auto_save_history: true,
+      additional_messages: [{
+        role: 'user',
+        content: text,
+        content_type: 'text'
+      }]
+    };
+    if (conversationId) {
+      body.conversation_id = conversationId;
+    }
+
     var resp = await fetch(API_URL, {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + PAT,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        bot_id: BOT_ID,
-        user_id: userId,
-        stream: true,
-        auto_save_history: true,
-        additional_messages: [{
-          role: 'user',
-          content: text,
-          content_type: 'text'
-        }]
-      })
+      body: JSON.stringify(body)
     });
 
     if (!resp.ok) {
@@ -224,9 +253,8 @@ async function sendMessage() {
       
       buffer += decoder.decode(chunk.value, { stream: true });
       
-      // Parse SSE lines
       var lines = buffer.split('\n');
-      buffer = lines.pop(); // keep incomplete line in buffer
+      buffer = lines.pop();
       
       var currentEvent = '';
       for (var i = 0; i < lines.length; i++) {
@@ -237,6 +265,17 @@ async function sendMessage() {
           currentEvent = line.substring(6);
         } else if (line.indexOf('data:') === 0) {
           var dataStr = line.substring(5);
+          
+          // 从第一个事件中提取 conversation_id
+          if (!conversationId && dataStr) {
+            try {
+              var metaData = JSON.parse(dataStr);
+              if (metaData.conversation_id) {
+                conversationId = metaData.conversation_id;
+                newChatBtn.style.display = 'block';
+              }
+            } catch(e) {}
+          }
           
           if (currentEvent === 'conversation.message.delta') {
             try {
