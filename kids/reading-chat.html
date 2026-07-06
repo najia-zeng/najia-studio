@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>阅读验收搭档</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -16,7 +18,6 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
 }
-/* 自定义顶部栏 */
 #custom-header {
   height: 52px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -35,30 +36,11 @@ html, body {
   font-weight: 600;
   letter-spacing: 0.5px;
 }
-#custom-header .subtitle {
-  color: rgba(255,255,255,0.8);
-  font-size: 11px;
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-/* 隐藏 Coze 默认 UI 元素 */
-#coze-chat-header,
-[class*="coze"] [class*="header"],
-[class*="coze"] [class*="footer"],
-[class*="Powered"],
-[class*="powered-by"] {
-  display: none !important;
-}
-/* 聊天容器 */
 #chat-container {
   width: 100%;
-  height: calc(100% - 52px);
-  height: calc(100vh - 52px - env(safe-area-inset-top, 0px));
+  height: calc(100vh - 52px);
   position: relative;
 }
-/* 加载提示 */
 #loading {
   position: absolute;
   top: 50%; left: 50%;
@@ -91,15 +73,9 @@ html, body {
   </div>
 </div>
 
-<!-- Chat SDK -->
-<script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.20/libs/cn/index.js"></script>
+<script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.20/libs/cn/index.js?v=20260706"></script>
 <script>
 (function() {
-  var BOT_ID = '7659326952666726409';
-  // 如需鉴权，将 AUTH_TYPE 改为 'token'，并填入 PAT
-  var AUTH_TYPE = 'token';
-  var PAT_TOKEN = 'pat_Ij3tQZyg7s8g2QwZxqkyo9dTUQgxxKgcbJjHbxVjN2FYxR4iUpM1m9fynC0XNPz2';
-
   var chatContainer = document.getElementById('chat-container');
   var loadingEl = document.getElementById('loading');
 
@@ -107,28 +83,30 @@ html, body {
     var client = new CozeWebSDK.WebChatClient({
       config: {
         type: 'bot',
-        bot_id: BOT_ID,
-        isIframe: false,
+        bot_id: '7659326952666726409',
+        isIframe: false
       },
-      auth: AUTH_TYPE === 'token' ? {
+      auth: {
         type: 'token',
-        token: PAT_TOKEN,
-        onRefreshToken: function() { return PAT_TOKEN; }
-      } : undefined,
+        token: 'pat_Ij3tQZyg7s8g2QwZxqkyo9dTUQgxxKgcbJjHbxVjN2FYxR4iUpM1m9fynC0XNPz2',
+        onRefreshToken: function() {
+          return 'pat_Ij3tQZyg7s8g2QwZxqkyo9dTUQgxxKgcbJjHbxVjN2FYxR4iUpM1m9fynC0XNPz2';
+        }
+      },
       ui: {
         base: {
           lang: 'zh-CN',
-          zIndex: 999,
+          zIndex: 999
         },
         header: {
           isShow: false,
-          isNeedClose: false,
+          isNeedClose: false
         },
         asstBtn: {
-          isNeed: false,
+          isNeed: false
         },
         footer: {
-          isShow: false,
+          isShow: false
         },
         chatBot: {
           el: chatContainer,
@@ -137,20 +115,19 @@ html, body {
           uploadable: false,
           isNeedFeedback: false,
           isNeedAddNewConversation: false,
-          conversations: { isNeed: false },
-        },
-      },
+          conversations: { isNeed: false }
+        }
+      }
     });
 
-    // 隐藏加载提示
     setTimeout(function() {
       if (loadingEl) loadingEl.style.display = 'none';
-    }, 2000);
+    }, 3000);
 
   } catch(e) {
-    console.error('Chat SDK 初始化失败:', e);
+    console.error('Chat SDK error:', e);
     if (loadingEl) {
-      loadingEl.innerHTML = '<div class="text" style="color:#e74c3c;">加载失败，请刷新重试</div>';
+      loadingEl.innerHTML = '<div class="text" style="color:#e74c3c;">加载失败，请刷新重试<br><small>' + e.message + '</small></div>';
     }
   }
 })();
