@@ -59,16 +59,16 @@ html, body {
   border-bottom-left-radius: 4px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
-.typing { display: flex; gap: 4px; padding: 8px 0; }
-.typing span {
-  width: 8px; height: 8px; background: #ccc; border-radius: 50%;
+.typing-dots { display: inline-flex; gap: 4px; padding: 4px 0; }
+.typing-dots span {
+  width: 7px; height: 7px; background: #ccc; border-radius: 50%;
   animation: bounce 1.4s infinite ease-in-out;
 }
-.typing span:nth-child(2) { animation-delay: 0.2s; }
-.typing span:nth-child(3) { animation-delay: 0.4s; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes bounce {
   0%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-8px); }
+  40% { transform: translateY(-6px); }
 }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
@@ -130,15 +130,15 @@ html, body {
 <script>
 var BOT_ID = '7659326952666726409';
 var PAT = 'pat_Ij3tQZyg7s8g2QwZxqkyo9dTUQgxxKgcbJjHbxVjN2FYxR4iUpM1m9fynC0XNPz2';
-var API = 'https://api.coze.cn/v3';
+var API_URL = 'https://api.coze.cn/v3/chat';
 
 var chatArea = document.getElementById('chatArea');
-var input = document.getElementById('input');
+var inputEl = document.getElementById('input');
 var sendBtn = document.getElementById('sendBtn');
 var statusEl = document.getElementById('status');
 var welcome = document.getElementById('welcome');
 
-var userId = 'user_' + Math.random().toString(36).substr(2, 9);
+var userId = 'u_' + Math.random().toString(36).substr(2, 9);
 var isSending = false;
 
 function autoResize(el) {
@@ -146,52 +146,52 @@ function autoResize(el) {
   el.style.height = Math.min(el.scrollHeight, 100) + 'px';
 }
 
-function addMessage(role, text) {
-  if (welcome && welcome.parentNode) welcome.remove();
-  var div = document.createElement('div');
-  div.className = 'msg ' + role;
-  div.innerHTML = '<div class="bubble">' + escapeHtml(text) + '</div>';
-  chatArea.appendChild(div);
-  chatArea.scrollTop = chatArea.scrollHeight;
-  return div;
-}
-
-function addTyping() {
-  var div = document.createElement('div');
-  div.className = 'msg bot';
-  div.id = 'typing-indicator';
-  div.innerHTML = '<div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
-  chatArea.appendChild(div);
-  chatArea.scrollTop = chatArea.scrollHeight;
-}
-
-function removeTyping() {
-  var el = document.getElementById('typing-indicator');
-  if (el) el.remove();
-}
-
-function escapeHtml(text) {
+function escapeHtml(t) {
   var d = document.createElement('div');
-  d.textContent = text;
+  d.textContent = t;
   return d.innerHTML;
 }
 
+function scrollBottom() {
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function addUserMsg(text) {
+  if (welcome && welcome.parentNode) welcome.remove();
+  var div = document.createElement('div');
+  div.className = 'msg user';
+  div.innerHTML = '<div class="bubble">' + escapeHtml(text) + '</div>';
+  chatArea.appendChild(div);
+  scrollBottom();
+}
+
+function createBotBubble() {
+  if (welcome && welcome.parentNode) welcome.remove();
+  var div = document.createElement('div');
+  div.className = 'msg bot';
+  div.innerHTML = '<div class="bubble"><span class="typing-dots"><span></span><span></span><span></span></span></div>';
+  chatArea.appendChild(div);
+  scrollBottom();
+  return div.querySelector('.bubble');
+}
+
 async function sendMessage() {
-  var text = input.value.trim();
+  var text = inputEl.value.trim();
   if (!text || isSending) return;
 
   isSending = true;
   sendBtn.disabled = true;
-  input.value = '';
-  input.style.height = 'auto';
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
 
-  addMessage('user', text);
-  addTyping();
+  addUserMsg(text);
+  var bubble = createBotBubble();
   statusEl.textContent = '思考中...';
+  var answerText = '';
+  var gotAnswer = false;
 
   try {
-    // Step 1: Create chat (POST)
-    var res = await fetch(API + '/chat', {
+    var resp = await fetch(API_URL, {
       method: 'POST',
       headers: {
         'Authorization': 'Bearer ' + PAT,
@@ -200,7 +200,7 @@ async function sendMessage() {
       body: JSON.stringify({
         bot_id: BOT_ID,
         user_id: userId,
-        stream: false,
+        stream: true,
         auto_save_history: true,
         additional_messages: [{
           role: 'user',
@@ -209,82 +209,68 @@ async function sendMessage() {
         }]
       })
     });
-    var data = await res.json();
 
-    if (data.code !== 0) {
-      throw new Error(data.msg || '发起对话失败');
+    if (!resp.ok) {
+      throw new Error('网络错误: ' + resp.status);
     }
 
-    var chatId = data.data.id;
-    var convId = data.data.conversation_id;
+    var reader = resp.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = '';
 
-    // Step 2: Poll for completion (GET with query params)
-    var answer = await pollChat(chatId, convId);
-    removeTyping();
-    addMessage('bot', answer);
+    while (true) {
+      var chunk = await reader.read();
+      if (chunk.done) break;
+      
+      buffer += decoder.decode(chunk.value, { stream: true });
+      
+      // Parse SSE lines
+      var lines = buffer.split('\n');
+      buffer = lines.pop(); // keep incomplete line in buffer
+      
+      var currentEvent = '';
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (line === '') continue;
+        
+        if (line.indexOf('event:') === 0) {
+          currentEvent = line.substring(6);
+        } else if (line.indexOf('data:') === 0) {
+          var dataStr = line.substring(5);
+          
+          if (currentEvent === 'conversation.message.delta') {
+            try {
+              var d = JSON.parse(dataStr);
+              if (d.type === 'answer' && d.content && d.content.length > 0) {
+                if (!gotAnswer) {
+                  gotAnswer = true;
+                  bubble.textContent = '';
+                  statusEl.textContent = '回复中...';
+                }
+                answerText += d.content;
+                bubble.textContent = answerText;
+                scrollBottom();
+              }
+            } catch(e) {}
+          }
+          currentEvent = '';
+        }
+      }
+    }
+
+    if (!gotAnswer || answerText.length === 0) {
+      bubble.textContent = '未收到回复，请重试';
+    }
     statusEl.textContent = '';
 
   } catch(e) {
-    removeTyping();
-    addMessage('bot', '出了点问题：' + e.message);
+    bubble.textContent = '出了点问题：' + e.message;
     statusEl.textContent = '';
   }
 
   isSending = false;
   sendBtn.disabled = false;
-  input.focus();
-}
-
-async function pollChat(chatId, convId) {
-  for (var i = 0; i < 60; i++) {
-    await sleep(1500);
-    statusEl.textContent = '思考中...';
-
-    // GET request with query parameters
-    var url = API + '/chat/retrieve?conversation_id=' + encodeURIComponent(convId) + '&chat_id=' + encodeURIComponent(chatId);
-    var res = await fetch(url, {
-      method: 'GET',
-      headers: { 'Authorization': 'Bearer ' + PAT }
-    });
-    var data = await res.json();
-
-    if (data.code !== 0) {
-      throw new Error(data.msg || '查询失败');
-    }
-
-    var status = data.data.status;
-    if (status === 'completed') {
-      return await getMessages(convId, chatId);
-    } else if (status === 'failed') {
-      throw new Error('Bot处理失败');
-    }
-    // in_progress or created, continue polling
-  }
-  throw new Error('超时了，请重试');
-}
-
-async function getMessages(convId, chatId) {
-  var url = API + '/chat/message/list?conversation_id=' + encodeURIComponent(convId) + '&chat_id=' + encodeURIComponent(chatId);
-  var res = await fetch(url, {
-    headers: { 'Authorization': 'Bearer ' + PAT }
-  });
-  var data = await res.json();
-
-  if (data.code !== 0) {
-    throw new Error(data.msg || '获取回复失败');
-  }
-
-  var messages = data.data || [];
-  for (var i = 0; i < messages.length; i++) {
-    if (messages[i].type === 'answer') {
-      return messages[i].content;
-    }
-  }
-  return '（未收到回复）';
-}
-
-function sleep(ms) {
-  return new Promise(function(resolve) { setTimeout(resolve, ms); });
+  inputEl.focus();
 }
 </script>
 </body>
