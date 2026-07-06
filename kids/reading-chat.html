@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>阅读验收搭档</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  height: 100%; width: 100%;
+  overflow: hidden;
+  background: #f7f7f8;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 自定义顶部栏 */
+#custom-header {
+  height: 52px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  padding-top: env(safe-area-inset-top, 0px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  position: relative;
+  z-index: 1001;
+}
+#custom-header .title {
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+#custom-header .subtitle {
+  color: rgba(255,255,255,0.8);
+  font-size: 11px;
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+/* 隐藏 Coze 默认 UI 元素 */
+#coze-chat-header,
+[class*="coze"] [class*="header"],
+[class*="coze"] [class*="footer"],
+[class*="Powered"],
+[class*="powered-by"] {
+  display: none !important;
+}
+/* 聊天容器 */
+#chat-container {
+  width: 100%;
+  height: calc(100% - 52px);
+  height: calc(100vh - 52px - env(safe-area-inset-top, 0px));
+  position: relative;
+}
+/* 加载提示 */
+#loading {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #999;
+}
+#loading .spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #e0e0e0;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading .text { font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div id="custom-header">
+  <span class="title">📖 阅读验收搭档</span>
+</div>
+
+<div id="chat-container">
+  <div id="loading">
+    <div class="spinner"></div>
+    <div class="text">正在加载...</div>
+  </div>
+</div>
+
+<!-- Chat SDK -->
+<script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.20/libs/cn/index.js"></script>
+<script>
+(function() {
+  var BOT_ID = '7659326952666726409';
+  // 如需鉴权，将 AUTH_TYPE 改为 'token'，并填入 PAT
+  var AUTH_TYPE = 'unauth';
+  var PAT_TOKEN = '';
+
+  var chatContainer = document.getElementById('chat-container');
+  var loadingEl = document.getElementById('loading');
+
+  try {
+    var client = new CozeWebSDK.WebChatClient({
+      config: {
+        type: 'bot',
+        bot_id: BOT_ID,
+        isIframe: false,
+      },
+      auth: AUTH_TYPE === 'token' ? {
+        type: 'token',
+        token: PAT_TOKEN,
+        onRefreshToken: function() { return PAT_TOKEN; }
+      } : undefined,
+      ui: {
+        base: {
+          lang: 'zh-CN',
+          zIndex: 999,
+        },
+        header: {
+          isShow: false,
+          isNeedClose: false,
+        },
+        asstBtn: {
+          isNeed: false,
+        },
+        footer: {
+          isShow: false,
+        },
+        chatBot: {
+          el: chatContainer,
+          title: '阅读验收搭档',
+          isNeedFunctionCallMessage: false,
+          uploadable: false,
+          isNeedFeedback: false,
+          isNeedAddNewConversation: false,
+          conversations: { isNeed: false },
+        },
+      },
+    });
+
+    // 隐藏加载提示
+    setTimeout(function() {
+      if (loadingEl) loadingEl.style.display = 'none';
+    }, 2000);
+
+  } catch(e) {
+    console.error('Chat SDK 初始化失败:', e);
+    if (loadingEl) {
+      loadingEl.innerHTML = '<div class="text" style="color:#e74c3c;">加载失败，请刷新重试</div>';
+    }
+  }
+})();
+</script>
+</body>
+</html>
