@@ -358,25 +358,14 @@
             </div>
         </div>
 
-        <!-- Material Control -->
+        <!-- Light Style Control -->
         <div class="ctrl-section">
-            <div class="ctrl-label"><span class="ico">✦</span> 产品材质</div>
-            <div class="tag-group" id="materialGroup">
-                <div class="tag active" data-val="plastic" onclick="selectTag('material',this)">哑光塑料</div>
-                <div class="tag" data-val="glass" onclick="selectTag('material',this)">玻璃/透明</div>
-                <div class="tag" data-val="metal" onclick="selectTag('material',this)">金属</div>
-                <div class="tag" data-val="fabric" onclick="selectTag('material',this)">织物/纸质</div>
-                <div class="tag" data-val="wood" onclick="selectTag('material',this)">木质</div>
-            </div>
-        </div>
-
-        <!-- Shadow Control -->
-        <div class="ctrl-section">
-            <div class="ctrl-label"><span class="ico">◐</span> 阴影模式</div>
-            <div class="tag-group" id="shadowGroup">
-                <div class="tag active" data-val="auto" onclick="selectTag('shadow',this)">自动</div>
-                <div class="tag" data-val="strong" onclick="selectTag('shadow',this)">强调投影</div>
-                <div class="tag" data-val="none" onclick="selectTag('shadow',this)">无投影</div>
+            <div class="ctrl-label"><span class="ico">✦</span> 光影风格</div>
+            <div class="tag-group" id="lightStyleGroup">
+                <div class="tag active" data-val="glass" onclick="selectTag('lightStyle',this)">玻璃透光</div>
+                <div class="tag" data-val="opaque" onclick="selectTag('lightStyle',this)">不透光</div>
+                <div class="tag" data-val="floating" onclick="selectTag('lightStyle',this)">悬浮</div>
+                <div class="tag" data-val="soft" onclick="selectTag('lightStyle',this)">柔和阴影</div>
             </div>
         </div>
 
@@ -395,7 +384,7 @@
         <div class="empty" id="vEmpty">
             <div class="empty-ico"><span>◇</span></div>
             <div class="empty-t">准备开始</div>
-            <div class="empty-d">上传背景图和产品白底图，选择材质和阴影模式，AI精准融合</div>
+            <div class="empty-d">上传背景图和产品白底图，选择光影风格，AI精准融合</div>
         </div>
 
         <!-- Canvas State -->
@@ -445,34 +434,24 @@ const MODEL = 'doubao-seedream-4-5-251128';
 const CROP_THRESHOLD = 252;
 const CROP_PADDING = 50;
 
-// ===== Material Prompt Map =====
-const MATERIAL_MAP = {
-    plastic: {
-        label: '哑光塑料',
-        light: '保持产品原有哑光质感，赋予产品与环境一致的自然光影',
-    },
+// ===== Light Style Prompt Map =====
+const LIGHT_STYLE_MAP = {
     glass: {
-        label: '玻璃/透明',
-        light: '保持产品原有的透明或半透明质感，产品表面呈现折射与反射环境光效果',
+        label: '玻璃透光',
+        prompt: '商业产品摄影，将产品自然融入场景。保持产品原有外观不变，产品表面有轻微环境光反射，底部阴影略带半透明质感，透出轻微产品色彩。光影方向与环境统一，画面干净清透，符合商业广告质感。',
     },
-    metal: {
-        label: '金属',
-        light: '保持产品原有质感，产品表面呈现金属般的环境映射与锐利高光',
+    opaque: {
+        label: '不透光',
+        prompt: '商业产品摄影，将产品自然融入场景。保持产品原有外观与表面质感不变，产品表面反射柔和环境光，不产生透光效果。底部阴影清晰实在，与背景光影方向一致。材质反光与环境光线匹配，画面沉稳真实，符合商业广告质感。',
     },
-    fabric: {
-        label: '织物/纸质',
-        light: '保持产品原有纹理与质感，柔和漫反射，无锐利高光',
+    floating: {
+        label: '悬浮',
+        prompt: '商业产品摄影，将产品自然悬浮于场景中。产品不接触任何表面，完全无底部阴影。整体画面干净通透，可搭配柔和渐变背景或极简氛围光。产品本身保留原有细节与光影，与环境光自然协调，画面高级精致，符合商业广告质感。',
     },
-    wood: {
-        label: '木质',
-        light: '保持产品原有纹理与质感，自然柔和的光影过渡',
+    soft: {
+        label: '柔和阴影',
+        prompt: '商业产品摄影，将产品自然放置于场景中，采用柔和自然光照明。产品底部形成柔和漫射阴影，边缘虚化不锐利，阴影方向与窗外光源一致。整体色调偏暖，氛围温馨自然，产品与环境过渡柔和，画面真实有生活感，符合商业广告质感。',
     }
-};
-
-const SHADOW_MAP = {
-    auto: { label: '自动', prompt: '' },
-    strong: { label: '强调投影', prompt: '底部形成与背景光影方向统一的自然投影' },
-    none: { label: '无投影', prompt: '产品呈悬浮状态，无底部投影' }
 };
 
 // ===== State =====
@@ -480,54 +459,29 @@ let bgFile = null, bgDataUri = null, bgNatW = 0, bgNatH = 0;
 let pdFile = null, pdOriginalSrc = null, pdCroppedSrc = null;
 let fCanvas = null, productObj = null;
 let busy = false;
-let currentMaterial = 'plastic';
-let currentShadow = 'auto';
+let currentLightStyle = 'glass';
 
 const $ = id => document.getElementById(id);
 
 // ===== Prompt Builder =====
 function buildPrompt() {
-    const mat = MATERIAL_MAP[currentMaterial];
-    const shd = SHADOW_MAP[currentShadow];
-
-    let parts = [
-        '保持产品的形状、文字、logo和外观细节完全不变。',
-        '将产品自然融入背景环境中，消除白色边框和悬浮感。',
-        mat.light + '。',
-    ];
-    if (shd.prompt) parts.push(shd.prompt + '。');
-    parts.push('画面真实自然，符合商业广告质感');
-
-    return parts.join('');
+    const style = LIGHT_STYLE_MAP[currentLightStyle];
+    return style.prompt;
 }
 
 function updatePromptPreview() {
     const prompt = buildPrompt();
-    const mat = MATERIAL_MAP[currentMaterial];
-    const shd = SHADOW_MAP[currentShadow];
-
-    // Highlight the material and shadow parts
-    let html = prompt
-        .replace(mat.light, '<span class="hl">' + mat.light + '</span>');
-    if (shd.prompt) {
-        html = html.replace(shd.prompt, '<span class="hl">' + shd.prompt + '</span>');
-    }
-
-    $('promptPreview').innerHTML = html;
+    $('promptPreview').innerHTML = prompt;
 }
 
 // ===== Tag Selection =====
 function selectTag(group, el) {
-    const groupId = group === 'material' ? 'materialGroup' : 'shadowGroup';
+    const groupId = 'lightStyleGroup';
     const tags = $(groupId).querySelectorAll('.tag');
     tags.forEach(t => t.classList.remove('active'));
     el.classList.add('active');
 
-    if (group === 'material') {
-        currentMaterial = el.dataset.val;
-    } else {
-        currentShadow = el.dataset.val;
-    }
+    currentLightStyle = el.dataset.val;
     updatePromptPreview();
 }
 
@@ -846,7 +800,7 @@ async function generate() {
     try {
         const prompt = buildPrompt();
         $('ldgTxt').textContent = '正在融合图片...';
-        $('ldgSub').textContent = '材质：' + MATERIAL_MAP[currentMaterial].label + ' | 大约15-30秒';
+        $('ldgSub').textContent = '光影风格：' + LIGHT_STYLE_MAP[currentLightStyle].label + ' | 大约15-30秒';
         showView('l');
 
         const compositeDataUri = exportComposite();
