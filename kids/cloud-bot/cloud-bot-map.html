@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI阅读验收 · 成长看板</title>
+<style>
+:root{--primary:#8b5cf6;--primary-light:#f3f0ff;--accent:#e8913a;--accent-light:#fef3e6;--bg:#f7f8fa;--card:#fff;--text:#2c3e50;--text-light:#7f8c9b;--border:#e8ecf1;--success:#27ae60;--success-light:#e8f8ef;--warning:#f39c12;--warning-light:#fef9e7;--info:#3498db;--info-light:#e8f4fd;--danger:#e74c3c;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,0.06)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+
+.nav-bar{display:flex;justify-content:center;gap:12px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--border)}
+.nav-btn{padding:6px 18px;border-radius:20px;font-size:.85em;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text-light);transition:all .2s;text-decoration:none}
+.nav-btn:hover{border-color:var(--primary);color:var(--primary)}
+.nav-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+.header{background:linear-gradient(135deg,#8b5cf6 0%,#6d28d9 100%);color:#fff;padding:24px 20px;text-align:center}
+.header h1{font-size:1.8em;font-weight:700;margin-bottom:6px;letter-spacing:1px}
+.header h1 .highlight{background:rgba(255,255,255,0.25);padding:2px 8px;border-radius:6px;font-style:italic}
+.header p{font-size:1em;opacity:.85;font-weight:300}
+
+.layout{display:flex;min-height:calc(100vh - 130px);max-width:1200px;margin:0 auto}
+
+.sidebar{width:clamp(240px,28%,320px);min-width:240px;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px}
+
+.sidebar-stats{padding:16px 14px 10px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sidebar-stat-card{background:var(--bg);border-radius:10px;padding:12px 8px;text-align:center;border:1px solid var(--border);transition:all .2s}
+.sidebar-stat-card:hover{box-shadow:0 2px 8px rgba(139,92,246,0.12)}
+.sidebar-stat-icon{font-size:1.3em;margin-bottom:4px}
+.sidebar-stat-num{font-size:1.4em;font-weight:700;line-height:1.1}
+.sidebar-stat-num.purple{color:var(--primary)}
+.sidebar-stat-num.green{color:var(--success)}
+.sidebar-stat-num.orange{color:var(--accent)}
+.sidebar-stat-num.blue{color:var(--info)}
+.sidebar-stat-label{font-size:.7em;color:var(--text-light);margin-top:2px}
+
+.sidebar-tree{padding:8px 14px 6px;text-align:center}
+.sidebar-tree-label{font-size:.72em;color:var(--text-light);margin-top:6px;font-weight:400;line-height:1.4}
+.tree-svg{width:100%;max-width:220px;margin:0 auto;display:block}
+
+.sidebar-books{padding:8px 0 16px;flex:1}
+.sidebar-section-title{padding:8px 14px 6px;font-size:.75em;color:var(--text-light);font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.book-list{list-style:none}
+.book-list-item{padding:11px 14px;cursor:pointer;border-left:3px solid transparent;transition:all .2s;display:flex;align-items:center;gap:10px;font-size:.88em}
+.book-list-item:hover{background:#fafbfc;border-left-color:#ddd}
+.book-list-item.active{background:var(--primary-light);border-left-color:var(--primary);color:var(--primary)}
+.book-list-item .book-icon{font-size:1.1em;flex-shrink:0}
+.book-list-item .book-name{flex:1;font-weight:500}
+.book-list-item .book-badge{font-size:.7em;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap}
+.book-list-item .book-badge.history{background:#fef3e6;color:#e8913a}
+.book-list-item .book-badge.lit{background:#f3f0ff;color:#8b5cf6}
+.book-list-item .book-count{font-size:.75em;color:var(--text-light)}
+
+.main-area{flex:1;min-width:0;padding:20px 20px 0}
+.main-top-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:14px 18px;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border)}
+.main-top-bar .back-hint{font-size:.82em;color:var(--text-light)}
+.main-book-title{font-size:1.1em;font-weight:700;color:var(--primary);flex:1}
+.main-book-meta{font-size:.82em;color:var(--text-light)}
+
+.book-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden;border:1px solid var(--border);transition:all .2s}
+.book-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.1)}
+.book-header{padding:16px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.book-header:hover{background:#fafbfc}
+.book-left{flex:1}
+.book-title{font-size:1.05em;font-weight:700;color:var(--text)}
+.book-meta{font-size:.8em;color:var(--text-light);margin-top:2px}
+.book-right{display:flex;align-items:center;gap:8px}
+.expand-hint{font-size:.8em;color:var(--text-light)}
+.type-tag{font-size:.7em;padding:2px 10px;border-radius:10px;font-weight:600;white-space:nowrap}
+.type-tag.history{background:#fef3e6;color:#e8913a}
+.type-tag.lit{background:#f3f0ff;color:#8b5cf6}
+.progress-bar{width:60px;height:6px;background:#eee;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--success);border-radius:3px;transition:width .3s}
+.expand-icon{font-size:.8em;color:var(--text-light);transition:transform .2s}
+.book-card.expanded .expand-icon{transform:rotate(90deg)}
+.book-card.expanded .expand-hint{content:'收起'}
+.book-body{padding:0 18px;max-height:0;overflow:hidden;transition:all .3s ease}
+.book-card.expanded .book-body{padding:18px;max-height:50000px}
+
+.section-item{padding:10px 14px;border-left:3px solid var(--border);margin-bottom:8px;font-size:.88em;background:#fafbfc;border-radius:0 8px 8px 0;transition:all .2s}
+.section-item.pass{border-left-color:var(--success)}
+.section-item.progress{border-left-color:var(--accent)}
+.section-item.todo{border-left-color:#ddd}
+.section-title{font-weight:600;color:var(--text)}
+.section-sub{font-size:.82em;color:var(--text-light);margin-top:2px}
+
+.report-box{background:#f8f9fb;border-radius:10px;padding:16px;margin-top:14px;border:1px solid var(--border)}
+.report-box h4{font-size:.9em;color:var(--primary);margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:6px}
+.report-row{display:flex;align-items:center;padding:6px 0;border-bottom:1px solid #eee;font-size:.85em}
+.report-row:last-child{border-bottom:none}
+.report-label{color:var(--text-light);min-width:80px}
+.report-value{color:var(--text);font-weight:500}
+.report-value.green{color:var(--success)}
+.report-value.orange{color:var(--warning)}
+.observe-box{margin-top:12px;padding:12px 14px;background:#fff;border-radius:8px;border:1px solid var(--border)}
+.observe-row{display:flex;align-items:center;padding:4px 0;font-size:.84em}
+.observe-row .label{color:var(--text-light);min-width:80px}
+.observe-row .stars{color:var(--accent)}
+.observe-row .note{margin-left:8px;font-size:.8em;color:var(--text-light)}
+.method-box{margin-top:12px;padding:12px 14px;background:var(--primary-light);border-radius:8px;border-left:3px solid var(--primary);font-size:.86em}
+.method-box .label{font-weight:700;color:var(--primary)}
+.process-btn{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:20px;font-size:.85em;font-weight:600;cursor:pointer;transition:all .2s}
+.process-btn:hover{background:#6d28d9;transform:translateY(-1px)}
+.chat-panel{margin-top:14px;max-height:0;overflow:hidden;transition:all .3s ease}
+.chat-panel.open{max-height:6000px}
+.round-chat{margin-bottom:16px}
+.round-chat-header{font-size:.88em;font-weight:700;color:var(--primary);padding:8px 12px;background:var(--primary-light);border-radius:8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.chat-bubble{margin-bottom:8px;display:flex;gap:8px;align-items:flex-start}
+.chat-bubble.ai{flex-direction:row}
+.chat-bubble.kid{flex-direction:row-reverse}
+.chat-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8em;flex-shrink:0}
+.chat-avatar.ai-avatar{background:var(--primary-light);color:var(--primary)}
+.chat-avatar.kid-avatar{background:#fce4ec;color:#e91e63}
+.chat-content{max-width:80%;padding:10px 14px;border-radius:12px;font-size:.85em;line-height:1.6;word-break:break-word}
+.chat-content p{margin:0 0 4px}.chat-content p:last-child{margin:0}
+.chat-content strong{font-weight:700;color:inherit}
+.chat-content ul{margin:4px 0;padding-left:18px}.chat-content li{margin:2px 0}
+.chat-bubble.ai .chat-content{background:var(--primary-light);color:var(--text);border-top-left-radius:4px}
+.chat-bubble.kid .chat-content{background:#fce4ec;color:var(--text);border-top-right-radius:4px}
+.chat-eval{margin-top:4px;font-size:.78em;color:var(--success);font-weight:500}
+.chat-eval.wrong{color:var(--danger)}
+.motto-box{background:linear-gradient(135deg,#8b5cf6 0%,#6d28d9 100%);color:#fff;border-radius:10px;padding:14px 16px;margin-top:12px;font-size:.85em;font-weight:300;line-height:1.7;text-align:center}
+
+.book-status-tag{font-size:.7em;padding:2px 8px;border-radius:6px;margin-left:8px;font-weight:500}
+.book-status-tag.finished{background:#dcfce7;color:#16a34a}
+.book-status-tag.reading{background:#fef3c7;color:#d97706}
+
+.book-status-mini{font-size:.65em;padding:1px 5px;border-radius:4px;margin-top:2px;font-weight:500;display:inline-block}
+.book-status-mini.finished{background:#dcfce7;color:#16a34a}
+.book-status-mini.reading{background:#fef3c7;color:#d97706}
+
+.footer{text-align:center;padding:20px;color:var(--text-light);font-size:.8em;border-top:1px solid var(--border);margin-top:20px}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-light)}
+.empty-state .empty-icon{font-size:3em;margin-bottom:12px;opacity:.4}
+.empty-state .empty-title{font-size:1.1em;font-weight:600;color:var(--text);margin-bottom:8px}
+.empty-state .empty-tip{font-size:.88em}
+
+@media(max-width:768px){
+.layout{flex-direction:column}
+.sidebar{width:100%;min-width:0;height:auto;position:static;border-right:none;border-bottom:1px solid var(--border)}
+.sidebar-stats{grid-template-columns:repeat(4,1fr);gap:6px;padding:12px 10px 8px}
+.sidebar-stat-card{padding:8px 4px}
+.sidebar-stat-icon{font-size:1em}
+.sidebar-stat-num{font-size:1.1em}
+.sidebar-stat-label{font-size:.65em}
+.sidebar-tree{display:none}
+.sidebar-books{padding:4px 0 10px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;-webkit-overflow-scrolling:touch;padding-left:10px;padding-right:10px}
+.sidebar-section-title{padding:6px 0 4px;display:inline-block;white-space:nowrap}
+.book-list{display:inline-flex;gap:0;padding:0;white-space:nowrap}
+.book-list-item{display:inline-flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-left:none;border-bottom:3px solid transparent;border-radius:8px;min-width:100px;background:#f7f8fa;margin-right:6px;font-size:.82em}
+.book-list-item.active{background:var(--primary-light);border-bottom-color:var(--primary);color:var(--primary)}
+.book-list-item .book-icon{font-size:1.2em}
+.book-list-item .book-name{font-size:.88em}
+.book-list-item .book-badge{display:none}
+.book-list-item .book-count{display:none}
+.main-area{padding:12px 10px 0}
+.main-top-bar{padding:10px 12px}
+}
+@media(max-width:480px){
+.header h1{font-size:1.5em}
+.sidebar-stats{grid-template-columns:repeat(4,1fr)}
+.chat-content{max-width:88%}
+}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>📚 AI阅读验收 · 成长看板</h1>
+<p>事实检验 → 思辨检验 → 跨点串联</p>
+</div>
+<div class="layout">
+<div class="sidebar" id="sidebar">
+<div class="sidebar-tree">
+<svg class="tree-svg" viewBox="0 0 220 160" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="110" cy="155" rx="50" ry="8" fill="#e8f4e8" opacity=".6"/>
+  <rect x="105" y="115" width="10" height="42" rx="3" fill="#8B6914"/>
+  <rect x="103" y="120" width="3" height="30" rx="1" fill="#A0782C" opacity=".5"/>
+  <line x1="110" y1="115" x2="70" y2="85" stroke="#8B6914" stroke-width="4" stroke-linecap="round"/>
+  <line x1="110" y1="115" x2="150" y2="85" stroke="#8B6914" stroke-width="4" stroke-linecap="round"/>
+  <line x1="110" y1="108" x2="110" y2="75" stroke="#8B6914" stroke-width="4" stroke-linecap="round"/>
+  <line x1="70" y1="85" x2="48" y2="68" stroke="#8B6914" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="70" y1="85" x2="88" y2="65" stroke="#8B6914" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="150" y1="85" x2="132" y2="68" stroke="#8B6914" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="150" y1="85" x2="172" y2="68" stroke="#8B6914" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="110" y1="75" x2="95" y2="58" stroke="#8B6914" stroke-width="2" stroke-linecap="round"/>
+  <line x1="110" y1="75" x2="125" y2="58" stroke="#8B6914" stroke-width="2" stroke-linecap="round"/>
+  <ellipse cx="48" cy="60" rx="18" ry="14" fill="#a8d5a2" opacity=".85"/>
+  <ellipse cx="48" cy="55" rx="12" ry="10" fill="#c8e6c9" opacity=".8"/>
+  <ellipse cx="88" cy="56" rx="18" ry="14" fill="#81c784" opacity=".85"/>
+  <ellipse cx="88" cy="51" rx="12" ry="10" fill="#a5d6a7" opacity=".8"/>
+  <ellipse cx="132" cy="60" rx="18" ry="14" fill="#66bb6a" opacity=".85"/>
+  <ellipse cx="132" cy="55" rx="12" ry="10" fill="#c8e6c9" opacity=".8"/>
+  <ellipse cx="172" cy="60" rx="18" ry="14" fill="#81c784" opacity=".85"/>
+  <ellipse cx="172" cy="55" rx="12" ry="10" fill="#a5d6a7" opacity=".8"/>
+  <ellipse cx="95" cy="48" rx="16" ry="13" fill="#4caf50" opacity=".85"/>
+  <ellipse cx="95" cy="43" rx="10" ry="8" fill="#c8e6c9" opacity=".8"/>
+  <ellipse cx="125" cy="48" rx="16" ry="13" fill="#66bb6a" opacity=".85"/>
+  <ellipse cx="125" cy="43" rx="10" ry="8" fill="#a5d6a7" opacity=".8"/>
+  <ellipse cx="110" cy="30" rx="28" ry="22" fill="#4caf50" opacity=".9"/>
+  <ellipse cx="110" cy="24" rx="20" ry="16" fill="#66bb6a" opacity=".85"/>
+  <ellipse cx="110" cy="18" rx="12" ry="10" fill="#81c784" opacity=".8"/>
+  <circle cx="105" cy="20" r="5" fill="#8b5cf6" opacity=".9"/>
+  <circle cx="117" cy="18" r="4" fill="#a78bfa" opacity=".85"/>
+  <circle cx="98" cy="52" r="4" fill="#8b5cf6" opacity=".8"/>
+  <circle cx="170" cy="56" r="3.5" fill="#a78bfa" opacity=".75"/>
+  <circle cx="50" cy="56" r="3.5" fill="#c4b5fd" opacity=".75"/>
+  <circle cx="105" cy="20" r="2" fill="#fef08a" opacity=".9"/>
+  <circle cx="117" cy="18" r="1.5" fill="#fef08a" opacity=".9"/>
+  <circle cx="98" cy="52" r="1.5" fill="#fef08a" opacity=".9"/>
+  <text x="108" y="12" font-size="10" opacity=".7">⭐</text>
+  <text x="86" y="44" font-size="8" opacity=".6">✨</text>
+  <text x="152" y="46" font-size="8" opacity=".6">✨</text>
+</svg>
+<div class="sidebar-tree-label">🌿 每一次验收，都是思维成长的印记</div>
+</div>
+<div class="sidebar-stats" id="sidebar-stats">
+<div class="sidebar-stat-card"><div class="sidebar-stat-icon">📚</div><div class="sidebar-stat-num purple" id="sstat-books">0</div><div class="sidebar-stat-label">已读书籍</div></div>
+<div class="sidebar-stat-card"><div class="sidebar-stat-icon">📖</div><div class="sidebar-stat-num blue" id="sstat-pages">0</div><div class="sidebar-stat-label">总阅读页数</div></div>
+<div class="sidebar-stat-card"><div class="sidebar-stat-icon">✅</div><div class="sidebar-stat-num green" id="sstat-passed">0</div><div class="sidebar-stat-label">验收次数</div></div>
+<div class="sidebar-stat-card"><div class="sidebar-stat-icon">💬</div><div class="sidebar-stat-num orange" id="sstat-chats">0</div><div class="sidebar-stat-label">思维碰撞</div></div>
+</div>
+<div class="sidebar-books">
+<div class="sidebar-section-title">我的书单</div>
+<ul class="book-list" id="book-list"></ul>
+</div>
+</div>
+<div class="main-area" id="main-area"></div>
+</div>
+<script>
+function toggleCard(id){document.getElementById(id).classList.toggle('expanded')}
+function toggleChat(id){document.getElementById(id).classList.toggle('open')}
+
+var BOOKS = [];
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function md(s){
+  var h=esc(s);
+  h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  h=h.replace(/^- (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/^(\d+)\. (.+)$/gm,'<li>$2</li>');
+  h=h.replace(/((?:<li>[\s\S]*?<\/li>\s*)+)/g,'<ul>$1</ul>');
+  h=h.replace(/&lt;br&gt;/g,'<br>');
+  return '<p>'+h.replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>')+'</p>';
+}
+
+function stars(n){var s='';for(var i=1;i<=3;i++)s+=(i<=n?'⭐':'☆');return s}
+
+function computeStats(){
+  var st={books:0,passed:0,total:0,chats:0,pages:0};
+  BOOKS.forEach(function(b){
+    var hasAny=false,hasPass=false;
+    b.sections.forEach(function(s){
+      if(s.report){
+        st.total++;
+        hasPass=true;
+        hasAny=true;
+        if(s.report.chat){
+          var ct=0;
+          ['fact','debate','chain'].forEach(function(sk){if(s.report.chat[sk])ct+=s.report.chat[sk].length});
+          st.chats+=ct;
+        }
+        if(s.report.status==='pass')st.passed++;
+      }
+    });
+    if(hasAny)st.books++;
+  });
+  var pageSum=0;
+  BOOKS.forEach(function(b){
+    b.sections.forEach(function(s){
+      if(s.range){
+        var m=s.range.match(/(\d+)~(\d+)页/);
+        if(m)pageSum+=Math.max(0,parseInt(m[2])-parseInt(m[1])+1);
+      }
+    });
+  });
+  st.pages=pageSum||380;
+  return st;
+}
+
+function updateSidebarStats(){
+  var st=computeStats();
+  document.getElementById('sstat-books').textContent=st.books;
+  document.getElementById('sstat-passed').textContent=st.total;
+  document.getElementById('sstat-chats').textContent=st.chats;
+  document.getElementById('sstat-pages').textContent=st.pages;
+}
+
+function renderBookList(){
+  var ul=document.getElementById('book-list');
+  var html='';
+  BOOKS.forEach(function(b,i){
+    var typeCls=b.type==='history'?'history':'lit';
+    html+='<li class="book-list-item'+(i===0?' active':'')+'" onclick="selectBook(\''+b.id+'\',this)" id="bli-'+b.id+'">';
+    html+='<span class="book-icon">📖</span>';
+    html+='<span class="book-name">'+esc(b.title)+'</span>';
+    html+='<span class="book-badge '+typeCls+'">'+esc(b.typeLabel)+'</span>';
+    html+='</li>';
+  });
+  ul.innerHTML=html;
+}
+
+var currentBookId=null;
+
+function selectBook(bookId,el){
+  if(currentBookId===bookId)return;
+  currentBookId=bookId;
+  document.querySelectorAll('.book-list-item').forEach(function(item){item.classList.remove('active')});
+  if(el)el.classList.add('active');
+  renderMainArea(bookId);
+}
+
+function renderReport(sec,sid){
+  var r=sec.report;
+  if(!r)return '';
+  var html='<div class="report-box"><h4>📋 互动记录 · '+esc(r.date)+'</h4>';
+  var factSummary=(r.observe&&r.observe.weakness)?' — '+esc(r.observe.weakness):'';
+  var debateSummary=(r.observe&&r.observe.highlight)?' — '+esc(r.observe.highlight):'';
+  var chainSummary=(r.observe&&r.observe.highlight)?' — '+esc(r.observe.highlight):'';
+  html+='<div class="report-row"><span class="report-label">事实记忆</span><span class="report-value green">✅ '+r.factCount+'道</span><span style="color:var(--text-light);font-size:.82em;margin-left:8px">'+factSummary+'</span></div>';
+  html+='<div class="report-row"><span class="report-label">思辨分析</span><span class="report-value green">✅ '+r.debateCount+'道</span><span style="color:var(--text-light);font-size:.82em;margin-left:8px">'+debateSummary+'</span></div>';
+  if(r.chainCount){html+='<div class="report-row"><span class="report-label">跨点串联</span><span class="report-value green">✅ '+r.chainCount+'道</span><span style="color:var(--text-light);font-size:.82em;margin-left:8px">'+chainSummary+'</span></div>';}
+  var hasChat=false;
+  if(r.chat){['fact','debate','chain'].forEach(function(sk){if(r.chat[sk]&&r.chat[sk].length)hasChat=true});}
+  if(hasChat){
+    html+='<button class="process-btn" onclick="toggleChat(\'chat-'+sid+'\')">💬 互动过程</button>';
+    html+='<div class="chat-panel" id="chat-'+sid+'">';
+    var stageKeys=['fact','debate','chain'];
+    var stageNames=['📋 事实记忆','🔥 思辨分析','🔗 跨点串联'];
+    stageKeys.forEach(function(sk,si){
+      var msgs=r.chat[sk];
+      if(!msgs||!msgs.length)return;
+      html+='<div class="round-chat"><div class="round-chat-header">'+stageNames[si]+'</div>';
+      msgs.forEach(function(m){
+        var who=m.who==='ai'?'ai':'kid';
+        var avatar=who==='ai'?'🤖':'👧';
+        var avatarCls=who==='ai'?'ai-avatar':'kid-avatar';
+        html+='<div class="chat-bubble '+who+'">';
+        html+='<div class="chat-avatar '+avatarCls+'">'+avatar+'</div>';
+        html+='<div class="chat-content">'+md(m.text)+'</div>';
+        html+='</div>';
+        if(m.eval){
+          html+='<div class="chat-eval'+(m.eval.indexOf('❌')>=0?' wrong':'')+'" style="'+(who==='kid'?'text-align:right':'')+'">'+esc(m.eval)+'</div>';
+        }
+      });
+      html+='</div>';
+    });
+    html+='</div>';
+  } else {
+    html+='<div style="margin-top:12px;padding:10px 16px;background:#f0f0f0;border-radius:8px;font-size:.82em;color:#999;text-align:center">💬 互动过程待补录</div>';
+  }
+  html+='</div>';
+  return html;
+}
+
+function renderMainArea(bookId){
+  var main=document.getElementById('main-area');
+  var b=null;
+  for(var i=0;i<BOOKS.length;i++){if(BOOKS[i].id===bookId){b=BOOKS[i];break}}
+  if(!b){main.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">未找到该书籍</div></div>';return}
+  var typeCls=b.type==='history'?'history':'lit';
+  var passCount=b.sections.filter(function(s){return s.report&&s.report.status==='pass'}).length;
+  var pct=Math.round(passCount/b.sections.length*100);
+  var html='<div class="main-top-bar">';
+  var isFinished=(passCount===b.sections.length);
+  var statusTag=isFinished?'<span class="book-status-tag finished">已读完</span>':'<span class="book-status-tag reading">阅读中</span>';
+  html+='<span class="main-book-title">📖 '+esc(b.title)+statusTag+'</span>';
+  html+='<span class="main-book-meta">已完成 '+passCount+' 次互动</span>';
+  html+='<span class="type-tag '+typeCls+'">'+esc(b.typeLabel)+'</span>';
+  html+='<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%"></div></div>';
+  html+='</div>';
+  html+='<div class="book-card expanded" id="card-'+b.id+'">';
+  html+='<div class="book-body">';
+  b.sections.forEach(function(sec){
+    var cls=sec.report?(sec.report.status==='pass'?'pass':'progress'):'todo';
+    html+='<div class="section-item '+cls+'">';
+    html+='<div class="section-title">'+esc(sec.range)+'</div>';
+    html+='<div class="section-sub">'+esc(sec.desc)+'</div>';
+    if(sec.report){
+      if(sec.report.status==='pass')html+=' <span style="font-size:.8em;color:var(--success);font-weight:600">✅ 已互动</span>';
+      else html+=' <span style="font-size:.8em;color:var(--warning);font-weight:600">⚠️ 待复验</span>';
+    }
+    html+=renderReport(sec,sec.id);
+    html+='</div>';
+  });
+  html+='</div></div>';
+  html+='<div class="footer">点"互动过程"查看对话记录</div>';
+  main.innerHTML=html;
+}
+
+function initAndRender(){
+  updateSidebarStats();
+  renderBookList();
+  if(BOOKS.length>0){selectBook(BOOKS[0].id,null);}
+}
+
+fetch('./data-cloud-bot.json')
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    BOOKS = d;
+    initAndRender();
+  })
+  .catch(function(e){
+    console.error('Failed to load data:', e);
+    initAndRender();
+  });
+</script>
+</body>
+</html>
