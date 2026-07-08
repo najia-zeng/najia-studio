@@ -360,7 +360,7 @@
 
         <!-- Light Style Control -->
         <div class="ctrl-section">
-            <div class="ctrl-label"><span class="ico">✦</span> 光影风格</div>
+            <div class="ctrl-label"><span class="ico">✦</span> 融合方向</div>
             <div class="tag-group" id="lightStyleGroup">
                 <div class="tag active" data-val="glass" onclick="selectTag('lightStyle',this)">玻璃透光类</div>
                 <div class="tag" data-val="opaque" onclick="selectTag('lightStyle',this)">塑料哑光类</div>
@@ -371,8 +371,8 @@
 
         <!-- Prompt Preview -->
         <div>
-            <div class="sec-label">当前提示词</div>
-            <div class="prompt-preview" id="promptPreview"></div>
+            <!-- prompt hidden -->
+            <!-- prompt preview hidden -->
         </div>
 
         <button class="gen-btn" id="genBtn" onclick="generate()" disabled>开始融合</button>
@@ -384,7 +384,7 @@
         <div class="empty" id="vEmpty">
             <div class="empty-ico"><span>◇</span></div>
             <div class="empty-t">准备开始</div>
-            <div class="empty-d">上传背景图和产品白底图，选择光影风格，AI精准融合</div>
+            <div class="empty-d">上传背景图和产品白底图，选择融合方向，AI精准融合</div>
         </div>
 
         <!-- Canvas State -->
@@ -800,7 +800,7 @@ async function generate() {
     try {
         const prompt = buildPrompt();
         $('ldgTxt').textContent = '正在融合图片...';
-        $('ldgSub').textContent = '光影风格：' + LIGHT_STYLE_MAP[currentLightStyle].label + ' | 大约15-30秒';
+        $('ldgSub').textContent = '融合方向：' + LIGHT_STYLE_MAP[currentLightStyle].label + ' | 大约15-30秒';
         showView('l');
 
         const compositeDataUri = exportComposite();
