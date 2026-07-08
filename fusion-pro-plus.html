@@ -362,10 +362,10 @@
         <div class="ctrl-section">
             <div class="ctrl-label"><span class="ico">✦</span> 光影风格</div>
             <div class="tag-group" id="lightStyleGroup">
-                <div class="tag active" data-val="glass" onclick="selectTag('lightStyle',this)">玻璃透光</div>
-                <div class="tag" data-val="opaque" onclick="selectTag('lightStyle',this)">不透光</div>
+                <div class="tag active" data-val="glass" onclick="selectTag('lightStyle',this)">玻璃（透光）</div>
+                <div class="tag" data-val="opaque" onclick="selectTag('lightStyle',this)">塑料（哑光）</div>
                 <div class="tag" data-val="floating" onclick="selectTag('lightStyle',this)">悬浮</div>
-                <div class="tag" data-val="soft" onclick="selectTag('lightStyle',this)">柔和阴影</div>
+                <div class="tag" data-val="soft" onclick="selectTag('lightStyle',this)">自然光</div>
             </div>
         </div>
 
@@ -437,11 +437,11 @@ const CROP_PADDING = 50;
 // ===== Light Style Prompt Map =====
 const LIGHT_STYLE_MAP = {
     glass: {
-        label: '玻璃透光',
+        label: '玻璃（透光）',
         prompt: '商业产品摄影，将产品自然融入场景。保持产品原有外观不变，产品表面有轻微环境光反射，底部阴影略带半透明质感，透出轻微产品色彩。光影方向与环境统一，画面干净清透，符合商业广告质感。',
     },
     opaque: {
-        label: '不透光',
+        label: '塑料（哑光）',
         prompt: '商业产品摄影，将产品自然融入场景。保持产品原有外观与表面质感不变，产品表面反射柔和环境光，不产生透光效果。底部阴影清晰实在，与背景光影方向一致。材质反光与环境光线匹配，画面沉稳真实，符合商业广告质感。',
     },
     floating: {
@@ -449,7 +449,7 @@ const LIGHT_STYLE_MAP = {
         prompt: '商业产品摄影，将产品自然悬浮于场景中。产品不接触任何表面，完全无底部阴影。整体画面干净通透，可搭配柔和渐变背景或极简氛围光。产品本身保留原有细节与光影，与环境光自然协调，画面高级精致，符合商业广告质感。',
     },
     soft: {
-        label: '柔和阴影',
+        label: '自然光',
         prompt: '商业产品摄影，将产品自然放置于场景中，采用柔和自然光照明。产品底部形成柔和漫射阴影，边缘虚化不锐利，阴影方向与窗外光源一致。整体色调偏暖，氛围温馨自然，产品与环境过渡柔和，画面真实有生活感，符合商业广告质感。',
     }
 };
