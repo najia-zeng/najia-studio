@@ -1,1 +1,47 @@
-{"books":[]}
+{
+  "student": "test-user",
+  "total_rounds": 1,
+  "last_update": "2026-07-09",
+  "books": [
+    {
+      "id": "b1",
+      "title": "红楼梦",
+      "type": "literature",
+      "typeLabel": "文学类",
+      "sections": [
+        {
+          "id": "b1s1",
+          "range": "169-228页",
+          "desc": "抄检大观园→晴雯之死→黛玉焚稿→宝玉出家",
+          "report": {
+            "date": "2026-07-09",
+            "status": "excellent",
+            "factCount": 5,
+            "factScore": 3.5,
+            "debateCount": 4,
+            "debatePerformance": "excellent",
+            "observe": {
+              "highlight": "绣春囊是借口背后是权力清洗、探春的清醒让她更痛苦、好人用'为了你好'掩盖残忍、宝玉出家是'悟'不是'逃'",
+              "weakness": "事件记忆清晰但范围混淆，甩箱子动作记混（应是晴雯）"
+            },
+            "method": "读第二遍关注诗词细节，可参考红学评论",
+            "chat": {
+              "fact": [
+                {"who": "ai", "text": "开始验收《红楼梦》169-228页..."},
+                {"who": "kid", "text": "验收进行中..."}
+              ],
+              "debate": [
+                {"who": "ai", "text": "思辨检验开始..."},
+                {"who": "kid", "text": "思辨回答..."}
+              ],
+              "cross": [
+                {"who": "ai", "text": "跨点串联开始..."},
+                {"who": "kid", "text": "跨点回答..."}
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
