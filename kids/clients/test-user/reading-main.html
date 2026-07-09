@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阅读验收报告 - 成长之旅</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4f5e8 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2d5a3d 0%, #4a7c59 100%);
+            color: white;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(45, 90, 61, 0.3);
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .header-info {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        .badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-left: 10px;
+        }
+        
+        .main-container {
+            display: flex;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+        }
+        
+        .book-nav {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .nav-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d5a3d;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e8f5e9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .book-item {
+            margin-bottom: 12px;
+        }
+        
+        .book-header {
+            background: linear-gradient(135deg, #f8fdf9 0%, #e8f5e9 100%);
+            border: 2px solid #c8e6c9;
+            border-radius: 12px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .book-header:hover {
+            border-color: #4caf50;
+            transform: translateX(4px);
+        }
+        
+        .book-header.active {
+            background: linear-gradient(135deg, #4caf50 0%, #2d5a3d 100%);
+            color: white;
+            border-color: #2d5a3d;
+        }
+        
+        .book-header.active .book-type {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .book-title {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+        
+        .book-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .book-header.active .book-meta {
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .book-type {
+            background: #e8f5e9;
+            color: #2d5a3d;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+        
+        .sections-list {
+            display: none;
+            padding: 10px 0 0 20px;
+        }
+        
+        .sections-list.show {
+            display: block;
+        }
+        
+        .section-item {
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: #555;
+            transition: all 0.2s ease;
+            margin-bottom: 6px;
+            border-left: 3px solid transparent;
+        }
+        
+        .section-item:hover {
+            background: #f5f5f5;
+            color: #2d5a3d;
+        }
+        
+        .section-item.active {
+            background: #e8f5e9;
+            color: #2d5a3d;
+            border-left-color: #4caf50;
+            font-weight: 500;
+        }
+        
+        .section-range {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 2px;
+        }
+        
+        .section-item.active .section-range {
+            color: #666;
+        }
+        
+        .content-area {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .tree-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d5a3d;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tree-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            min-height: 280px;
+            background: linear-gradient(180deg, #f8fdf9 0%, #e8f5e9 50%, #d7eddc 100%);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tree-svg {
+            width: 100%;
+            max-width: 400px;
+            height: 260px;
+        }
+        
+        .tree-empty {
+            text-align: center;
+            color: #888;
+            padding: 40px;
+        }
+        
+        .tree-empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .tree-empty-text {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        
+        .tree-empty-hint {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f8fdf9 0%, #e8f5e9 100%);
+            border-radius: 10px;
+            padding: 14px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d5a3d;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 4px;
+        }
+        
+        .report-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .report-book-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .report-range {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        
+        .report-date {
+            background: #e8f5e9;
+            color: #2d5a3d;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        .radar-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        
+        .radar-svg {
+            width: 200px;
+            height: 200px;
+        }
+        
+        .abilities-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .ability-card {
+            background: linear-gradient(135deg, #f8fdf9 0%, #e8f5e9 100%);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .ability-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .ability-name {
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        
+        .ability-stars {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+        }
+        
+        .star {
+            width: 20px;
+            height: 20px;
+            fill: #ddd;
+        }
+        
+        .star.filled {
+            fill: #ffc107;
+        }
+        
+        .report-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        
+        .report-card {
+            background: #fafafa;
+            border-radius: 12px;
+            padding: 18px;
+            border-left: 4px solid;
+        }
+        
+        .report-card.highlight {
+            border-left-color: #4caf50;
+        }
+        
+        .report-card.method {
+            border-left-color: #2196f3;
+        }
+        
+        .report-card.weakness {
+            border-left-color: #ff9800;
+        }
+        
+        .report-card.next {
+            border-left-color: #9c27b0;
+        }
+        
+        .report-card-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #888;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .report-card-content {
+            color: #333;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-size: 0.85rem;
+        }
+        
+        .welcome-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+        
+        .welcome-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .welcome-title {
+            font-size: 1.3rem;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-hint {
+            font-size: 0.95rem;
+            color: #aaa;
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .header h1 {
+                font-size: 1.4rem;
+            }
+            
+            .abilities-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tree-svg {
+                height: 200px;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+        
+        .spinner {
+            border: 3px solid #e8f5e9;
+            border-top-color: #4caf50;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>
+            <span>📚</span>
+            阅读验收报告
+            <span class="badge">成长之旅</span>
+        </h1>
+        <div class="header-info">
+            小读者 · 五年级 · 阅读小树正在成长中
+        </div>
+    </header>
+    
+    <main class="main-container">
+        <aside class="sidebar">
+            <nav class="book-nav">
+                <div class="nav-title">
+                    <span>📖</span> 我的书单
+                </div>
+                <div id="bookList"></div>
+            </nav>
+        </aside>
+        
+        <section class="content-area">
+            <div class="tree-section">
+                <div class="section-title">
+                    <span>🌳</span> 思维之树
+                </div>
+                <div class="tree-container" id="treeContainer">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        正在加载阅读数据...
+                    </div>
+                </div>
+                <div class="stats-row" id="statsRow"></div>
+            </div>
+            
+            <div class="report-section" id="reportSection">
+                <div class="welcome-state">
+                    <div class="welcome-icon">🌱</div>
+                    <div class="welcome-title">点击左侧书单开始阅读验收之旅</div>
+                    <div class="welcome-hint">选择一本书，查看详细的阅读能力评估</div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="footer">
+        <p>持续阅读，静待花开 🌸</p>
+    </footer>
+
+    <script>
+        var readingData = null;
+        var selectedBook = null;
+        var selectedSection = null;
+
+        function loadData() {
+            fetch('./data-reading.json')
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('数据加载失败');
+                    }
+                    return response.json();
+                })
+                .then(function(data) {
+                    readingData = data;
+                    renderBookNav(data);
+                    renderThinkingTree(data);
+                    renderStats(data);
+                })
+                .catch(function(error) {
+                    console.error('Error loading data:', error);
+                    document.getElementById('treeContainer').innerHTML = 
+                        '<div class="tree-empty"><div class="tree-empty-icon">📭</div><div class="tree-empty-text">数据加载失败</div><div class="tree-empty-hint">请确保 data-reading.json 文件存在</div></div>';
+                });
+        }
+
+        function renderBookNav(data) {
+            var container = document.getElementById('bookList');
+            var html = '';
+            
+            data.forEach(function(book) {
+                var isActive = selectedBook === book.id ? 'active' : '';
+                var sectionsVisible = selectedBook === book.id ? 'show' : '';
+                
+                html += '<div class="book-item">';
+                html += '<div class="book-header ' + isActive + '" onclick="toggleBook(\'' + book.id + '\')">';
+                html += '<div class="book-title">' + book.title + '</div>';
+                html += '<div class="book-meta">';
+                html += '<span class="book-type">' + book.typeLabel + '</span>';
+                html += '<span>' + book.sections.length + '次验收</span>';
+                html += '</div>';
+                html += '</div>';
+                
+                html += '<div class="sections-list ' + sectionsVisible + '" id="sections-' + book.id + '">';
+                book.sections.forEach(function(section) {
+                    var sectionActive = selectedSection === section.id ? 'active' : '';
+                    html += '<div class="section-item ' + sectionActive + '" onclick="selectSection(event, \'' + book.id + '\', \'' + section.id + '\')">';
+                    html += '<div>第' + (book.sections.indexOf(section) + 1) + '次验收</div>';
+                    html += '<div class="section-range">' + section.range + '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function toggleBook(bookId) {
+            if (selectedBook === bookId) {
+                selectedBook = null;
+                selectedSection = null;
+            } else {
+                selectedBook = bookId;
+                var book = readingData.find(function(b) { return b.id === bookId; });
+                if (book && book.sections.length > 0 && !selectedSection) {
+                    selectedSection = book.sections[0].id;
+                }
+            }
+            renderBookNav(readingData);
+            renderReport();
+        }
+
+        function selectSection(event, bookId, sectionId) {
+            event.stopPropagation();
+            selectedBook = bookId;
+            selectedSection = sectionId;
+            renderBookNav(readingData);
+            renderReport();
+        }
+
+        function renderThinkingTree(data) {
+            var container = document.getElementById('treeContainer');
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="tree-empty"><div class="tree-empty-icon">🌱</div><div class="tree-empty-text">开始读书</div><div class="tree-empty-hint">阅读第一本书，让小树开始成长</div></div>';
+                return;
+            }
+
+            var totalPages = 0;
+            var totalScore = 0;
+            var scoreCount = 0;
+            var historyCount = 0;
+            var literatureCount = 0;
+            var latestScore = 0;
+
+            data.forEach(function(book) {
+                if (book.type === 'history') historyCount++;
+                if (book.type === 'literature') literatureCount++;
+                
+                book.sections.forEach(function(section) {
+                    var range = section.range.split('~');
+                    var pages = parseInt(range[1]) - parseInt(range[0]) + 1;
+                    totalPages += pages;
+                    
+                    if (section.report && section.report.observe) {
+                        var obs = section.report.observe;
+                        var sectionScore = (obs.think + obs.fact + obs.detail) / 3;
+                        totalScore += sectionScore;
+                        scoreCount++;
+                        latestScore = sectionScore;
+                    }
+                });
+            });
+
+            var avgScore = scoreCount > 0 ? totalScore / scoreCount : 0;
+            
+            var treeHeight = Math.min(180, 60 + totalPages / 5);
+            var leafDensity = Math.min(1, avgScore / 3);
+            var trunkWidth = 20 + literatureCount * 10;
+            var rootWidth = 30 + historyCount * 15;
+            
+            var leafColor = getLeafColor(avgScore);
+
+            var svg = '<svg class="tree-svg" viewBox="0 0 400 260">' +
+                '<defs>' +
+                '<linearGradient id="trunkGrad" x1="0%" y1="0%" x2="100%" y2="0%">' +
+                '<stop offset="0%" style="stop-color:#8B4513"/>' +
+                '<stop offset="50%" style="stop-color:#A0522D"/>' +
+                '<stop offset="100%" style="stop-color:#8B4513"/>' +
+                '</linearGradient>' +
+                '<linearGradient id="leafGrad" x1="0%" y1="0%" x2="0%" y2="100%">' +
+                '<stop offset="0%" style="stop-color:' + leafColor + '"/>' +
+                '<stop offset="100%" style="stop-color:#2d5a3d"/>' +
+                '</linearGradient>' +
+                '</defs>';
+            
+            svg += '<ellipse cx="200" cy="245" rx="100" ry="12" fill="#c8e6c9" opacity="0.6"/>';
+            
+            var rootY = 235;
+            svg += '<path d="M180 ' + rootY + ' Q150 250 120 255" stroke="#8B4513" stroke-width="' + (rootWidth * 0.3) + '" fill="none" stroke-linecap="round"/>';
+            svg += '<path d="M200 ' + rootY + ' Q200 258 200 260" stroke="#8B4513" stroke-width="' + (rootWidth * 0.25) + '" fill="none" stroke-linecap="round"/>';
+            svg += '<path d="M220 ' + rootY + ' Q250 250 280 255" stroke="#8B4513" stroke-width="' + (rootWidth * 0.3) + '" fill="none" stroke-linecap="round"/>';
+            
+            var trunkStartY = 235;
+            var trunkEndY = trunkStartY - treeHeight;
+            svg += '<path d="M' + (200 - trunkWidth/2) + ' ' + trunkStartY + ' Q' + (200 - trunkWidth/2 + 3) + ' ' + (trunkStartY - treeHeight/2) + ' ' + (200 - trunkWidth/2 + 2) + ' ' + trunkEndY + '" stroke="url(#trunkGrad)" stroke-width="' + trunkWidth + '" fill="none" stroke-linecap="round"/>';
+            svg += '<path d="M' + (200 + trunkWidth/2) + ' ' + trunkStartY + ' Q' + (200 + trunkWidth/2 - 3) + ' ' + (trunkStartY - treeHeight/2) + ' ' + (200 + trunkWidth/2 - 2) + ' ' + trunkEndY + '" stroke="url(#trunkGrad)" stroke-width="' + trunkWidth + '" fill="none" stroke-linecap="round"/>';
+            
+            var branchCount = Math.floor(3 + leafDensity * 5);
+            for (var i = 0; i < branchCount; i++) {
+                var branchY = trunkEndY + (trunkStartY - trunkEndY) * (0.3 + Math.random() * 0.5);
+                var branchAngle = (Math.random() > 0.5 ? 1 : -1) * (30 + Math.random() * 40);
+                var branchLen = 20 + Math.random() * 30;
+                var leafSize = 15 + Math.random() * 15;
+                
+                var endX = 200 + Math.sin(branchAngle * Math.PI / 180) * branchLen;
+                var endY = branchY - Math.cos(branchAngle * Math.PI / 180) * branchLen * 0.5;
+                
+                svg += '<path d="M200 ' + branchY + ' Q' + (200 + endX)/2 + ' ' + (branchY + endY)/2 + ' ' + endX + ' ' + endY + '" stroke="#8B4513" stroke-width="3" fill="none" stroke-linecap="round"/>';
+                
+                svg += '<circle cx="' + endX + '" cy="' + (endY - 5) + '" r="' + (leafSize * leafDensity) + '" fill="url(#leafGrad)" opacity="0.8"/>';
+                svg += '<circle cx="' + (endX - 10) + '" cy="' + (endY + 5) + '" r="' + (leafSize * leafDensity * 0.7) + '" fill="url(#leafGrad)" opacity="0.7"/>';
+                svg += '<circle cx="' + (endX + 12) + '" cy="' + (endY + 3) + '" r="' + (leafSize * leafDensity * 0.6) + '" fill="url(#leafGrad)" opacity="0.7"/>';
+            }
+            
+            var crownLeaves = Math.floor(5 + leafDensity * 8);
+            for (var j = 0; j < crownLeaves; j++) {
+                var cx = 200 + (Math.random() - 0.5) * 50;
+                var cy = trunkEndY - 10 + Math.random() * 30;
+                var r = 12 + Math.random() * 12;
+                svg += '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r * leafDensity) + '" fill="url(#leafGrad)" opacity="0.85"/>';
+            }
+            
+            svg += '<text x="200" y="25" text-anchor="middle" font-size="12" fill="#666">阅读总量: ' + totalPages + '页</text>';
+            svg += '</svg>';
+            
+            container.innerHTML = svg;
+        }
+
+        function getLeafColor(score) {
+            if (score >= 2.5) return '#66bb6a';
+            if (score >= 2) return '#9ccc65';
+            if (score >= 1.5) return '#dce775';
+            return '#ffee58';
+        }
+
+        function renderStats(data) {
+            var container = document.getElementById('statsRow');
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            var totalAssessments = 0;
+            var totalDebates = 0;
+            var passCount = 0;
+
+            data.forEach(function(book) {
+                book.sections.forEach(function(section) {
+                    if (section.report) {
+                        totalAssessments++;
+                        totalDebates += (section.report.debateCount || 0);
+                        if (section.report.status === 'pass') passCount++;
+                    }
+                });
+            });
+
+            container.innerHTML = 
+                '<div class="stat-card">' +
+                    '<div class="stat-value">' + totalAssessments + '</div>' +
+                    '<div class="stat-label">验收次数</div>' +
+                '</div>' +
+                '<div class="stat-card">' +
+                    '<div class="stat-value">' + totalDebates + '</div>' +
+                    '<div class="stat-label">思辨挑战</div>' +
+                '</div>' +
+                '<div class="stat-card">' +
+                    '<div class="stat-value">' + passCount + '/' + totalAssessments + '</div>' +
+                    '<div class="stat-label">通过情况</div>' +
+                '</div>';
+        }
+
+        function renderReport() {
+            var container = document.getElementById('reportSection');
+            
+            if (!selectedBook || !selectedSection) {
+                container.innerHTML = 
+                    '<div class="welcome-state">' +
+                        '<div class="welcome-icon">🌱</div>' +
+                        '<div class="welcome-title">点击左侧书单开始阅读验收之旅</div>' +
+                        '<div class="welcome-hint">选择一本书，查看详细的阅读能力评估</div>' +
+                    '</div>';
+                return;
+            }
+
+            var book = readingData.find(function(b) { return b.id === selectedBook; });
+            if (!book) return;
+
+            var section = book.sections.find(function(s) { return s.id === selectedSection; });
+            if (!section || !section.report) return;
+
+            var report = section.report;
+            var observe = report.observe || {};
+
+            var factScore = observe.fact || 2;
+            var thinkScore = observe.think || 2;
+            var chainScore = report.chainCount > 0 ? 3 : thinkScore;
+
+            var radarSvg = buildRadarChart(factScore, thinkScore, chainScore);
+            var factStars = buildStars(factScore);
+            var thinkStars = buildStars(thinkScore);
+            var chainStars = buildStars(chainScore);
+
+            var html = 
+                '<div class="report-header fade-in">' +
+                    '<div>' +
+                        '<div class="report-book-title">' + book.title + '</div>' +
+                        '<div class="report-range">' + section.range + ' · ' + section.desc + '</div>' +
+                    '</div>' +
+                    '<div class="report-date">' + report.date + '</div>' +
+                '</div>' +
+                
+                '<div class="radar-container fade-in">' +
+                    radarSvg +
+                '</div>' +
+                
+                '<div class="abilities-grid fade-in">' +
+                    '<div class="ability-card">' +
+                        '<div class="ability-icon">🧠</div>' +
+                        '<div class="ability-name">事实记忆力</div>' +
+                        '<div class="ability-stars">' + factStars + '</div>' +
+                    '</div>' +
+                    '<div class="ability-card">' +
+                        '<div class="ability-icon">💡</div>' +
+                        '<div class="ability-name">思辨分析力</div>' +
+                        '<div class="ability-stars">' + thinkStars + '</div>' +
+                    '</div>' +
+                    '<div class="ability-card">' +
+                        '<div class="ability-icon">🔗</div>' +
+                        '<div class="ability-name">跨点串联力</div>' +
+                        '<div class="ability-stars">' + chainStars + '</div>' +
+                    '</div>' +
+                '</div>' +
+                
+                '<div class="report-content fade-in">';
+
+            if (observe.highlight) {
+                html += 
+                    '<div class="report-card highlight">' +
+                        '<div class="report-card-title"><span>✨</span>本期亮点</div>' +
+                        '<div class="report-card-content">' + observe.highlight + '</div>' +
+                    '</div>';
+            }
+
+            if (report.method) {
+                html += 
+                    '<div class="report-card method">' +
+                        '<div class="report-card-title"><span>📝</span>方法收获</div>' +
+                        '<div class="report-card-content">' + report.method + '</div>' +
+                    '</div>';
+            }
+
+            if (observe.weakness) {
+                html += 
+                    '<div class="report-card weakness">' +
+                        '<div class="report-card-title"><span>🎯</span>持续精进</div>' +
+                        '<div class="report-card-content">' + observe.weakness + '</div>' +
+                    '</div>';
+            }
+
+            html += 
+                '<div class="report-card next">' +
+                    '<div class="report-card-title"><span>🚀</span>下期验收重点</div>' +
+                    '<div class="report-card-content">巩固人名细节记忆，加强跨朝代脉络梳理</div>' +
+                '</div>';
+
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        function buildRadarChart(fact, think, chain) {
+            var size = 180;
+            var cx = 100;
+            var cy = 100;
+            var r = 70;
+            
+            var maxScore = 3;
+            
+            var factAngle = -90;
+            var thinkAngle = 30;
+            var chainAngle = 150;
+            
+            var factX = cx + r * Math.cos(factAngle * Math.PI / 180) * (fact / maxScore);
+            var factY = cy + r * Math.sin(factAngle * Math.PI / 180) * (fact / maxScore);
+            
+            var thinkX = cx + r * Math.cos(thinkAngle * Math.PI / 180) * (think / maxScore);
+            var thinkY = cy + r * Math.sin(thinkAngle * Math.PI / 180) * (think / maxScore);
+            
+            var chainX = cx + r * Math.cos(chainAngle * Math.PI / 180) * (chain / maxScore);
+            var chainY = cy + r * Math.sin(chainAngle * Math.PI / 180) * (chain / maxScore);
+            
+            var bgPoints = [
+                [cx, cy - r],
+                [cx + r * Math.cos(30 * Math.PI / 180), cy + r * Math.sin(30 * Math.PI / 180)],
+                [cx - r * Math.cos(30 * Math.PI / 180), cy + r * Math.sin(30 * Math.PI / 180)]
+            ].map(function(p) { return p.join(','); }).join(' ');
+            
+            var levels = '';
+            for (var i = 1; i <= 3; i++) {
+                var levelR = r * i / 3;
+                var points = [
+                    [cx, cy - levelR],
+                    [cx + levelR * Math.cos(30 * Math.PI / 180), cy + levelR * Math.sin(30 * Math.PI / 180)],
+                    [cx - levelR * Math.cos(30 * Math.PI / 180), cy + levelR * Math.sin(30 * Math.PI / 180)]
+                ].map(function(p) { return p.join(','); }).join(' ');
+                levels += '<polygon points="' + points + '" fill="none" stroke="#e0e0e0" stroke-width="1"/>';
+            }
+            
+            var axes = 
+                '<line x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + (cy - r) + '" stroke="#e0e0e0" stroke-width="1"/>' +
+                '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + r * Math.cos(30 * Math.PI / 180)) + '" y2="' + (cy + r * Math.sin(30 * Math.PI / 180)) + '" stroke="#e0e0e0" stroke-width="1"/>' +
+                '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx - r * Math.cos(30 * Math.PI / 180)) + '" y2="' + (cy + r * Math.sin(30 * Math.PI / 180)) + '" stroke="#e0e0e0" stroke-width="1"/>';
+            
+            var dataPoints = [factX + ',' + factY, thinkX + ',' + thinkY, chainX + ',' + chainY].join(' ');
+            var dataPolygon = '<polygon points="' + dataPoints + '" fill="rgba(76, 175, 80, 0.3)" stroke="#4caf50" stroke-width="2"/>';
+            
+            var dataDots = 
+                '<circle cx="' + factX + '" cy="' + factY + '" r="6" fill="#4caf50"/>' +
+                '<circle cx="' + thinkX + '" cy="' + thinkY + '" r="6" fill="#4caf50"/>' +
+                '<circle cx="' + chainX + '" cy="' + chainY + '" r="6" fill="#4caf50"/>';
+            
+            var labels = 
+                '<text x="' + cx + '" y="' + (cy - r - 15) + '" text-anchor="middle" font-size="12" fill="#666">事实</text>' +
+                '<text x="' + (cx + r * Math.cos(30 * Math.PI / 180) + 10) + '" y="' + (cy + r * Math.sin(30 * Math.PI / 180) + 5) + '" text-anchor="start" font-size="12" fill="#666">思辨</text>' +
+                '<text x="' + (cx - r * Math.cos(30 * Math.PI / 180) - 10) + '" y="' + (cy + r * Math.sin(30 * Math.PI / 180) + 5) + '" text-anchor="end" font-size="12" fill="#666">串联</text>';
+            
+            return '<svg class="radar-svg" viewBox="0 0 200 200">' + levels + axes + dataPolygon + dataDots + labels + '</svg>';
+        }
+
+        function buildStars(score) {
+            var html = '';
+            for (var i = 1; i <= 3; i++) {
+                var filled = i <= score ? 'filled' : '';
+                html += '<svg class="star ' + filled + '" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+            }
+            return html;
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
