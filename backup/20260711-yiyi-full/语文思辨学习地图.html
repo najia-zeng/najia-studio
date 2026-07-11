@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>思辨·七上古诗文学习地图</title>
+<style>
+:root{--primary:#2a7d6e;--primary-light:#e8f5f1;--accent:#e8913a;--accent-light:#fef3e6;--bg:#f7f8fa;--card:#fff;--text:#2c3e50;--text-light:#7f8c9b;--border:#e8ecf1;--success:#27ae60;--success-light:#e8f8ef;--warning:#f39c12;--warning-light:#fef9e7;--info:#3498db;--info-light:#e8f4fd;--danger:#e74c3c;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,0.06)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+.nav-bar{display:flex;justify-content:center;gap:12px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--border)}
+.nav-btn{padding:6px 18px;border-radius:20px;font-size:.85em;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text-light);transition:all .2s;text-decoration:none}
+.nav-btn:hover{border-color:var(--primary);color:var(--primary)}
+.nav-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.header{background:linear-gradient(135deg,#2a7d6e 0%,#1a5c50 100%);color:#fff;padding:32px 20px;text-align:center}
+.header h1{font-size:1.6em;font-weight:700;margin-bottom:6px;letter-spacing:1px}
+.header p{font-size:.9em;opacity:.85;font-weight:300}
+.stats-bar{display:flex;justify-content:center;gap:16px;padding:16px 20px;background:#fff;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-num{font-size:1.5em;font-weight:700}
+.stat-num.teal{color:var(--primary)}
+.stat-num.green{color:var(--success)}
+.stat-num.orange{color:var(--accent)}
+.stat-num.blue{color:var(--info)}
+.stat-label{font-size:.72em;color:var(--text-light)}
+.container{max-width:720px;margin:0 auto;padding:20px 16px}
+.unit-section{margin-bottom:24px}
+.unit-title{font-size:1.05em;font-weight:600;color:var(--primary);padding:10px 16px;background:var(--primary-light);border-radius:var(--radius);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.unit-title .badge{font-size:.7em;background:var(--primary);color:#fff;padding:2px 8px;border-radius:10px}
+.text-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:10px;overflow:hidden;border:1px solid var(--border);transition:all .2s}
+.text-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.1)}
+.card-header{padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.card-header:hover{background:#fafbfc}
+.card-left{flex:1}
+.card-title{font-size:1em;font-weight:600;color:var(--text)}
+.card-meta{font-size:.8em;color:var(--text-light);margin-top:2px}
+.card-right{display:flex;align-items:center;gap:8px}
+.type-tag{font-size:.7em;padding:2px 8px;border-radius:10px;font-weight:500}
+.type-tag.poem{background:#e8f0fe;color:#3b78e7}
+.type-tag.prose{background:#fef3e6;color:#e8913a}
+.status-tag{font-size:.7em;padding:2px 8px;border-radius:10px;font-weight:600;white-space:nowrap}
+.status-tag.pass{background:var(--success-light);color:var(--success)}
+.status-tag.progress{background:var(--warning-light);color:var(--warning)}
+.status-tag.todo{background:#f0f0f0;color:#aaa}
+.progress-dots{display:flex;gap:3px}
+.dot{width:8px;height:8px;border-radius:50%;background:#ddd;transition:all .2s}
+.dot.done{background:var(--success)}
+.expand-icon{font-size:.8em;color:var(--text-light);transition:transform .2s}
+.text-card.expanded .expand-icon{transform:rotate(180deg)}
+.card-body{padding:0 16px;max-height:0;overflow:hidden;transition:all .3s ease}
+.text-card.expanded .card-body{padding:16px;max-height:12000px}
+.original-text{background:#fafbfc;border-radius:8px;padding:16px;font-size:.95em;line-height:2;color:var(--text);white-space:pre-line;border-left:3px solid var(--primary);margin-bottom:14px}
+.vocab-section h4{font-size:.85em;color:var(--primary);margin-bottom:8px;font-weight:600}
+.vocab-list{display:flex;flex-wrap:wrap;gap:6px}
+.vocab-item{background:var(--primary-light);padding:4px 10px;border-radius:6px;font-size:.82em;color:var(--text)}
+.vocab-item .word{font-weight:600;color:var(--primary)}
+.progress-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.progress-section h4{font-size:.85em;color:var(--text-light);margin-bottom:10px}
+.progress-btns{display:flex;gap:8px;flex-wrap:wrap}
+.p-btn{padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;font-size:.8em;cursor:pointer;background:#fff;color:var(--text-light);transition:all .2s}
+.p-btn:hover{border-color:var(--primary);color:var(--primary)}
+.p-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.p-btn.active.step1{background:var(--info);border-color:var(--info)}
+.p-btn.active.step2{background:var(--accent);border-color:var(--accent)}
+.p-btn.active.step3{background:var(--success);border-color:var(--success)}
+/* 验收报告样式 */
+.report-box{background:#f8f9fb;border-radius:10px;padding:16px;margin-top:14px;border:1px solid var(--border)}
+.report-box h4{font-size:.9em;color:var(--primary);margin-bottom:10px;font-weight:700;display:flex;align-items:center;gap:6px}
+.report-row{display:flex;align-items:center;padding:6px 0;border-bottom:1px solid #eee;font-size:.85em}
+.report-row:last-child{border-bottom:none}
+.report-label{color:var(--text-light);min-width:80px}
+.report-value{color:var(--text);font-weight:500}
+.report-value.green{color:var(--success)}
+.report-value.red{color:var(--danger)}
+.report-value.orange{color:var(--warning)}
+.stage-tag{display:inline-flex;align-items:center;gap:4px;font-size:.78em;padding:2px 8px;border-radius:6px;font-weight:500}
+.stage-tag.pass{background:var(--success-light);color:var(--success)}
+.stage-tag.fail{background:#fff5f5;color:var(--danger)}
+.stage-tag.skip{background:#f5f5f5;color:#999}
+.process-btn{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:8px 18px;background:var(--primary);color:#fff;border:none;border-radius:20px;font-size:.85em;font-weight:600;cursor:pointer;transition:all .2s}
+.process-btn:hover{background:#1a5c50;transform:translateY(-1px)}
+.process-btn:active{transform:translateY(0)}
+.chat-panel{margin-top:14px;max-height:0;overflow:hidden;transition:all .3s ease}
+.chat-panel.open{max-height:6000px}
+.round-chat{margin-bottom:16px}
+.round-chat-header{font-size:.88em;font-weight:700;color:var(--primary);padding:8px 12px;background:var(--primary-light);border-radius:8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.chat-bubble{margin-bottom:8px;display:flex;gap:8px;align-items:flex-start}
+.chat-bubble.ai{flex-direction:row}
+.chat-bubble.kid{flex-direction:row-reverse}
+.chat-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8em;flex-shrink:0}
+.chat-avatar.ai-avatar{background:var(--primary-light);color:var(--primary)}
+.chat-avatar.kid-avatar{background:#fce4ec;color:#e91e63}
+.chat-content{max-width:80%;padding:10px 14px;border-radius:12px;font-size:.85em;line-height:1.6;word-break:break-word}
+.chat-content p{margin:0 0 4px}.chat-content p:last-child{margin:0}
+.chat-content strong{font-weight:700;color:inherit}
+.chat-content ul{margin:4px 0;padding-left:18px}.chat-content li{margin:2px 0}
+.chat-bubble.ai .chat-content{background:var(--primary-light);color:var(--text);border-top-left-radius:4px}
+.chat-bubble.kid .chat-content{background:#fce4ec;color:var(--text);border-top-right-radius:4px}
+.chat-eval{margin-top:4px;font-size:.78em;color:var(--success);font-weight:500}
+.chat-eval.wrong{color:var(--danger)}
+.motto-box{background:linear-gradient(135deg,#2a7d6e 0%,#1a5c50 100%);color:#fff;border-radius:10px;padding:14px 16px;margin-top:12px;font-size:.85em;font-weight:300;line-height:1.7;text-align:center}
+.footer{text-align:center;padding:20px;color:var(--text-light);font-size:.8em;border-top:1px solid var(--border);margin-top:20px}
+@media(max-width:480px){.header h1{font-size:1.3em}.stats-bar{gap:10px}.container{padding:12px 10px}.card-header{padding:12px}.chat-content{max-width:88%}}
+</style>
+</head>
+<body>
+
+<div class="nav-bar">
+<a class="nav-btn active" href="#">🌿 古诗文</a></div>
+
+<div class="header">
+<h1>🌿 思辨·七上古诗文学习地图</h1>
+<p>人教版2024新课标 · 理解 → 思辨 → 写作</p>
+</div>
+
+<div class="stats-bar">
+<div class="stat-item"><div class="stat-num teal" id="stat-total">18</div><div class="stat-label">总篇数</div></div>
+<div class="stat-item"><div class="stat-num blue" id="stat-understood">0</div><div class="stat-label">已理解</div></div>
+<div class="stat-item"><div class="stat-num orange" id="stat-debated">0</div><div class="stat-label">已思辨</div></div>
+<div class="stat-item"><div class="stat-num green" id="stat-written">0</div><div class="stat-label">已写作</div></div>
+<div class="stat-item"><div class="stat-num green" id="stat-verified">0</div><div class="stat-label">已验收</div></div>
+</div>
+
+<div class="container" id="app"></div>
+
+<script>
+const DATA=[
+{id:"u1t1",unit:1,type:"poem",title:"观沧海",author:"曹操",
+text:"东临碣石，以观沧海。\n水何澹澹，山岛竦峙。\n树木丛生，百草丰茂。\n秋风萧瑟，洪波涌起。\n日月之行，若出其中；\n星汉灿烂，若出其里。\n幸甚至哉，歌以咏志。",
+vocab:[{w:"临",d:"登上"},{w:"澹澹",d:"水波荡漾的样子"},{w:"竦峙",d:"高耸挺立"},{w:"萧瑟",d:"秋风吹拂的声音"},{w:"星汉",d:"银河"}],
+report:{date:"2026-06-25",status:"pass",
+stage1:{result:"pass",detail:"理解层验收通过，能解释重点字词和诗歌大意"},
+stage2:{result:"pass",detail:"思辨层验收通过，能分析虚实结合与情感层次"},
+stage3:{result:"pass",detail:"写作层完成，能围绕诗人视角写感受"},
+weakPoints:[],
+motto:"沧海壮阔，雄心自见！",
+method:null,
+chat:null}},
+{id:"u1t2",unit:1,type:"poem",title:"次北固山下",author:"王湾",
+text:"客路青山外，行舟绿水前。\n潮平两岸阔，风正一帆悬。\n海日生残夜，江春入旧年。\n乡书何处达？归雁洛阳边。",
+vocab:[{w:"客路",d:"旅途"},{w:"悬",d:"高挂"},{w:"残夜",d:"夜将尽未尽之时"},{w:"旧年",d:"将要过去的一年"}],
+report:{date:"2026-06-26",status:"pass",
+stage1:{result:"pass",detail:"理解层验收通过，能准确描述诗中画面，理解残夜与海日的关系"},
+stage2:{result:"pass",detail:"思辨层验收通过，能从思乡中拆出漂泊惆怅、万物更新感触、对前路期待等多层情感"},
+stage3:{result:"pass",detail:"写作层完成，结构清晰（破题+论据+收束），用词精准"},
+weakPoints:[],
+motto:"时光虽急，心有多维！",
+method:null,
+chat:{"stage1": [{"who": "ai", "text": "好，验收《次北固山下》，王湾的——一首在船上写的思乡诗，但思乡只是表面。\n\n按三阶来，直接出题。\n\n## 一阶·理解\n\n读完这首诗，你脑子里的画面是什么样的？什么时间？什么季节？你在哪？\n\n\"海日生残夜，江春入旧年\"——这两句是整个诗的核心。你能用自己的话说说这两句在写什么画面吗？它跟前面\"潮平两岸阔，风正一帆悬\"比，情绪一样吗？\n\n## 二阶·思辨\n\n大家都在说这首诗是\"思乡\"，但如果仔细看——王湾说\"客路青山外\"，他是在赶路，不是在家待腻了想出去玩。一个在赶路的人，看到海上升日、旧年未尽新年已到，他想的真的是\"家\"吗？还是别的什么？\n\n先聊理解，想好了直接说。"}, {"who": "kid", "text": "脑子里的画面是青山在外，诗人坐在江上的小船里，潮水涨得很高，江面宽宽的，顺风里船帆直直飘着，天还没完全亮，太阳就已经从海里冒出来了。还没过完旧年，江边就已经有春天的样子了。"}, {"who": "ai", "text": "画面抓得准，每一句都对应上了，尤其\"天还没完全亮太阳就从海里冒出来\"——\"残夜\"和\"海日\"的关系你看到了，不是背翻译，是真的\"看见\"了。\n\n但第二题你只答了画面，没答情绪——\"潮平两岸阔，风正一帆悬\"和\"海日生残夜，江春入旧年\"这两组画面的情绪一样吗？\n\n前面是江面开阔、一帆风顺，情绪是开阔的、顺的；后面突然变成天还没亮太阳就出来了，旧年还没过春天就来了——你有没有觉得这里面藏着一种**\"来不及\"**的感觉？世界在加速往前跑，而你一个人漂在江上？\n\n带着这个感觉进思辨——\n\n第三题：王湾在赶路，不是待在家里无聊。他看到\"海日生残夜，江春入旧年\"——时间在他面前加速，新年没到就来了。一个赶路人看到这种\"来不及\"的画面，他想的真的只是\"我想回家\"吗？还是在想别的什么？"}], "stage2": [{"who": "kid", "text": "他不只是单纯想家。诗人出门赶路，一直在外漂泊。看见太阳赶在夜里升起，春天抢在年前到来，一下子感慨时间过得太快。自己常年在外奔波，虽然最后想寄信回家，看看大雁，思念洛阳老家是真的。但是藏在里面还有别的想法。看着这么壮阔，充满新生希望的景色，他也有对前路的期待，不单单只有想家的忧愁。思乡只是表面的，更多的还有在外漂泊的惆怅，还有看见万物更新的感触。"}, {"who": "ai", "text": "这就对了。\n\n你从\"想家\"里拆出了三层：想家是真的，但不止想家——漂泊的惆怅是真的，看见万物更新的触动也是真的，对前路的期待也是真的。\n\n四种情绪叠在一起，不是单一忧愁。\n\n而且你抓住了一个关键：\"赶\"和\"抢\"——太阳赶在夜里出来，春天抢在年前到来。这不是诗人自己的速度，是世界在他面前跑得太快，他在后面追。一个赶路的人被时间甩在后面，这才是\"乡书何处达\"背后真正的焦虑——不是家远，是觉得自己跟不上这个世界的节奏。\n\n好，进三阶·写作。\n\n把你刚才的理解写成一段话，要求：\n- 开头亮出你的核心观点：这首诗不只是思乡\n- 中间至少用一个诗里的画面做支撑\n- 结尾收回来\n\n不用长，说清楚就行。"}], "stage3": [{"who": "kid", "text": "这首诗不只是单纯抒发思乡之情。你看，海日生残夜，江春入旧年。太阳赶在深夜升起，新春抢在旧年到来，飞速交替的光景让赶路的诗人心生焦虑，感叹自己追不上时光的流逝。最后诗人借鸿雁寄家书的举动，才把藏在心底的乡愁流露出来。思乡只是他复杂心绪最后的落点。"}, {"who": "ai", "text": "结构很干净。\n\n开头一句破题，中间用\"海日生残夜，江春入旧年\"做支撑，结尾\"思乡只是复杂心绪最后的落点\"——收得漂亮，比《观沧海》那篇结构进步明显。\n\n\"太阳赶在深夜升起，新春抢在旧年到来\"——\"赶\"和\"抢\"这两个字你用上了，而且用得很准，把整首诗的时间焦虑感点透了。\n\n如果要再进一步：你之前聊的时候还说了\"对前路的期待\"和\"万物更新的感触\"，写的时候没带进来。现在的文章只写了\"焦虑\"这一面，少了\"希望\"那一面。加上\"万物在加速更新，他其实也感受到了新事物的力量\"，情绪层次会更完整。\n\n不过整体已经过关了。\n\n**《次北固山下》三阶全部通过 ✅**"}]}}},{id:"u1t3",unit:1,type:"poem",title:"闻王昌龄左迁龙标遥有此寄",author:"李白",
+text:"杨花落尽子规啼，\n闻道龙标过五溪。\n我寄愁心与明月，\n随君直到夜郎西。",
+vocab:[{w:"子规",d:"杜鹃鸟"},{w:"左迁",d:"降职"},{w:"五溪",d:"今湖南西部五条溪流"},{w:"夜郎",d:"唐代西南少数民族地区"}],
+report:{date:"2026-06-27",status:"pass",
+stage1:{result:"pass",detail:"理解层验收通过。能准确描述诗歌画面（暮春杨花、杜鹃哀啼、寄心明月），并深入分析'落尽'二字的程度、情感、意境三层含义。"},
+stage2:{result:"pass",detail:"思辨层验收通过。能对比分析月亮vs风vs水的选择逻辑，核心论点'同时被两方看见'一针见血，论证扎实。"},
+stage3:{result:"pass",detail:"写作层验收通过。结构完整（情感基调→月亮承载逻辑→升华收束），'把离别之苦化作温柔慰藉'的转化表达圆润，从个人惆怅升华到'古今人天涯心意相通'格局打开。"},
+weakPoints:[],
+motto:"明月寄愁，天涯相通！",
+method:null,
+chat:[
+{round:1,stage:"理解",topic:"画面还原",
+messages:[
+{role:"ai",content:"先说说你读完这首诗，脑子里第一反应出来的画面是什么样的？"},
+{role:"kid",content:"我看到了春天，杨花乱飞，杜鹃哀鸣，到处都是清冷伤感的景色。知道朋友被贬到很远偏僻的龙标，没法当面告别。我看着天上的月亮，把自己的担忧和思念交给了月亮，让月光陪着友人走到他去往的地方。",eval:"通过"},
+{role:"ai",content:"诗里用的是'落尽'，不是'飘落'。你觉得'尽'字带出了什么不一样的感觉？"},
+{role:"kid",content:"落尽是全部落光，一丝不剩的意思，和飘落有很大区别。在程度上，飘落只写了杨花随风飞散的动态，而尽字写出杨花已经全部凋零，春光彻底消逝。暮春衰败、空寂、荒芜的氛围感更强。在情感上，繁花落尽，春光一去不返。暗含时光逝去，美好消散的落寂，刚好对应友人被贬前途渺茫的伤感，悲凉愁苦的情绪更浓稠。意境上来讲，遍地无花的空荡景象衬出诗人孤身远望，无处排遣离愁的孤寂，为后文寄愁明月铺垫悲凉底色。",eval:"通过"}
+]},
+{round:2,stage:"思辨",topic:"明月寄托的必然性",
+messages:[
+{role:"ai",content:"李白把愁心交给明月，这个操作挺奇怪的。他为什么偏偏选月亮来寄托？月亮能帮上什么忙？换成'寄给风''寄给江水'行不行？"},
+{role:"kid",content:"为什么偏偏选择月亮寄托愁思？因为月亮不分地域，无论李白身处何处，友人被贬至遥远夜郎，两人抬头望见的都是同一轮明月。哪怕相隔千山万水，明月也可以跨越空间把两人连接。风和江水都做不到同时被两方看见。而且如果换成风的话，风飘忽不定，来去无踪，方向不受控制，一阵顺风转瞬消散，没法一路长久追随友人到夜郎。而且风声嘈杂，没有月亮沉静温柔的寄托感，缺少绵长的思念意境。如果是寄给江水的话，江水向东奔流道路受限。龙标地处偏远山区，水路无法直接到达，并且江水只流经局部地域，不能像月亮一样时刻伴随友人，缺少天涯共赏的共情，格局与思念的绵长大打折扣。",eval:"通过"}
+]},
+{round:3,stage:"写作",topic:"微写作",
+messages:[
+{role:"ai",content:"请以'我寄愁心与明月'为核心，写一段150字左右的短文，谈谈这两句诗给你的感受或联想。"},
+{role:"kid",content:"读我寄愁心与明月，心底漫开绵长的惆怅与迷茫。杨花落尽，杜鹃啼哀的暮春，听闻好友遭贬远走，万千愁绪无处诉说。世间唯有明月可贯穿千山，不分地域洒落柔光。于是诗人将满心惦念交与明月，愿清辉月光伴随友人，消解独行的孤寂。月亮无声却长久，这份借月色传递思念的巧思，把离别之苦化作温柔慰藉，道尽古今人相隔天涯却心意相通的浪漫。",eval:"通过",note:"结构完整（情感基调→月亮承载逻辑→升华收束），'把离别之苦化作温柔慰藉'的转化表达圆润，结尾从个人惆怅升华到'古今人天涯心意相通'格局打开。"}
+]}
+]}},
+{id:"u1t4",unit:1,type:"poem",title:"天净沙·秋思",author:"马致远",
+text:"枯藤老树昏鸦，\n小桥流水人家，\n古道西风瘦马。\n夕阳西下，\n断肠人在天涯。",
+vocab:[{w:"昏鸦",d:"黄昏时归巢的乌鸦"},{w:"断肠",d:"形容悲伤到极点"},{w:"天涯",d:"极远的地方"}],
+report:{
+  title:"天净沙·秋思",
+  date:"2026-06-29",
+  status:"pass",
+  stage1:{
+    name:"理解",
+    result:"pass",
+    detail:"准确感知萧条秋景与游子孤苦，主动识别炼字与对比反衬手法"
+  },
+  stage2:{
+    name:"思辨",
+    result:"pass",
+    detail:"论证'小桥流水人家'是最残忍的一笔，被逼问后论点加固不摇摆"
+  },
+  stage3:{
+    name:"写作",
+    result:"pass",
+    detail:"自由写作结构完整、生活体验真实，微写作与口述框架均完成"
+  },
+  weakPoints:[],
+  motto:"真正伤人的不是无边苦寒，而是亲眼望见自己求而不得的温暖",
+  chat:{
+    stage1:[
+      {
+        who:"ai",
+        text:"好，《天净沙·秋思》来了！先给你原文，读两遍再来：\n\n枯藤老树昏鸦，\n小桥流水人家，\n古道西风瘦马。\n夕阳西下，\n断肠人在天涯。\n\n读完之后，你的第一感觉是什么？这首曲在说什么？不用分析，就说感觉。"
+      },
+      {
+        who:"kid",
+        text:"感觉 读完心里闷闷的，满眼都是萧条冷清的秋景。看着别人有家可归，自己漂泊在外，满心孤单想家。"
+      },
+      {
+        who:"ai",
+        text:"感受很准。'别人有家可归，自己在天涯'——你已经抓到这首曲最核心的痛点了。\n\n追问一下：你说'满眼萧条冷清'，具体是从哪些词感受到的？随便说几个就行，不用全。"
+      },
+      {
+        who:"kid",
+        text:"从枯藤的枯 老树的老，昏鸦的昏，瘦马的瘦，能感觉到这些词都透着一股衰败、荒凉的味道。一眼就觉得环境冷冷清清，一看就很萧条。"
+      },
+      {
+        who:"ai",
+        text:"抓得很准！'枯''老''昏''瘦'——每一个都是经过精心挑选的修饰字，专门往'衰败'的方向选。你刚才这种抓住一个字拆出味道来的分析方法，在古诗鉴赏里叫'炼字'。考试遇到这种题，就这么写：'枯''老''昏''瘦'等字运用了炼字手法，渲染了萧条凄凉的意境。\n\n再注意一个有意思的事：前三句，第一组'枯藤老树昏鸦'是荒凉的，第二组'小桥流水人家'却是温暖的——你刚才说'看着别人有家可归'，说明你已经感觉到了。这一手叫什么？叫'对比反衬'——用别人的温暖，反衬自己的孤苦，比直接说'我好惨'狠多了。\n\n好，一阶通过 ✅\n\n现在换你来考考我——关于这首曲，你有什么问题想问我的？随便来，看你能不能难住我。"
+      }
+    ],
+    stage2:[
+      {
+        who:"kid",
+        text:"为什么这首短短28个字的小令，就能被称为秋思之祖？"
+      },
+      {
+        who:"ai",
+        text:"好问题！我来答：\n\n因为它写了秋天的景色，又表达了思乡之情，所以被称为'秋思之祖'。\n\n——你觉得我答得怎么样？有没有漏掉什么关键的？"
+      },
+      {
+        who:"kid",
+        text:"这个回答只说了表层，漏掉了三个关键要点。第一点，写法独特，全篇只用名词堆叠事物、景物，没有多余的修饰，画面感很强。二 手法精妙，冷暖景物对比反衬，不用直白诉苦，愁绪更加动人。三、标杆地位。后世写秋、写羁旅思乡的散曲，大多借鉴他的写景抒情思路。是同类作品的范本，所以才称秋思之祖。"
+      },
+      {
+        who:"ai",
+        text:"补得非常到位，三个点全中。尤其第三点'后世范本'这个角度，我故意没说，你就自己想到了，很厉害。\n\n过渡层结束，进入思辨。\n\n我有一个跟主流说法不一样的观点——大家都说'小桥流水人家'是整首曲里最温暖的一句，给荒凉的画面带来了一丝暖意。但我反而觉得，这一句是整首曲里最残忍的一句。\n\n你怎么看？同意还是不同意？说说理由。"
+      },
+      {
+        who:"kid",
+        text:"我同意这个说法，因为小桥流水人家的烟火暖意是旁人安稳团圆的缩影。可 温暖和游子毫无关系，别人有家可归，亲人相伴，反衬出我的孤身漂泊，无处落脚。的落魄 越美好越凹显我孤单无依，这种落差带来的刺痛比单纯的荒凉秋色更让人难受，所以它才是全曲最残忍的一句。"
+      },
+      {
+        who:"ai",
+        text:"分析得很扎实。'越美好越刺痛'——这个判断有力度，比单写荒凉高级多了。\n\n追问一个：如果有人建议把'小桥流水人家'这句删掉，改成全部写荒凉——比如改成'枯藤老树昏鸦，古道西风瘦马，荒村落日残霞'——从头到尾都是冷的，你觉得效果会更好还是更差？为什么？"
+      },
+      {
+        who:"kid",
+        text:"效果变差。原句以温暖烟火反衬游子孤苦，是核心反衬手法。若全篇皆为冷寂秋景，没有美好团圆做对照，乡愁的冲击力会大幅减弱，意境单薄，失去原 去含蓄深愁的感染力。"
+      },
+      {
+        who:"ai",
+        text:"说得很清楚——'没有对照，冲击力大幅减弱'，你已经把反衬的艺术效果讲透了。\n\n好，二阶收束。帮你整理一下你这次思辨的核心观点：\n\n'小桥流水人家'看似温暖，实则最残忍。因为它用别人的团圆反衬游子的孤苦，落差越大，刺痛越深。如果删掉它，全篇皆冷，反而失去含蓄深愁的感染力。\n\n二阶通过 ✅\n\n进三阶。把我们刚才聊的这个观点写成一篇短文吧——围绕'小桥流水人家是全曲最残忍的一句'来写。要求：开头亮出你的观点，中间至少用一个论据（可以是诗里的细节，也可以是你自己的生活体验），结尾收回来。写吧！"
+      }
+    ],
+    stage3:[
+      {
+        who:"kid",
+        text:"我认为小桥流水人家是天净沙秋思全曲里最残忍的一句。这首小令开篇铺尽萧瑟，枯藤缠绕老树，黄昏归鸦栖于夕 枝头 萧瑟古道上，秋风裹挟瘦弱老马，满眼都是游子漂泊的孤寂苦寒。就在一片凄凉当中，作者笔锋一转，绘出小桥流水、炊烟袅袅的屋舍，勾勒出普通人安安稳稳的日常。长 这份烟火温暖不属于旅人，旁人合家欢乐的圆满与他孤身漂泊无家可归的处境形成尖锐对照。以越景衬哀情，落差越大，心底的苦楚与刺痛就越浓重。若是删去这一句 通篇只剩荒芜冷景，没有团圆做对照，游子思乡的悲苦便会变得单薄、平淡，失去直击人心的力量。这就像独自在外求学时，路过居民区，看见家家户户灯火通明。屋内传来说笑声响，别人越热闹安稳，越衬得自己孤身一人的落寞无处躲藏。真正伤人的并不是无边苦寒，而是亲眼望见自己求而不得的温暖，小桥流水人家的温柔。画面时刻提醒生涯游子身无所归的境遇。这份反衬带来的悲凉让它成为全曲最残忍的一笔。"
+      },
+      {
+        who:"ai",
+        text:"写得很扎实，几点好的：\n1. 结构清晰——先铺荒凉背景，再转温暖人家，再点破反衬效果，层次分明\n2. 生活体验用得真实——'路过居民区，家家户户灯火通明'，这个例子把800年前的曲拉到了现在，读者一下就能共鸣\n3. 结尾收得漂亮——'真正伤人的并不是无边苦寒，而是亲眼望见自己求而不得的温暖'，这句概括力很强\n\n小提醒：有一个地方应该是'以乐景衬哀情'，不是'以越景'。乐=美好/温暖。\n\n接下来做微写作模板。根据这首曲的体量，用观点短评模板，你来填：\n\n读了《____》，我发现了一个容易被忽略的角度：____。\n诗里____（引用一个细节）让我觉得____，\n这和通常说的\"____\"不一样——____。\n所以我觉得，读这首诗真正该抓住的是____。"
+      },
+      {
+        who:"kid",
+        text:"让我觉得暖意反而 加倍刺痛游子的思乡之情。这和通常说的小桥流水为萧瑟秋景添一丝暖意会不一样。这份人间团圆不属于旅人，美好光景只会反衬得 嗯上 人称 体会 孤身漂泊的孤苦。所以我觉得读这首诗真正该抓住的是以月景衬哀情。的反衬手法，读懂温暖画面。背后更深沉的天涯断肠之愁。"
+      },
+      {
+        who:"ai",
+        text:"填得很好！观点清晰，'温暖画面背后更深沉的天涯断肠之愁'收得漂亮。（'以月景'应该是'以乐景'，语音识别的小误差。）\n\n最后一步——口述框架。现在你站在作者的角度：\n\n如果现在让你写一篇这样的文章，你想让读到的人感受到什么？开头你打算用什么画面把他带进来？中间哪部分你会写得最细？最后怎么收尾？"
+      },
+      {
+        who:"kid",
+        text:"我想让读者读懂。真正折磨漂泊游子的不只有 荒寒秋景，而是亲眼看见旁人拥有安稳团圆，自己却求而不得的反差。体会以月景衬哀情这种藏在温暖画面里的深沉乡愁。开头可以先用原文 离去。萧瑟冷寂的 秋景带入 枯藤缠绕老树，黄昏归鸦，荒凉古道。"
+      },
+      {
+        who:"ai",
+        text:"开头想好了。中间哪部分你会写得最细？最后怎么收尾？"
+      },
+      {
+        who:"kid",
+        text:"西风瘦马，先铺好孤身赶路，满目萧条的清冷范围，把读者带入游子孤单漂泊的处境。中间会把小桥流水人家写得最细致，一边临摹小桥流水屋 射炊烟的温馨烟火，一边对比游子孤身骑马独行的状态，再结合独自在外看见万家灯火的生活体验，重点拆解这份温暖如何反衬孤独，讲清反差带来的刺痛感，同时 补充假设删去这句后的后果，突出反衬手法的精妙。最后结束，收尾回到全曲主旨，点明断肠人的仇恨缘，不再萧瑟秋 而在于美好团圆近在眼前，自己却身在天涯无法触及。总结温暖图景才是全曲最戳人的一笔，升华以月景衬爱情的内核。"
+      },
+      {
+        who:"ai",
+        text:"框架搭得很完整，帮你梳理一下：\n\n开头：用原文萧瑟秋景铺底，把读者带入游子孤身漂泊的处境\n中间（详写）：重点拆解'小桥流水人家'反衬效果，结合生活体验+反证删句后果\n结尾：回扣主旨，断肠人的愁不在秋景萧瑟，而在团圆近在眼前却身在天涯\n\n你看，你已经在用作者思维了——知道给读者铺底、知道哪里该详写、知道怎么收。\n\n三阶通过 ✅\n\n最后一题：今天通过这首曲，你学会了一个什么读诗的方法？用一句话说。"
+      },
+      {
+        who:"kid",
+        text:"读诗不能只看字面景物，要留意冷暖画面的反差，以读懂乐景衬哀情这类反衬手法背后藏着的深沉情感。"
+      }
+    ]
+  }
+}},
+{id:"u2t1",unit:2,type:"prose",title:"咏雪",author:"《世说新语》",
+text:"谢太傅寒雪日内集，与儿女讲论文义。俄而雪骤，公欣然曰：\u201C白雪纷纷何所似？\u201D兄子胡儿曰：\u201C撒盐空中差可拟。\u201D兄女曰：\u201C未若柳絮因风起。\u201D公大笑乐。即公大兄无奕女，左将军王凝之妻也。",
+vocab:[{w:"内集",d:"把家人聚集在一起"},{w:"儿女",d:"子侄辈"},{w:"俄而",d:"不久，一会儿"},{w:"骤",d:"急"},{w:"差可拟",d:"差不多可以相比"},{w:"因",d:"乘、趁"}],
+report:null},
+{id:"u2t2",unit:2,type:"prose",title:"陈太丘与友期行",author:"《世说新语》",
+text:"陈太丘与友期行，期日中。过中不至，太丘舍去，去后乃至。元方时年七岁，门外戏。客问元方：\u201C尊君在不？\u201D答曰：\u201C待君久不至，已去。\u201D友人便怒曰：\u201C非人哉！与人期行，相委而去。\u201D元方曰：\u201C君与家君期日中。日中不至，则是无信；对子骂父，则是无礼。\u201D友人惭，下车引之。元方入门不顾。",
+vocab:[{w:"期",d:"约定"},{w:"舍去",d:"不再等候就走了"},{w:"尊君",d:"令尊，你父亲"},{w:"不",d:"同\u2018否\u2019"},{w:"相委",d:"丢下别人"},{w:"家君",d:"对别人称自己的父亲"},{w:"引",d:"拉，牵拉"},{w:"顾",d:"回头看"}],
+report:null},
+{id:"u3t1",unit:3,type:"prose",title:"《论语》十二章",author:"孔子弟子及再传弟子",
+text:"\u2460子曰：\u201C学而时习之，不亦说乎？有朋自远方来，不亦乐乎？人不知而不愠，不亦君子乎？\u201D\n\n\u2461曾子曰：\u201C吾日三省吾身：为人谋而不忠乎？与朋友交而不信乎？传不习乎？\u201D\n\n\u2462子曰：\u201C吾十有五而志于学，三十而立，四十而不惑，五十而知天命，六十而耳顺，七十而从心所欲，不逾矩。\u201D\n\n\u2463子曰：\u201C温故而知新，可以为师矣。\u201D\n\n\u2464子曰：\u201C学而不思则罔，思而不学则殆。\u201D\n\n\u2465子曰：\u201C贤哉，回也！一箪食，一瓢饮，在陋巷，人不堪其忧，回也不改其乐。贤哉，回也！\u201D\n\n\u2466子曰：\u201C知之者不如好之者，好之者不如乐之者。\u201D\n\n\u2467子曰：\u201C饭疏食，饮水，曲肱而枕之，乐亦在其中矣。不义而富且贵，于我如浮云。\u201D\n\n\u2468子曰：\u201C三人行，必有我师焉。择其善者而从之，其不善者而改之。\u201D\n\n\u2469子在川上曰：\u201C逝者如斯夫，不舍昼夜。\u201D\n\n\u246A子曰：\u201C三军可夺帅也，匹夫不可夺志也。\u201D\n\n\u246B子夏曰：\u201C博学而笃志，切问而近思，仁在其中矣。\u201D",
+vocab:[{w:"说",d:"同\u2018悦\u2019，愉快"},{w:"愠",d:"生气，恼怒"},{w:"三省",d:"多次反省"},{w:"有",d:"同\u2018又\u2019"},{w:"罔",d:"迷惑"},{w:"殆",d:"疑惑"},{w:"箪",d:"古代盛饭的圆竹器"},{w:"堪",d:"忍受"},{w:"肱",d:"胳膊"},{w:"逝",d:"流逝"},{w:"夺",d:"改变"}],
+report:null},
+{id:"u3t2",unit:3,type:"poem",title:"峨眉山月歌",author:"李白",
+text:"峨眉山月半轮秋，\n影入平羌江水流。\n夜发清溪向三峡，\n思君不见下渝州。",
+vocab:[{w:"平羌",d:"江名，即青衣江"},{w:"发",d:"出发"},{w:"渝州",d:"今重庆一带"}],
+report:null},
+{id:"u3t3",unit:3,type:"poem",title:"江南逢李龟年",author:"杜甫",
+text:"岐王宅里寻常见，\n崔九堂前几度闻。\n正是江南好风景，\n落花时节又逢君。",
+vocab:[{w:"寻常见",d:"常常看到"},{w:"几度",d:"几次"},{w:"落花时节",d:"暮春，也暗指衰败时期"}],
+report:null},
+{id:"u3t4",unit:3,type:"poem",title:"行军九日思长安故园",author:"岑参",
+text:"强欲登高去，\n无人送酒来。\n遥怜故园菊，\n应傍战场开。",
+vocab:[{w:"九日",d:"九月九日重阳节"},{w:"强欲",d:"勉强想要"},{w:"送酒",d:"用陶渊明重阳饮酒的典故"},{w:"傍",d:"靠近"}],
+report:null},
+{id:"u3t5",unit:3,type:"poem",title:"夜上受降城闻笛",author:"李益",
+text:"回乐烽前沙似雪，\n受降城外月如霜。\n不知何处吹芦管，\n一夜征人尽望乡。",
+vocab:[{w:"烽",d:"烽火台"},{w:"芦管",d:"笛子"},{w:"征人",d:"戍守边地的将士"}],
+report:null},
+{id:"u4t1",unit:4,type:"prose",title:"诫子书",author:"诸葛亮",
+text:"夫君子之行，静以修身，俭以养德。非淡泊无以明志，非宁静无以致远。夫学须静也，才须学也，非学无以广才，非志无以成学。淫慢则不能励精，险躁则不能治性。年与时驰，意与日去，遂成枯落，多不接世，悲守穷庐，将复何及！",
+vocab:[{w:"行",d:"操守，品行"},{w:"淡泊",d:"内心恬淡，不慕名利"},{w:"致远",d:"达到远大目标"},{w:"淫慢",d:"放纵懈怠"},{w:"励精",d:"振奋精神"},{w:"险躁",d:"轻薄浮躁"},{w:"治性",d:"修养性情"},{w:"驰",d:"疾行，指迅速逝去"},{w:"接世",d:"对社会有贡献"}],
+report:null},
+{id:"u5t1",unit:5,type:"prose",title:"狼",author:"蒲松龄",
+text:"一屠晚归，担中肉尽，止有剩骨。途中两狼，缀行甚远。屠惧，投以骨。一狼得骨止，一狼仍从。复投之，后狼止而前狼又至。骨已尽矣，而两狼之并驱如故。屠大窘，恐前后受其敌。顾野有麦场，场主积薪其中，苫蔽成丘。屠乃奔倚其下，弛担持刀。狼不敢前，眈眈相向。少时，一狼径去，其一犬坐于前。久之，目似瞑，意暇甚。屠暴起，以刀劈狼首，又数刀毙之。方欲行，转视积薪后，一狼洞其中，意将隧入以攻其后也。身已半入，止露尻尾。屠自后断其股，亦毙之。乃悟前狼假寐，盖以诱敌。狼亦黠矣，而顷刻两毙，禽兽之变诈几何哉？止增笑耳。",
+vocab:[{w:"缀",d:"紧跟"},{w:"窘",d:"困窘，处境困难"},{w:"敌",d:"攻击"},{w:"苫蔽",d:"覆盖遮蔽"},{w:"弛",d:"放下"},{w:"眈眈",d:"注视的样子"},{w:"径去",d:"径直走开"},{w:"犬坐",d:"像狗一样蹲坐"},{w:"瞑",d:"闭眼"},{w:"暴",d:"突然"},{w:"洞",d:"打洞（名词作动词）"},{w:"隧",d:"从通道进入"},{w:"尻",d:"屁股"},{w:"股",d:"大腿"},{w:"假寐",d:"假装睡觉"},{w:"黠",d:"狡猾"}],
+report:null},
+{id:"u6t1",unit:6,type:"prose",title:"穿井得一人",author:"《吕氏春秋》",
+text:"宋之丁氏，家无井而出溉汲，常一人居外。及其家穿井，告人曰：\u201C吾穿井得一人。\u201D有闻而传之者曰：\u201C丁氏穿井得一人。\u201D国人道之，闻之于宋君。宋君令人问之于丁氏，丁氏对曰：\u201C得一人之使，非得一人于井中也。\u201D求闻之若此，不若无闻也。",
+vocab:[{w:"溉汲",d:"打水浇田"},{w:"穿",d:"挖掘"},{w:"使",d:"劳力"},{w:"闻",d:"听到"}],
+report:null},
+{id:"u6t2",unit:6,type:"prose",title:"杞人忧天",author:"《列子》",
+text:"杞国有人忧天地崩坠，身亡所寄，废寝食者。又有忧彼之所忧者，因往晓之，曰：\u201C天，积气耳，亡处亡气。若屈伸呼吸，终日在天中行止，奈何忧崩坠乎？\u201D其人曰：\u201C天果积气，日月星宿，不当坠耶？\u201D晓之者曰：\u201C日月星宿，亦积气中之有光耀者，只使坠，亦不能有所中伤。\u201D其人曰：\u201C奈地坏乎？\u201D晓之者曰：\u201C地，积块耳，充塞四虚，亡处亡块。若躇步跐蹈，终日在地上行止，奈何忧其坏？\u201D其人舍然大喜，晓之者亦舍然大喜。",
+vocab:[{w:"亡",d:"同\u2018无\u2019"},{w:"晓",d:"告知，开导"},{w:"若",d:"你"},{w:"只使",d:"纵使，即使"},{w:"中伤",d:"打中击伤"},{w:"块",d:"土块"},{w:"四虚",d:"四方"},{w:"躇步跐蹈",d:"都是踩踏的意思"},{w:"舍然",d:"释然，消除忧愁的样子"}],
+report:null},
+{id:"u6t3",unit:6,type:"poem",title:"秋词（其一）",author:"刘禹锡",
+text:"自古逢秋悲寂寥，\n我言秋日胜春朝。\n晴空一鹤排云上，\n便引诗情到碧霄。",
+vocab:[{w:"寂寥",d:"寂静空旷"},{w:"春朝",d:"春天的早晨"},{w:"排",d:"推开"},{w:"碧霄",d:"蓝天"}],
+report:null},
+{id:"u6t4",unit:6,type:"poem",title:"夜雨寄北",author:"李商隐",
+text:"君问归期未有期，\n巴山夜雨涨秋池。\n何当共剪西窗烛，\n却话巴山夜雨时。",
+vocab:[{w:"何当",d:"何时将要"},{w:"却话",d:"再谈，回头说"},{w:"巴山",d:"今四川一带"}],
+report:null},
+{id:"u6t5",unit:6,type:"poem",title:"十一月四日风雨大作（其二）",author:"陆游",
+text:"僵卧孤村不自哀，\n尚思为国戍轮台。\n夜阑卧听风吹雨，\n铁马冰河入梦来。",
+vocab:[{w:"僵卧",d:"躺着不动"},{w:"戍",d:"守卫"},{w:"夜阑",d:"夜深"},{w:"铁马",d:"披铁甲的战马"}],
+report:null},
+{id:"u6t6",unit:6,type:"poem",title:"潼关",author:"谭嗣同",
+text:"终古高云簇此城，\n秋风吹散马蹄声。\n河流大野犹嫌束，\n山入潼关不解平。",
+vocab:[{w:"终古",d:"自古以来"},{w:"簇",d:"簇拥"},{w:"束",d:"约束，限制"},{w:"不解平",d:"不能平静"}],
+report:null}
+];
+
+const UNIT_NAMES={1:"第一单元·古代诗歌四首",2:"第二单元·《世说新语》二则",3:"第三单元·《论语》与课外诵读",4:"第四单元·诫子书",5:"第五单元·狼",6:"第六单元·寓言与课外诵读"};
+
+function getProgress(){
+  try{return JSON.parse(localStorage.getItem('yw_sibian_progress')||'{}')}catch(e){return{}}
+}
+function saveProgress(p){localStorage.setItem('yw_sibian_progress',JSON.stringify(p))}
+
+function esc(s){return s.replace(/&/g,'\u0026amp;').replace(/</g,'\u0026lt;').replace(/>/g,'\u0026gt;').replace(/"/g,'\u0026quot;').replace(/'/g,'\u0026#39;')}
+function md(s){var h=esc(s);h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');h=h.replace(/^- (.+)$/gm,'<li>$1</li>');h=h.replace(/^(\d+)\. (.+)$/gm,'<li>$2</li>');h=h.replace(/((?:<li>[\s\S]*?<\/li>\s*)+)/g,'<ul>$1</ul>');h=h.replace(/\n\n/g,'</p><p>');h=h.replace(/\n/g,'<br>');return'<p>'+h+'</p>'}
+
+function updateStats(){
+  var p=getProgress();
+  var u=0,d=0,w=0,v=0;
+  DATA.forEach(function(t){
+    var s=p[t.id]||0;
+    if(t.report){
+      v++;
+      if(t.report.stage3&&t.report.stage3.result==='pass')s=Math.max(s,3);
+      if(t.report.stage2&&t.report.stage2.result==='pass')s=Math.max(s,2);
+      if(t.report.stage1&&t.report.stage1.result==='pass')s=Math.max(s,1);
+    }
+    if(s>=1)u++;
+    if(s>=2)d++;
+    if(s>=3)w++;
+  });
+  document.getElementById('stat-understood').textContent=u;
+  document.getElementById('stat-debated').textContent=d;
+  document.getElementById('stat-written').textContent=w;
+  document.getElementById('stat-verified').textContent=v;
+}
+
+function toggleCard(id){
+  var card=document.getElementById('card-'+id);
+  card.classList.toggle('expanded');
+}
+
+function toggleChat(id){
+  var panel=document.getElementById('chat-'+id);
+  panel.classList.toggle('open');
+}
+
+function setProgress(id,step){
+  var p=getProgress();
+  var cur=p[id]||0;
+  if(cur===step){p[id]=step-1}else{p[id]=step}
+  if(p[id]<0)p[id]=0;
+  saveProgress(p);
+  renderProgress(id);
+  updateStats();
+}
+
+function renderProgress(id){
+  var p=getProgress();
+  var step=p[id]||0;
+  ['step1','step2','step3'].forEach(function(cls,i){
+    var btn=document.getElementById('btn-'+id+'-'+cls);
+    if(btn){
+      btn.classList.toggle('active',step>=(i+1));
+    }
+  });
+  var dots=document.querySelectorAll('#dots-'+id+' .dot');
+  dots.forEach(function(d,i){d.classList.toggle('done',step>=(i+1))});
+}
+
+function renderReport(t){
+  if(!t.report) return '';
+  var r=t.report;
+  var html='<div class="report-box"><h4>📋 验收报告 <span style="font-size:.8em;color:var(--text-light);font-weight:400">'+esc(r.date||'')+'</span></h4>';
+  
+  // 三阶结果
+  var stages=[
+    {key:'transition',name:'反客为主',icon:'🔄'},
+    {key:'stage1',name:'理解',icon:'📖'},
+    {key:'stage2',name:'思辨',icon:'🔥'},
+    {key:'stage3',name:'写作',icon:'✍️'}
+  ];
+  stages.forEach(function(st){
+    if(r[st.key]){
+      var s=r[st.key];
+      var cls=s.result==='pass'?'pass':(s.result==='fail'?'fail':'skip');
+      html+='<div class="report-row"><span class="report-label">'+st.icon+' '+st.name+'</span><span class="stage-tag '+cls+'">'+(s.result==='pass'?'✅ 通过':s.result==='fail'?'❌ 未通过':'⏭ 跳过')+'</span></div>';
+    }
+  });
+  
+  // 薄弱点
+  if(r.weakPoints&&r.weakPoints.length>0){
+    html+='<div style="margin-top:8px;font-size:.82em;color:var(--warning)">⚠️ 薄弱点：'+r.weakPoints.map(esc).join('、')+'</div>';
+  }
+  
+  // 一句话
+  if(r.motto){
+    html+='<div class="motto-box" style="margin-top:10px">'+esc(r.motto)+'</div>';
+  }
+  
+  // 方法收获
+  if(r.method){
+    html+='<div style="margin-top:10px;padding:10px 14px;background:#e8f5f1;border-radius:8px;font-size:.84em;border-left:3px solid var(--primary)"><span style="font-weight:600;color:var(--primary)">🧰 方法收获：</span>'+esc(r.method)+'</div>';
+  }
+  
+  // 验收过程按钮
+  if(r.chat){
+    html+='<button class="process-btn" onclick="toggleChat(\''+t.id+'\')">💬 验收过程</button>';
+    html+='<div class="chat-panel" id="chat-'+t.id+'">';
+    var stageKeys=['transition','stage1','stage2','stage3'];
+    var stageNames=['🔄 反客为主','📖 理解','🔥 思辨','✍️ 写作'];
+    stageKeys.forEach(function(sk,si){
+      var msgs=r.chat[sk];
+      if(!msgs)return;
+      html+='<div class="round-chat"><div class="round-chat-header">'+stageNames[si]+'</div>';
+      msgs.forEach(function(m){
+        var who=m.who==='ai'?'ai':'kid';
+        var avatar=who==='ai'?'🤖':'👧';
+        var avatarCls=who==='ai'?'ai-avatar':'kid-avatar';
+        html+='<div class="chat-bubble '+who+'">';
+        html+='<div class="chat-avatar '+avatarCls+'">'+avatar+'</div>';
+        html+='<div class="chat-content">'+md(m.text)+'</div>';
+        html+='</div>';
+        if(m.eval){
+          html+='<div class="chat-eval'+(m.eval.indexOf('❌')>=0?' wrong':'')+'" style="'+(who==='kid'?'text-align:right':'')+'">'+esc(m.eval)+'</div>';
+        }
+      });
+      html+='</div>';
+    });
+    html+='</div>';
+  } else {
+    html+='<div style="margin-top:12px;padding:10px 16px;background:#f0f0f0;border-radius:8px;font-size:.82em;color:#999;text-align:center">💬 验收过程待补录（需由学习搭档对话AI导出原文）</div>';
+  }
+  
+  html+='</div>';
+  return html;
+}
+
+function render(){
+  var app=document.getElementById('app');
+  var p=getProgress();
+  var html='';
+  for(var u=1;u<=6;u++){
+    var items=DATA.filter(function(t){return t.unit===u});
+    html+='<div class="unit-section"><div class="unit-title">'+UNIT_NAMES[u]+'<span class="badge">'+items.length+'篇</span></div>';
+    items.forEach(function(t){
+      var typeLabel=t.type==='poem'?'古诗词':'文言文';
+      var typeCls=t.type==='poem'?'poem':'prose';
+      var step=p[t.id]||0;
+      if(t.report){
+        if(t.report.stage3&&t.report.stage3.result==='pass')step=Math.max(step,3);
+        if(t.report.stage2&&t.report.stage2.result==='pass')step=Math.max(step,2);
+        if(t.report.stage1&&t.report.stage1.result==='pass')step=Math.max(step,1);
+      }
+      var statusTag='';
+      if(t.report){
+        if(t.report.status==='pass') statusTag='<span class="status-tag pass">✅ 已验收</span>';
+        else statusTag='<span class="status-tag progress">⚠️ 待复验</span>';
+      }
+      var vocabHtml='';
+      t.vocab.forEach(function(v){
+        vocabHtml+='<span class="vocab-item"><span class="word">'+esc(v.w)+'</span>＝'+esc(v.d)+'</span>';
+      });
+      html+='<div class="text-card" id="card-'+t.id+'">'+
+        '<div class="card-header" onclick="toggleCard(\''+t.id+'\')">'+
+          '<div class="card-left">'+
+            '<div class="card-title">'+esc(t.title)+'</div>'+
+            '<div class="card-meta">'+esc(t.author)+'</div>'+
+          '</div>'+
+          '<div class="card-right">'+
+            '<span class="type-tag '+typeCls+'">'+typeLabel+'</span>'+
+            statusTag+
+            '<div class="progress-dots" id="dots-'+t.id+'">'+
+              '<span class="dot'+(step>=1?' done':'')+'"></span>'+
+              '<span class="dot'+(step>=2?' done':'')+'"></span>'+
+              '<span class="dot'+(step>=3?' done':'')+'"></span>'+
+            '</div>'+
+            '<span class="expand-icon">▼</span>'+
+          '</div>'+
+        '</div>'+
+        '<div class="card-body">'+
+          '<div class="original-text">'+esc(t.text)+'</div>'+
+          '<div class="vocab-section">'+
+            '<h4>📖 重点字词</h4>'+
+            '<div class="vocab-list">'+vocabHtml+'</div>'+
+          '</div>'+
+          '<div class="progress-section">'+
+            '<h4>📍 学习进度</h4>'+
+            '<div class="progress-btns">'+
+              '<button class="p-btn step1'+(step>=1?' active':'')+'" id="btn-'+t.id+'-step1" onclick="event.stopPropagation();setProgress(\''+t.id+'\',1)">✅ 已理解</button>'+
+              '<button class="p-btn step2'+(step>=2?' active':'')+'" id="btn-'+t.id+'-step2" onclick="event.stopPropagation();setProgress(\''+t.id+'\',2)">🔥 已思辨</button>'+
+              '<button class="p-btn step3'+(step>=3?' active':'')+'" id="btn-'+t.id+'-step3" onclick="event.stopPropagation();setProgress(\''+t.id+'\',3)">✍️ 已写作</button>'+
+            '</div>'+
+          '</div>'+
+          renderReport(t)+
+        '</div>'+
+      '</div>';
+    });
+    html+='</div>';
+  }
+  html+='<div class="footer">点击篇名展开原文与验收报告 · 学习进度自动保存在本地</div>';
+  app.innerHTML=html;
+  updateStats();
+}
+
+render();
+</script>
+</body>
+</html>
