@@ -326,6 +326,11 @@ function renderReport(sec,sid){
       if(!msgs||!msgs.length)return;
       html+='<div class="round-chat"><div class="round-chat-header">'+stageNames[si]+'</div>';
       msgs.forEach(function(m){
+        if(m.q!==undefined&&m.a!==undefined&&m.who===undefined){
+          html+='<div class="chat-bubble ai"><div class="chat-avatar ai-avatar">🤖</div><div class="chat-content">'+md(m.q)+'</div></div>';
+          html+='<div class="chat-bubble kid"><div class="chat-avatar kid-avatar">👧</div><div class="chat-content">'+md(m.a)+'</div></div>';
+          return;
+        }
         var who=m.who==='ai'?'ai':'kid';
         var avatar=who==='ai'?'🤖':'👧';
         var avatarCls=who==='ai'?'ai-avatar':'kid-avatar';
