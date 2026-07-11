@@ -391,7 +391,7 @@ function initAndRender(){
   if(BOOKS.length>0){selectBook(BOOKS[0].id,null);}
 }
 
-fetch('./data-reading.json')
+fetch('./data-reading.json?v='+Date.now())
   .then(function(r){ return r.json(); })
   .then(function(d){
     BOOKS = d;
