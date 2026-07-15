@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>验收·七上数学学习看板</title>
+<title>验收·数学学习看板</title>
 <style>
 :root{--primary:#3a5ba0;--primary-light:#e8edf6;--accent:#e86a3a;--accent-light:#fef0ea;--bg:#f7f8fa;--card:#fff;--text:#2c3e50;--text-light:#7f8c9b;--border:#e8ecf1;--success:#27ae60;--success-light:#e8f8ef;--warning:#f39c12;--warning-light:#fef9e7;--info:#3498db;--info-light:#e8f4fd;--danger:#e74c3c;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,0.06);--purple:#8e44ad;--purple-light:#f3e5f5;--teal:#16a085;--teal-light:#e0f7f3}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -193,6 +193,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 .kp-status.practicing{background:var(--warning-light);color:var(--warning)}
 .kp-status.unmastered{background:#ffebee;color:var(--danger)}
 
+/* Semester filter */
+.semester-nav{display:flex;justify-content:center;gap:8px;padding:10px 20px;background:#fff;border-bottom:1px solid var(--border)}
+.sem-btn{padding:6px 18px;border-radius:20px;font-size:.85em;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--text-light);cursor:pointer;transition:all .2s}
+.sem-btn:hover{background:#fafbfc;color:var(--text)}
+.sem-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.sem-tag{display:inline-block;font-size:.7em;padding:2px 8px;border-radius:8px;font-weight:600;margin-left:8px;vertical-align:middle}
+.sem-tag.g7s1{background:#e8edf6;color:#3a5ba0}
+.sem-tag.g7s2{background:#f3e5f5;color:#8e44ad}
+
 .footer{text-align:center;padding:20px;color:var(--text-light);font-size:.8em;border-top:1px solid var(--border);margin-top:20px}
 @media(max-width:480px){.header h1{font-size:1.3em}.stats-bar{gap:12px}.container{padding:12px 10px}.chapter-header{padding:12px 14px}.chat-content{max-width:88%}.tab-btn{padding:12px 8px;font-size:.88em}}
 </style>
@@ -200,7 +209,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 <body>
 
 <div class="header">
-<h1>📐 验收·七上数学学习看板</h1>
+<h1>📐 验收·数学学习看板</h1>
 <p>人教版2024新课标 · 快问→费曼→笔头→迁移</p>
 </div>
 
@@ -208,6 +217,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 <button class="tab-btn active" onclick="switchTab('chapters')">📚 章节验收</button>
 <button class="tab-btn" onclick="switchTab('outline')">📋 知识点总纲</button>
 <button class="tab-btn" onclick="switchTab('errors')">📝 错题本</button>
+</div>
+
+<div class="semester-nav">
+<button class="sem-btn active" onclick="switchSemester('all')">全部</button>
+<button class="sem-btn" onclick="switchSemester('g7s1')">七上</button>
+<button class="sem-btn" onclick="switchSemester('g7s2')">七下</button>
 </div>
 
 <div id="tab-chapters" class="tab-content active">
@@ -245,6 +260,15 @@ function switchTab(tab){
 // 加载数据
 var CHAPTERS = [];
 var ERROR_BOOK = [];
+var currentSemester = 'all';
+
+function switchSemester(sem){
+  currentSemester = sem;
+  document.querySelectorAll('.sem-btn').forEach(function(btn){btn.classList.remove('active')});
+  event.target.classList.add('active');
+  render();
+  renderOutline();
+}
 
 fetch('./data-math.json')
   .then(r => r.json())
@@ -367,6 +391,24 @@ var OUTLINE_DATA = [
     keyPoints: '立体与平面·线段·角·余角补角',
     sections: ['6.1.1 立体图形与平面图形', '6.1.2 点、线、面、体', '6.2.1 直线、射线、线段', '6.2.2 线段的比较与运算', '6.3.1 角的概念', '6.3.2 角的比较与运算', '6.3.3 余角和补角'],
     status: 'done'
+  },
+  {
+    id: 'g7s2_ch1',
+    num: 1,
+    title: '相交线与平行线',
+    semester: 'g7s2',
+    keyPoints: '对顶角·邻补角·垂线·三线八角·平行线判定与性质',
+    sections: ['5.1.1 邻补角与对顶角', '5.1.2 垂线及其性质', '5.1.3 同位角、内错角、同旁内角', '5.2.1 平行线的判定', '5.2.2 平行线的性质', '5.3 平移'],
+    status: 'done'
+  },
+  {
+    id: 'g7s2_ch2',
+    num: 2,
+    title: '实数',
+    semester: 'g7s2',
+    keyPoints: '算术平方根·平方根·立方根·无理数·实数与数轴',
+    sections: ['6.1 平方根', '6.2 立方根', '6.3 实数'],
+    status: 'done'
   }
 ];
 
@@ -377,7 +419,9 @@ function md(s){var h=esc(s);h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
 
 function updateStats(){
   var passed=0,progress=0,migrated=0,tracking=0;
-  CHAPTERS.forEach(function(ch){
+  var filtered = currentSemester==='all' ? CHAPTERS : CHAPTERS.filter(function(ch){return (ch.semester||'g7s1')===currentSemester});
+  document.getElementById('stat-total').textContent=filtered.length;
+  filtered.forEach(function(ch){
     if(ch.report){
       if(ch.report.status==='pass')passed++;
       else progress++;
@@ -507,8 +551,11 @@ function renderReport(r,ch){
 function render(){
   var app=document.getElementById('app');
   var html='';
-  CHAPTERS.forEach(function(ch){
+  var filtered = currentSemester==='all' ? CHAPTERS : CHAPTERS.filter(function(ch){return (ch.semester||'g7s1')===currentSemester});
+  filtered.forEach(function(ch){
     var r=ch.report;
+    var sem = ch.semester || 'g7s1';
+    var semLabel = ch.semesterLabel || (sem==='g7s1'?'七上':'七下');
     var statusCls=r?(r.status==='pass'?'pass':'progress'):'todo';
     var statusText=r?(r.status==='pass'?'✅ 已通过':'⚠️ 待复验'):'⏳ 未开始';
     var totalRounds=4;
@@ -517,7 +564,7 @@ function render(){
     html+='<div class="chapter-card" id="card-'+ch.id+'">';
     html+='<div class="chapter-header" onclick="toggleCard(\''+ch.id+'\')">';
     html+='<div class="chapter-left">';
-    html+='<div class="chapter-title">第'+ch.num+'章 · '+esc(ch.title)+'</div>';
+    html+='<div class="chapter-title">第'+ch.num+'章 · '+esc(ch.title)+'<span class="sem-tag '+sem+'">'+semLabel+'</span></div>';
     html+='<div class="chapter-sub">重点：'+esc(ch.keyPoints);
     if(ch.migrationHint)html+=' · 🔬种子：'+esc(ch.migrationHint);
     html+='</div>';
@@ -552,18 +599,22 @@ function render(){
 
 function renderOutline(){
   var app=document.getElementById('outline-app');
-  var html='<div class="error-summary"><h3>📋 七上数学知识点总纲</h3>';
-  html+='<p style="font-size:.88em;color:var(--text-light);margin-bottom:16px">人教版2024新课标 · 共6章 · 先分章学习，再整体复习</p>';
+  var filtered = currentSemester==='all' ? OUTLINE_DATA : OUTLINE_DATA.filter(function(ch){return (ch.semester||'g7s1')===currentSemester});
+  var semLabel = currentSemester==='all'?'全部学期':currentSemester==='g7s1'?'七上':'七下';
+  var html='<div class="error-summary"><h3>📋 '+semLabel+'数学知识点总纲</h3>';
+  html+='<p style="font-size:.88em;color:var(--text-light);margin-bottom:16px">人教版2024新课标 · 共'+filtered.length+'章 · 先分章学习，再整体复习</p>';
   html+='</div>';
 
-  OUTLINE_DATA.forEach(function(ch){
+  filtered.forEach(function(ch){
     var statusText=ch.status==='done'?'✅ 已验收':'⏳ 未开始';
     var statusCls=ch.status==='done'?'pass':'todo';
+    var sem = ch.semester || 'g7s1';
+    var semLabel = sem==='g7s1'?'七上':'七下';
 
     html+='<div class="outline-card" id="outline-'+ch.id+'">';
     html+='<div class="outline-header" onclick="toggleOutline(\''+ch.id+'\')">';
     html+='<div class="chapter-left">';
-    html+='<div class="outline-title">第'+ch.num+'章 · '+esc(ch.title)+'</div>';
+    html+='<div class="outline-title">第'+ch.num+'章 · '+esc(ch.title)+'<span class="sem-tag '+sem+'">'+semLabel+'</span></div>';
     html+='<div class="outline-sub">'+esc(ch.keyPoints)+'</div>';
     html+='</div>';
     html+='<div class="chapter-right">';
