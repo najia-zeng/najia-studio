@@ -2356,7 +2356,7 @@
           "date": "2026-07-18",
           "status": "pass",
           "factCount": 3,
-          "debateCount": 2,
+          "debateCount": 3,
           "chainCount": 1,
           "observe": {
             "think": 3,
@@ -2450,7 +2450,7 @@
           "date": "2026-07-19",
           "status": "pass",
           "factCount": 3,
-          "debateCount": 2,
+          "debateCount": 3,
           "chainCount": 1,
           "chat": {
             "fact": [
