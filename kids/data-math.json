@@ -1094,22 +1094,22 @@
       "round1": {
         "title": "快问快答",
         "score": "5/5",
-        "result": "全部正确"
+        "result": "pass"
       },
       "round2": {
         "title": "费曼检验",
         "score": "2/2",
-        "result": "通过"
+        "result": "pass"
       },
       "round3": {
         "title": "笔头题",
         "score": "3/3",
-        "result": "全部通过"
+        "result": "pass"
       },
       "round4": {
         "title": "迁移闯关",
         "score": "3/3",
-        "result": "全部通过"
+        "result": "pass"
       },
       "observe": [
         "逻辑推理：⭐⭐⭐ 能清晰说出消元的必要性，能解释交点与方程组解的关系",
