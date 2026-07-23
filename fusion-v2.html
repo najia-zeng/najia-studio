@@ -511,17 +511,20 @@ function buildPrompt() {
     const custom = $('customPrompt').value.trim();
 
     let parts = [
-        '将图2中的产品自然融入图1的场景环境中',
-        '保持图2产品的形状、文字、LOGO、外观细节和材质完全不变，禁止变形或自动美化',
-        '产品的整体色调、色温与图1场景匹配和谐',
-        '根据图1场景的光源方向，为产品添加匹配的环境光照和自然阴影',
-        mat.light + '。',
-        '画面整体真实自然，产品与场景光影统一，符合高端商业广告摄影质感',
+        '将图2的产品以专业产品摄影的方式放置到图1的场景中',
+        '图2产品必须100%保留原始造型轮廓、比例结构、LOGO文字与材质细节，禁止任何变形、重绘或自动美化',
+        '仔细分析图1场景的主光源方向与色温，使产品的受光面、背光面、高光和阴影与场景光照完全一致',
+        '产品底部必须产生与场景光源方向一致的接触阴影，阴影从产品底部边缘自然向外渐变消散',
+        '产品表面的反射应包含图1场景中相邻物体的镜像（如桌面反射、玻璃器皿反射等），使产品看起来真实存在于该环境中',
+        '产品整体色温与图1场景色调对齐，不要出现冷暖冲突',
+        mat.light,
     ];
-    if (shd.prompt) parts.push(shd.prompt + '。');
+    if (shd.prompt) parts.push(shd.prompt);
     if (custom) parts.push(custom);
 
-    return parts.join('，').replace(/，。/g, '。');
+    parts.push('最终效果应达到高端商业广告摄影水准，产品与场景融为一体，看不出合成痕迹');
+
+    return parts.join('。').replace(/。。/g, '。');
 }
 
 function updatePromptPreview() {
