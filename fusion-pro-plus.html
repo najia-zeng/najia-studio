@@ -51,10 +51,8 @@
         }
         .hdr-logo {
             width: 34px; height: 34px;
-            background: linear-gradient(135deg, #1d1d1f 60%, #555);
             border-radius: 9px;
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; font-weight: 700; font-size: 17px;
+            object-fit: cover;
         }
         .hdr-title { font-weight: 600; font-size: 18px; }
         .hdr-sub { font-size: 13px; color: var(--text-sec); margin-left: 4px; }
@@ -324,7 +322,7 @@
 <div class="page">
 <!-- Header -->
 <div class="hdr">
-    <div class="hdr-logo">贴</div>
+    <img class="hdr-logo" src="logo.png" alt="娜家视觉">
     <span class="hdr-title">实拍融合AI</span>
     <span class="hdr-badge">进阶版</span>
     <span class="hdr-sub">材质精准控制</span>
