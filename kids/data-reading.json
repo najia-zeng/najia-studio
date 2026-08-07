@@ -3119,5 +3119,155 @@
         }
       }
     ]
+  },
+  {
+    "id": "b8",
+    "title": "仲夏夜之梦",
+    "type": "literature",
+    "typeLabel": "文学类（莎士比亚喜剧）",
+    "sections": [
+      {
+        "id": "b8s1",
+        "range": "全篇",
+        "desc": "莎士比亚经典喜剧，三对恋人+仙王仙后+工匠戏中戏，三重混乱和解结构",
+        "report": {
+          "date": "2026-08-01",
+          "status": "pass",
+          "factCount": 3,
+          "debateCount": 2,
+          "chainCount": 1,
+          "observe": {
+            "highlight": "对文学作品中混乱到转机到秩序的深层结构有很好的感知力，能从表面荒诞的闹剧中读出莎士比亚想表达的人生智慧",
+            "weakness": "继续保持对人物动机的追问习惯，这是很好的阅读方法",
+            "chainHighlight": "对文学作品中混乱到转机到秩序的深层结构有很好的感知力，能从表面荒诞的闹剧中读出莎士比亚想表达的人生智慧"
+          },
+          "chat": {
+            "fact": [],
+            "debate": [],
+            "chain": []
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "b9",
+    "title": "皆大欢喜",
+    "type": "literature",
+    "typeLabel": "文学类（莎士比亚喜剧）",
+    "sections": [
+      {
+        "id": "b9s1",
+        "range": "全篇",
+        "desc": "亚登森林作为逃离宫廷的世外桃源，罗瑟琳女扮男装，人生七幕独白",
+        "report": {
+          "date": "2026-08-02",
+          "status": "pass",
+          "factCount": 3,
+          "debateCount": 2,
+          "chainCount": 1,
+          "observe": {
+            "highlight": "对罗瑟琳女扮男装动机的层层追问——从表面的教育奥兰多到深层的自我确认，分析路径成熟。横向对比两部剧的森林功能，概括为脱离世俗秩序的试验场",
+            "weakness": "本次验收表现优秀，暂无明显短板",
+            "chainHighlight": "对罗瑟琳女扮男装动机的层层追问——从表面的教育奥兰多到深层的自我确认，分析路径成熟。横向对比两部剧的森林功能，概括为脱离"
+          },
+          "chat": {
+            "fact": [],
+            "debate": [],
+            "chain": []
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "b10",
+    "title": "威尼斯商人",
+    "type": "literature",
+    "typeLabel": "文学类（莎士比亚喜剧）",
+    "sections": [
+      {
+        "id": "b10s1",
+        "range": "全篇",
+        "desc": "一磅肉契约+三匣选亲双线咬合，夏洛克的同情与审判，鲍西娅的慈悲与虚伪",
+        "report": {
+          "date": "2026-08-03",
+          "status": "pass",
+          "factCount": 3,
+          "debateCount": 2,
+          "chainCount": 1,
+          "observe": {
+            "highlight": "对鲍西娅虚伪性的剖析，以及对两种考验的对比分析，都展现了超越剧情表面的批判性思维",
+            "weakness": "可进一步关注剧本的语言风格与戏剧技巧（如反讽、双关等修辞手法）",
+            "chainHighlight": "对鲍西娅虚伪性的剖析，以及对两种考验的对比分析，都展现了超越剧情表面的批判性思维"
+          },
+          "chat": {
+            "fact": [],
+            "debate": [],
+            "chain": []
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "b11",
+    "title": "第十二夜",
+    "type": "literature",
+    "typeLabel": "文学类（莎士比亚喜剧）",
+    "sections": [
+      {
+        "id": "b11s1",
+        "range": "全篇",
+        "desc": "女扮男装+三角恋+马伏里奥整蛊，误会与欲望的主题，笑里藏刀的喜剧内核",
+        "report": {
+          "date": "2026-08-05",
+          "status": "pass",
+          "factCount": 3,
+          "debateCount": 2,
+          "chainCount": 1,
+          "observe": {
+            "highlight": "语言表达极有力量，不被喜剧外壳迷惑，能看到欢乐底下的残酷与代价。洞察到欲望是所有误会的根源",
+            "weakness": "可进一步关注莎士比亚的戏剧技巧（反讽、戏中戏、身份倒置等）",
+            "chainHighlight": "语言表达极有力量，不被喜剧外壳迷惑，能看到欢乐底下的残酷与代价。洞察到欲望是所有误会的根源"
+          },
+          "chat": {
+            "fact": [],
+            "debate": [],
+            "chain": []
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "b12",
+    "title": "无事生非",
+    "type": "literature",
+    "typeLabel": "文学类（莎士比亚喜剧）",
+    "sections": [
+      {
+        "id": "b12s1",
+        "range": "全篇",
+        "desc": "欢喜冤家+谣言毁誉+假死计，两种假的分析框架：恶意的假vs善意的假",
+        "report": {
+          "date": "2026-08-06",
+          "status": "pass",
+          "factCount": 3,
+          "debateCount": 2,
+          "chainCount": 1,
+          "observe": {
+            "highlight": "自主建构两种假的分析框架，从偏见如何让人主动相信谎言到心动提供热烈、看透缺点才提供韧性，结构分析能力出色",
+            "weakness": "本次验收四维度全三星，暂无明显短板",
+            "chainHighlight": "自主建构两种假的分析框架，从偏见如何让人主动相信谎言到心动提供热烈、看透缺点才提供韧性，结构分析能力出色"
+          },
+          "chat": {
+            "fact": [],
+            "debate": [],
+            "chain": []
+          }
+        }
+      }
+    ]
   }
 ]
