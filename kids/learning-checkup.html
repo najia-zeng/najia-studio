@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- V4价值阶梯版：基于V3合规版，将三层价值阶梯（解放陪读→学得更明白→验收诊断练习）补入手册结构 -->
+<title>AI学习验收系统 · 产品定位手册（V4价值阶梯版）</title>
+<style>
+:root {
+  --bg: #faf8f5;
+  --bg-card: #ffffff;
+  --text: #1a1a1a;
+  --text-soft: #555;
+  --text-muted: #888;
+  --primary: #2d5a4d;
+  --primary-soft: #e8f0ec;
+  --accent: #c9a96e;
+  --accent-soft: #faf4e8;
+  --border: #e8e4dd;
+  --shadow: 0 2px 12px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.08);
+  --radius: 12px;
+  --radius-lg: 20px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+/* ===== HERO ===== */
+.hero {
+  text-align: center;
+  padding: 80px 32px;
+  background: linear-gradient(135deg, var(--primary) 0%, #1e3f35 100%);
+  color: #fff;
+  border-radius: var(--radius-lg);
+  margin-bottom: 64px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(201,169,110,0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.hero h1 {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  letter-spacing: -0.5px;
+  position: relative;
+}
+
+.hero-subtitle {
+  font-size: 28px;
+  font-weight: 500;
+  opacity: 0.95;
+  margin-bottom: 36px;
+  letter-spacing: 1px;
+  position: relative;
+}
+
+.hero-price {
+  display: inline-block;
+  padding: 12px 28px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 100px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  position: relative;
+}
+
+/* ===== SECTION ===== */
+.section {
+  margin-bottom: 56px;
+}
+
+.section-label {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: var(--primary);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.section h2 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  letter-spacing: -0.3px;
+}
+
+.section-desc {
+  font-size: 16px;
+  color: var(--text-soft);
+  margin-bottom: 32px;
+  max-width: 700px;
+}
+
+/* ===== PAIN POINTS ===== */
+.pain-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.pain-col {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.pain-col:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+}
+
+.pain-col-header {
+  padding: 28px 28px 20px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.pain-mom .pain-col-header {
+  background: linear-gradient(135deg, #fdf6ec 0%, #faefdb 100%);
+}
+
+.pain-kid .pain-col-header {
+  background: linear-gradient(135deg, #eef5f2 0%, #e0ece7 100%);
+}
+
+.pain-col-icon {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.pain-col-header h3 {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.pain-mom .pain-col-header h3 { color: #8b6f3c; }
+.pain-kid .pain-col-header h3 { color: var(--primary); }
+
+.pain-col-header p {
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.pain-item {
+  display: flex;
+  gap: 16px;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pain-item:last-child {
+  border-bottom: none;
+}
+
+.pain-num {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pain-mom .pain-num {
+  background: var(--accent-soft);
+  color: #8b6f3c;
+}
+
+.pain-kid .pain-num {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.pain-item h4 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.pain-item p {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+/* ===== VALUE PILLARS ===== */
+.value-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.value-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 36px 28px;
+  text-align: center;
+  border: 1px solid var(--border);
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.value-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.value-step {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.value-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 12px;
+  margin-top: 8px;
+}
+
+.value-card p {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+.value-bottom {
+  text-align: center;
+  margin-top: 32px;
+  padding-top: 28px;
+  border-top: 1px dashed var(--border);
+}
+
+.value-bottom p {
+  font-size: 16px;
+  color: var(--text-soft);
+  letter-spacing: 0.5px;
+}
+
+.value-bottom strong {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* ===== COMPARISON TABLE ===== */
+.compare-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.compare-table th,
+.compare-table td {
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.compare-table th {
+  background: var(--primary-soft);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--primary);
+}
+
+.compare-table tr:last-child td {
+  border-bottom: none;
+}
+
+.compare-table td:first-child {
+  font-weight: 500;
+  color: var(--text);
+  width: 16%;
+}
+
+.compare-table td:nth-child(2),
+.compare-table td:nth-child(3) {
+  color: var(--text-soft);
+  width: 28%;
+}
+
+.compare-table td:nth-child(4) {
+  color: var(--primary);
+  font-weight: 500;
+  width: 28%;
+  background: var(--primary-soft);
+}
+
+/* ===== AUDIENCE ===== */
+.audience-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.audience-card-v2 {
+  display: flex;
+  gap: 24px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.audience-card-v2:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--primary-soft);
+}
+
+.audience-num {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.audience-body {
+  flex: 1;
+}
+
+.audience-body h3 {
+  font-size: 19px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.audience-pain {
+  font-size: 14px;
+  color: var(--text-soft);
+  margin-bottom: 12px;
+  line-height: 1.7;
+}
+
+.audience-need {
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+  margin-bottom: 14px;
+  line-height: 1.7;
+}
+
+.audience-reasons {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.audience-reasons li {
+  position: relative;
+  padding-left: 18px;
+  font-size: 13px;
+  color: var(--primary);
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.audience-reasons li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  font-weight: 700;
+}
+
+/* ===== SCENARIOS ===== */
+.scenario-v2-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.scenario-v2-card {
+  display: flex;
+  gap: 24px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.scenario-v2-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--accent-soft);
+}
+
+.scenario-v2-num {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  background: var(--accent-soft);
+  color: #8b6f3c;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.scenario-v2-body {
+  flex: 1;
+}
+
+.scenario-v2-body h3 {
+  font-size: 19px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.scenario-v2-body p {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.8;
+}
+
+.scenario-v2-body strong {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.scenario-v2-bottom {
+  text-align: center;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--border);
+}
+
+.scenario-v2-bottom p {
+  font-size: 16px;
+  color: var(--text-soft);
+}
+
+.scenario-v2-bottom strong {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* ===== METHOD ===== */
+.method-v2-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* V3新增：方法区闭环流程条 */
+.method-loop {
+  margin-top: 28px;
+  padding: 22px 28px;
+  background: var(--primary-soft);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.method-loop .loop-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  color: var(--primary);
+}
+
+.method-loop .loop-steps {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.method-loop .loop-steps .step { white-space: nowrap; }
+
+.method-loop .loop-steps .arrow { color: var(--primary); font-weight: 400; }
+
+.method-loop .loop-note {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+.method-v2-card {
+  display: flex;
+  gap: 24px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.method-v2-card:hover {
+  box-shadow: var(--shadow);
+  border-color: var(--primary-soft);
+}
+
+.method-v2-num {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.method-v2-body {
+  flex: 1;
+}
+
+.method-v2-body h3 {
+  font-size: 19px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.method-v2-body p {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.8;
+}
+
+.method-v2-body strong {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.method-v2-bottom {
+  text-align: center;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--border);
+}
+
+.method-v2-bottom p {
+  font-size: 16px;
+  color: var(--text-soft);
+}
+
+.method-v2-bottom strong {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  text-align: center;
+  padding: 40px 0 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* V3新增：正式产品声明框 + 页脚AI标识样式 */
+.declare-section { padding-top: 0; }
+
+.declare-box {
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  padding: 28px 32px;
+  font-size: 14px;
+  line-height: 2;
+}
+
+.declare-box .section-label { margin-bottom: 12px; }
+
+/* V4.5新增：创始人故事框（来历区） */
+.story-box {
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  padding: 32px 36px;
+  font-size: 15px;
+  line-height: 2.1;
+}
+
+.story-box p { margin-bottom: 14px; }
+.story-box p:last-child { margin-bottom: 0; }
+.story-box strong { color: var(--primary); }
+
+.footer .ai-mark {
+  margin-top: 14px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  opacity: 0.7;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 720px) {
+  .container { padding: 24px 16px; }
+  .hero { padding: 48px 24px; margin-bottom: 40px; }
+  .hero h1 { font-size: 36px; }
+  .hero-subtitle { font-size: 22px; }
+  .section h2 { font-size: 22px; }
+  .pain-columns,
+  .value-grid,
+  .audience-grid,
+  .scenario-list {
+    grid-template-columns: 1fr;
+  }
+
+  .audience-card-v2 {
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px 20px;
+  }
+  .compare-table { font-size: 13px; }
+  .compare-table th, .compare-table td { padding: 12px 14px; }
+  .method-flow { padding: 24px 20px; }
+}
+
+@media print {
+  body { background: #fff; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HERO -->
+  <!-- V3改动：①"诊断型AI学习私教"→"AI学习诊断系统"（去"私教"）
+       ②"请私教1/10的价格·每天一对一定制训练"→"25分钟一轮对话·看清孩子到底卡在哪"（去私教价格锚点与机构化表述，改锚时间事实） -->
+  <!-- V4.3改动：①删除首屏小标签（"产品定位"对家长是内部叫法，无意义）
+       ②加大h1与副标题字号，让"产品名+情感主张"成为并列双主角（之前h1 42px / 副标 18px，副标被压成配角）
+       ③删除整个.tagline-section结尾区（CTA对已加微信家长无意义；slogan与首屏内容重度重复） -->
+  <div class="hero">
+    <h1>AI学习验收系统</h1>
+    <p class="hero-subtitle">解放家长陪读，让孩子学得更明白</p>
+    <div class="hero-price">25分钟一轮对话 · 看清孩子到底卡在哪里</div>
+  </div>
+
+  <!-- 解决什么问题 -->
+  <section class="section">
+    <span class="section-label">01 / 痛点</span>
+    <h2>学习这件事，为什么孩子累，家长也累？</h2>
+    <p class="section-desc">想花钱，心疼。想省钱，更累。孩子没少学，效果没看见。问题出在哪？——不知道。</p>
+    <div class="pain-columns">
+      <div class="pain-col pain-mom">
+        <div class="pain-col-header">
+          <span class="pain-col-icon">👩</span>
+          <h3>家长的两难</h3>
+          <p>花了钱心疼，省了钱更累</p>
+        </div>
+        <div class="pain-item">
+          <div class="pain-num">01</div>
+          <div>
+            <h4>花钱的——心疼</h4>
+            <!-- V3改动："线下私教300-400一节"→不点名违规业态，改为泛化的"请人带" -->
+            <p>请人带着学，一次大几百，一周才一两次。好老师难找，找到了也贵。中间5天全断档，刚找着感觉就忘光了。</p>
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-num">02</div>
+          <div>
+            <h4>省钱的——更累</h4>
+            <p>用免费AI自己盯，要自己选题、催进度、传答案、整理错题——AI免费了，妈妈的时间全搭进去了，比上班还累。</p>
+          </div>
+        </div>
+      </div>
+      <div class="pain-col pain-kid">
+        <div class="pain-col-header">
+          <span class="pain-col-icon">👧</span>
+          <h3>孩子的困境</h3>
+          <p>题没少做，分没多涨</p>
+        </div>
+        <div class="pain-item">
+          <div class="pain-num">01</div>
+          <div>
+            <h4>题没少做，分没多涨</h4>
+            <p>刷了一本又一本，错题本越写越厚。会的题反复练，不会的还是不会——努力全用在了错的方向上。越学越累，越累越不想学。</p>
+          </div>
+        </div>
+        <div class="pain-item">
+          <div class="pain-num">02</div>
+          <div>
+            <h4>启动难度太高，还没开始就已经累了</h4>
+            <p>摊开卷子、坐下来做、做完对答案——每一步都靠意志力撑着。不是孩子不想学，是"启动"这件事本身，就已经耗尽了一半力气。定了不少计划，能坚持两周就算不错。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 核心价值 -->
+  <section class="section">
+    <span class="section-label">02 / 价值</span>
+    <!-- V4改动：标题从"不讲课不卖课"（差异化表述）→"解放陪读，让孩子学得更明白"（三层价值第1+2层） -->
+    <h2>解放陪读，让孩子学得更明白</h2>
+    <!-- V4改动：描述从功能自述→三层价值第3层"靠什么"因果链（用户定稿：保留链条+因果论证版） -->
+    <p class="section-desc">靠的不是讲课，是一套<strong>验收 → 诊断 → 针对性练习</strong>的闭环。没有验收，就没有诊断；没有诊断，练习就是盲练。孩子自己完成，家长只看报告。</p>
+    <div class="value-grid">
+      <div class="value-card">
+        <div class="value-step">验</div>
+        <!-- V3改动：①"像私教一样追问式验收"→"层层追问式对话验收"
+             ②"语文三阶、英语四步、数学四轮"（按学科命名服务）→改为能力维度表述，不点学科名 -->
+        <h3>层层追问式对话验收</h3>
+        <p>不是甩一套卷子让孩子做，而是一层一层往深了问。每个学习模块都有固定的验收流程，从基础概念到综合应用层层递进。孩子答到什么程度，立刻能判断是粗心错、概念模糊、还是思路走偏了。</p>
+      </div>
+      <div class="value-card">
+        <div class="value-step">判</div>
+        <h3>两份报告，一目了然</h3>
+        <p><strong>验收报告</strong>：错在哪、为什么错、怎么改，写得清清楚楚。<br><strong>完整对话记录</strong>：孩子跟AI聊了什么、怎么想的、卡在哪，一字不落，你随时可以翻开看。</p>
+      </div>
+      <div class="value-card">
+        <div class="value-step">练</div>
+        <!-- V3改动："针对性出题——薄弱点加量补"（变相培训表述）→"生成专属练习清单，孩子自主完成"；"直到吃透为止"的效果保证→弱化 -->
+        <h3>只练该练的，不做无用功</h3>
+        <p>不是统一发题。根据验收报告反映的问题，生成孩子的专属练习清单——薄弱的地方多安排，已经掌握的少重复。练完可以再验一轮，看看问题有没有解决。验→判→练→再验，一步一步推进。</p>
+      </div>
+    </div>
+    <div class="value-bottom">
+      <!-- V3改动："每一轮都是精准打击…不会白做"（效果保证倾向）→改为过程可见性表述 -->
+      <p>每一步都有记录、有依据，孩子的努力<strong>花在刀刃上</strong>。</p>
+    </div>
+    <!-- V4新增：孩子侧价值条（三层价值第2层"学得更明白"），与家长侧条对称 -->
+    <div class="method-loop">
+      <span class="loop-label">孩子这边</span>
+      <div class="loop-steps">
+        <span class="step">答完立刻有反馈</span><span class="arrow">→</span>
+        <span class="step">知道哪没懂</span><span class="arrow">→</span>
+        <span class="step">只练该补的</span><span class="arrow">→</span>
+        <span class="step">学得更明白</span>
+      </div>
+      <span class="loop-note">不再是黑箱——学了什么、哪卡住了、补了多少，清清楚楚</span>
+    </div>
+    <!-- V3补充：家长侧核心卖点——学习归孩子，报告归家长（此前手册只有孩子/系统视角，缺家长视角的一等亮点） -->
+    <!-- V4改动：说明文字融入亲子关系情感价值——不陪读不批改=少了吵架场景，报告让家长"夸得到点上"。合规处理：不承诺"关系变好"（结论），只说事实（少了吵架的理由、看得见） -->
+    <div class="method-loop">
+      <span class="loop-label">家长这边</span>
+      <div class="loop-steps">
+        <span class="step">不用陪读</span><span class="arrow">→</span>
+        <span class="step">不用批改</span><span class="arrow">→</span>
+        <span class="step">看份报告</span><span class="arrow">→</span>
+        <span class="step">参不参与，自己定</span>
+      </div>
+      <span class="loop-note">学习的事交给孩子，看清的事交给系统。报告里，孩子的努力和卡壳都看得见：夸，夸得到点上；帮，帮得到地方。学习这件事，可以不再鸡飞狗跳。</span>
+    </div>
+  </section>
+
+  <!-- 对比 -->
+  <section class="section">
+    <span class="section-label">03 / 差异</span>
+    <h2>和其他方式比，好在哪？</h2>
+    <!-- V3改动："不是便宜版的私教"→去掉私教类比 -->
+    <p class="section-desc">不是"省钱的替代品"，而是"频率更高、更精准的诊断方案"。</p>
+    <!-- V3改动：对比表删掉"线下一对一私教"整列（与违规业态类比有风险），改为"请人带着学"；产品列名"诊断型AI学习私教"→"AI学习诊断系统"；
+         "每天25分钟，不中断"（机构化高频表述）→"一轮约25分钟，随用随测"；"几百元/月，每天都能用"→"按轮次/按月，随时可用" -->
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>对比项</th>
+          <th>线下请人带着学</th>
+          <th>免费AI工具（豆包/DeepSeek）</th>
+          <th>AI学习验收系统</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>价格</td>
+          <td>一次大几百，长期负担重</td>
+          <td>免费，但时间全搭进去了</td>
+          <td>按轮次/按月，随时可用</td>
+        </tr>
+        <tr>
+          <td>频率</td>
+          <td>一周1-2次，中间5天断档</td>
+          <td>随时，但要家长自己组织</td>
+          <td>一轮约25分钟，随用随测</td>
+        </tr>
+        <tr>
+          <td>诊断能力</td>
+          <td>凭老师经验，好坏看运气</td>
+          <td>只给答案，不讲思路</td>
+          <td>每一道错题都区分错因——粗心、概念没懂、还是思路走偏了</td>
+        </tr>
+        <tr>
+          <td>针对性</td>
+          <td>好老师能做到，但看人</td>
+          <td>随机出题，没有针对性</td>
+          <td>哪里薄弱就多安排，已掌握的少重复</td>
+        </tr>
+        <tr>
+          <td>记录追踪</td>
+          <td>老师记不住细节</td>
+          <td>没有系统记录</td>
+          <td>每次验收都有完整对话记录和报告，随时可查</td>
+        </tr>
+        <tr>
+          <td>孩子感受</td>
+          <td>像被考核，压力大</td>
+          <td>像被审问，不想用</td>
+          <td>像聊天，不排斥，愿意继续</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 目标人群 -->
+  <section class="section">
+    <span class="section-label">04 / 人群</span>
+    <h2>谁最适合？</h2>
+    <p class="section-desc">如果你是下面任何一种情况，我们大概率能帮到你。</p>
+    <div class="audience-list">
+      <div class="audience-card-v2">
+        <div class="audience-num">01</div>
+        <div class="audience-body">
+          <h3>工作忙、没时间盯的职场妈妈</h3>
+          <p class="audience-pain">孩子成绩中等偏上，你不甘心放手，但实在没精力每天检查。</p>
+          <!-- V3改动："打开飞书看一眼"（自报交付渠道）→"打开报告看一眼" -->
+          <p class="audience-need">你需要一套系统替你"看"——孩子测完自动生成报告，告诉你"今天学得怎么样"。<br>你只需要打开报告看一眼，不用开口问、不用催、不用吵架。</p>
+          <ul class="audience-reasons">
+            <li>不用你出题、批改、跟进度</li>
+            <li>几分钟看份报告就行</li>
+            <li>孩子不觉得你在"查岗"</li>
+          </ul>
+        </div>
+      </div>
+      <div class="audience-card-v2">
+        <div class="audience-num">02</div>
+        <div class="audience-body">
+          <h3>有时间、想管但不知道怎么管的妈妈</h3>
+          <p class="audience-pain">你愿意花时间在孩子学习上，但缺的是"方法"。盯多了吵架、盯少了焦虑。</p>
+          <p class="audience-need">你需要一套系统替你"问"——问出孩子到底会了没有、卡在哪。</p>
+          <ul class="audience-reasons">
+            <li>AI替你开口问，你只看结果</li>
+            <li>你的角色从"检查者"变成"知道结果的人"</li>
+            <li>不用成为老师，只需要成为"心里有数的人"</li>
+          </ul>
+        </div>
+      </div>
+      <div class="audience-card-v2">
+        <div class="audience-num">03</div>
+        <div class="audience-body">
+          <h3>各种方法都试过、成绩还是不动</h3>
+          <p class="audience-pain">线下班、网课、刷题都试过了，成绩就是不动。你不是不想花钱，是怕花了钱还是没结果。</p>
+          <p class="audience-need">你需要换个方式试试。</p>
+          <ul class="audience-reasons">
+            <li>不讲课、不刷题、不做题海战术</li>
+            <li>只做一件事：找出薄弱点，对准了练</li>
+            <!-- V3改动："6天体验包，先看效果再说"（效果暗示）→"先看诊断结果再说" -->
+            <!-- V4改动：CTA移出列表（见结尾行动条），此条改回内容定位——低承诺试探，安抚"怕花钱没结果"心理 -->
+            <li>先验一轮、看到真实结果，再决定要不要继续</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 使用场景 -->
+  <section class="section">
+    <span class="section-label">05 / 场景</span>
+    <h2>什么时候用？</h2>
+    <!-- V3改动："有微信就能测"（自报交付渠道）→删除渠道表述 -->
+    <p class="section-desc">不用接送、不用预约，随时随地就能测。你的孩子处于哪个状态，就用哪个轨道。</p>
+    <div class="scenario-v2-list">
+      <div class="scenario-v2-card">
+        <div class="scenario-v2-num">一</div>
+        <div class="scenario-v2-body">
+          <h3>校内同步验收</h3>
+          <!-- V4改动：恢复微信使用场景（用户需要首次读者明确使用方式）；主语为孩子自主使用 -->
+          <p>学校刚上完一个单元，或者自学完一章，在微信里打开，跟AI聊一轮。<br>
+          不是刷题，是像教练一样一层一层追问——问完就知道：<strong>这单元到底掌握了没有，卡在哪</strong>。<br>
+          不等考试，不靠猜。</p>
+        </div>
+      </div>
+      <div class="scenario-v2-card">
+        <div class="scenario-v2-num">二</div>
+        <div class="scenario-v2-body">
+          <h3>复习巩固</h3>
+          <p>验收完发现问题了？AI自动拆解薄弱点：<strong>是概念不清、计算不稳、还是思路没打开？</strong><br>
+          <!-- V3改动："按记忆曲线滚动复习，直到吃透为止"→"生成滚动复习清单，孩子自主完成"（练的主体责任从服务方转到孩子） -->
+          生成针对薄弱点的练习和滚动复习清单，孩子自主完成、自主核对。<br>
+          不全面撒网，只对准薄弱点。</p>
+        </div>
+      </div>
+      <div class="scenario-v2-card">
+        <div class="scenario-v2-num">三</div>
+        <div class="scenario-v2-body">
+          <h3>能力进阶</h3>
+          <!-- V3改动：删除"对标中考难度""能拉分的题型"（升学导向+拉分话术）
+               删除"就像一个半月学完七上七下数学、期末卷考116分那样"（广告法24条：受益者案例+提分保证，全文最高危一句） -->
+          <p>校内已经稳了，想再往上走？系统切换到进阶模式——<strong>练思维深度和综合应用</strong>。<br>
+          不是盲目刷难题，是聚焦提升空间最大的题型。<br>
+          一样的验收逻辑，更高的难度梯度。</p>
+        </div>
+      </div>
+    </div>
+    <div class="scenario-v2-bottom">
+      <!-- V3改动："打开微信，就能开始"→"打开系统，就能开始" -->
+      <p>三个轨道，同一个入口：<strong>打开系统，就能开始</strong>。</p>
+    </div>
+  </section>
+
+  <!-- 核心方法论 -->
+  <section class="section">
+    <span class="section-label">06 / 方法</span>
+    <h2>凭什么能做到精准？</h2>
+    <p class="section-desc">四个动作：分层验收 → 分级诊断 → 错题闭环 → 全透明记录。不是靠感觉，是靠一套固定的验收流程。</p>
+    <div class="method-v2-flow">
+      <div class="method-v2-card">
+        <div class="method-v2-num">一</div>
+        <div class="method-v2-body">
+          <h3>分层验收</h3>
+          <!-- V3改动："数学4轮、英语4步、语文3阶"（按学科命名服务）→"四层验收法"（能力维度表述，方法论品牌名）
+               V4.4改动（08-21）：依据8份真实验收记录对位分析（数学四轮/英语四步/语文三阶/阅读三关均落在同一能力标尺上），
+               四层名扩为完整版：基础概念/理解应用/综合迁移/思辨拓展，并补"每个学科按自己的特点走到对应深度"——
+               名实相符，语文三阶英语四步不再是漏洞，而是各科在标尺上的自然落位 -->
+          <p><strong>独创的"四层验收法"</strong>——不是笼统考一遍，是一层一层往下挖。<br>
+          从基础概念、理解应用，到综合迁移、思辨拓展，每一层都有明确的目标和难度梯度。<br>
+          每个学科按自己的特点，走到对应的深度。</p>
+        </div>
+      </div>
+      <div class="method-v2-card">
+        <div class="method-v2-num">二</div>
+        <div class="method-v2-body">
+          <h3>分级诊断</h3>
+          <p>同样一道错题，AI能区分<strong>是"粗心"还是"真不会"</strong>。<br>
+          提示深度分为A/B/C/D四级——轻轻一点就懂，和想了半天还懵，掌握度天差地别，后续练习方向也完全不同。</p>
+        </div>
+      </div>
+      <div class="method-v2-card">
+        <div class="method-v2-num">三</div>
+        <div class="method-v2-body">
+          <h3>错题闭环</h3>
+          <!-- V3改动："连续4次全对才算毕业"（训练承诺表述）→"孩子自主完成、自主核对，连续做对才移出清单" -->
+          <p>错题不抄一遍就完事。系统按记忆曲线生成滚动复习清单，<strong>孩子自主完成、自主核对，连续做对才移出清单</strong>。<br>
+          不反复掉同一个坑，每一道错题都真正消化。</p>
+        </div>
+      </div>
+      <div class="method-v2-card">
+        <div class="method-v2-num">四</div>
+        <div class="method-v2-body">
+          <h3>全透明记录</h3>
+          <p>每次验收的<strong>完整对话 + 错因分析 + 看板数据</strong>，家长随时可查。<br>
+          孩子怎么想的、卡在哪、进步了多少，一目了然，不是黑箱。</p>
+        </div>
+      </div>
+    </div>
+    <!-- V3新增：家长视角的使用闭环，呼应"验→判→练→再验" -->
+    <div class="method-loop">
+      <span class="loop-label">孩子的使用节奏</span>
+      <div class="loop-steps">
+        <span class="step">验收</span><span class="arrow">→</span>
+        <span class="step">报告</span><span class="arrow">→</span>
+        <span class="step">练习</span><span class="arrow">→</span>
+        <span class="step">再验收</span><span class="arrow">↻</span>
+      </div>
+      <!-- V4改动：补充使用形式说明——首次读者需要知道"在哪验收、要不要装APP"；主语为孩子自主使用（描述使用形式，非服务交付渠道），合规口径不变 -->
+      <span class="loop-note">全程在微信里完成：像跟朋友聊天一样，打开就能验，不用下载APP，不用买新设备。一轮接一轮，每一轮的记录都留档，进步还是卡壳，看得清清楚楚</span>
+    </div>
+  </section>
+
+  <!-- V4.5新增：创始人故事（07来历区）——单干产品卖陌生人，创始自用是最强信任资产。
+       合规护栏：①只讲"产品怎么来的"（origin），不讲"用了之后成绩如何"（testimonial，《广告法》禁受益者形象做推荐）
+       ②女儿姓名/年级/成绩不入手册；"小升初/中考/考好高中"等升学关联表述全部过滤（用户口述中的契机做了脱敏）
+       ③"补习"→"练习"；课外班贵/累=描述家长困境，不点名不贬低具体机构
+       ④"停掉课外班"=创始人自己的选择（事实陈述），不对读者作"你也可以省掉培训班"的暗示承诺 -->
+  <section class="section">
+    <span class="section-label">07 / 来历</span>
+    <h2>为什么会有这个系统</h2>
+    <div class="story-box">
+      <p>最开始，它只做给我自己的女儿用。</p>
+      <p>她以前也上过不少课外班。班越报越多，孩子越来越累，可我心里始终有个问题没有答案：<strong>她到底哪里懂了、哪里没懂？</strong>没有人告诉我，我自己也不知道。学的复杂度一直在加，学习的问题一个都没解决。</p>
+      <p>我想要的东西其实很简单：清楚地知道孩子卡在哪，薄弱点在哪，就对准哪里练。<strong>高效的学习不是往里灌，是知道自己缺什么。</strong>可我把市面上的产品找了一圈，没有找到这样的。</p>
+      <p>那就自己做一个。</p>
+      <p>我早些年在互联网公司工作，开过公司、做过高管，做的就是帮企业搭系统、设计流程这件事。我把那套方法，搬到了孩子的学习上：一个模块一个模块地验收，验收完知道哪里薄，练的时候只练薄的地方。</p>
+      <p>这个暑假，我把女儿的课外班都停了，改用这套系统。她每天自己验收，我只看报告——不用陪读，也不用猜。</p>
+      <p>后来我发现，我遇到的这个问题，几乎每个家长都在遇：<strong>要么陪读，要么送班，一对一又贵。</strong>所以我把它整理了出来，就是你现在看到的这套系统。</p>
+    </div>
+  </section>
+
+  <!-- V3新增：正式产品声明（置于方法区与收尾之间，合规定位锚点） -->
+  <section class="section declare-section">
+    <div class="declare-box">
+      <span class="section-label">产品声明</span>
+      <p><strong>本产品为AI学习验收系统，属学习情况分析与自查工具，非学科类培训课程。</strong><br>
+      系统由学生在家长知情下自主使用；系统输出内容（含学情报告、练习清单）均由AI辅助生成，仅供了解孩子学习状态参考，不对学习效果和考试成绩作任何承诺或保证。如对报告内容有疑问，请与开发者联系核实。</p>
+    </div>
+  </section>
+
+  <!-- V4.3改动：删除整个.tagline-section（slogan/副标/价格/CTA四行与首屏内容重度重复，CTA对已加微信家长无意义） -->
+  <!-- 已由首屏+产品声明+页脚三段完成情绪收尾 -->
+
+  <div class="footer">
+    AI学习验收系统 · 产品定位手册 · 2026.08 · V4价值阶梯版
+    <!-- V3新增：AI生成标识（依《人工智能生成合成内容标识办法》）；完整产品声明已前移至方法区之后 -->
+    <p class="ai-mark">[ 本手册部分内容由AI辅助生成 · 请注意甄别 ]</p>
+  </div>
+
+</div>
+</body>
+</html>
