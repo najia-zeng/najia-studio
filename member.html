@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>娜家视觉 · 会员专区</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --brand: #6b5ce7;
+            --brand-light: #8b7ff0;
+            --brand-bg: rgba(107,92,231,.06);
+            --brand-bg-hover: rgba(107,92,231,.10);
+
+            --text-primary: #1a1a2e;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+
+            --bg-page: #f7f7fa;
+            --bg-card: #ffffff;
+
+            --shadow-sm: 0 1px 3px rgba(0,0,0,.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,.06);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,.08);
+            --shadow-brand: 0 4px 20px rgba(107,92,231,.15);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+
+            --success: #10b981;
+            --success-bg: rgba(16,185,129,.08);
+            --warning: #f59e0b;
+            --warning-bg: rgba(245,158,11,.08);
+        }
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            background: var(--bg-page);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== Password Gate ===== */
+        .gate {
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #f7f7fa 0%, #ede9fe 50%, #f7f7fa 100%);
+            padding: 20px;
+        }
+        .gate.hidden { display: none; }
+        .gate-box {
+            background: #fff;
+            border-radius: var(--radius-xl);
+            padding: 48px 40px;
+            max-width: 440px; width: 100%;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+        .gate-icon {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: var(--brand-bg);
+            display: inline-flex; align-items: center; justify-content: center;
+            margin-bottom: 24px;
+        }
+        .gate-icon svg {
+            width: 32px; height: 32px;
+            stroke: var(--brand);
+            stroke-width: 1.5;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .gate-title {
+            font-size: 22px; font-weight: 700;
+            color: var(--text-primary); margin-bottom: 8px;
+        }
+        .gate-desc {
+            font-size: 14px; color: var(--text-secondary);
+            line-height: 1.7; margin-bottom: 28px;
+        }
+        .gate-input-wrap {
+            position: relative; margin-bottom: 16px;
+        }
+        .gate-input {
+            width: 100%; padding: 14px 18px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: var(--radius-md);
+            font-size: 15px; font-family: inherit;
+            outline: none; transition: border-color .2s;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        .gate-input:focus { border-color: var(--brand); }
+        .gate-input.error { border-color: #ef4444; }
+        .gate-btn {
+            width: 100%; padding: 14px;
+            background: var(--brand);
+            color: #fff; border: none;
+            border-radius: var(--radius-md);
+            font-size: 15px; font-weight: 600;
+            font-family: inherit;
+            cursor: pointer; transition: all .2s;
+        }
+        .gate-btn:hover { background: var(--brand-light); }
+        .gate-error {
+            color: #ef4444; font-size: 13px;
+            margin-top: 12px; min-height: 20px;
+        }
+
+        /* ===== Member Page ===== */
+        .member { display: none; }
+        .member.active { display: block; }
+
+        /* Top bar */
+        .topbar {
+            background: #fff;
+            border-bottom: 1px solid #e8e8ed;
+            padding: 16px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .topbar-brand {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .topbar-logo {
+            width: 32px; height: 32px;
+            border-radius: 50%; overflow: hidden;
+            background: #000;
+        }
+        .topbar-logo img { width: 100%; height: 100%; object-fit: cover; }
+        .topbar-name {
+            font-weight: 700; font-size: 16px;
+            color: var(--text-primary);
+        }
+        .topbar-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: var(--success-bg);
+            color: var(--success);
+            font-size: 12px; font-weight: 600;
+            padding: 4px 10px; border-radius: 12px;
+        }
+        .topbar-badge svg {
+            width: 12px; height: 12px;
+            stroke: var(--success); stroke-width: 2;
+            fill: none;
+        }
+
+        /* Content */
+        .member-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 32px 72px;
+        }
+
+        /* Welcome */
+        .welcome {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .welcome h1 {
+            font-size: 32px; font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        .welcome h1 span {
+            background: linear-gradient(135deg, var(--brand), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .welcome p {
+            font-size: 15px; color: var(--text-secondary);
+            line-height: 1.8; max-width: 520px; margin: 0 auto;
+        }
+
+        /* Section */
+        .section-title {
+            font-size: 13px; font-weight: 600;
+            color: var(--text-tertiary);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-title::after {
+            content: ''; flex: 1; height: 1px;
+            background: #e8e8ed;
+        }
+
+        /* Resource cards */
+        .resources {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+        .res-card {
+            background: #fff;
+            border: 1.5px solid #e8e8ed;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            cursor: pointer;
+            transition: all .2s ease;
+            text-decoration: none;
+            display: flex; align-items: flex-start; gap: 16px;
+        }
+        .res-card:hover {
+            border-color: rgba(107,92,231,.2);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        .res-ico {
+            width: 44px; height: 44px;
+            border-radius: var(--radius-md);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; flex-shrink: 0;
+        }
+        .res-ico.knowledge { background: rgba(107,92,231,.08); }
+        .res-ico.agent { background: rgba(59,130,246,.08); }
+        .res-ico.tool { background: rgba(16,185,129,.08); }
+        .res-ico.case { background: rgba(245,158,11,.08); }
+        .res-body { flex: 1; }
+        .res-name {
+            font-size: 15px; font-weight: 600;
+            color: var(--text-primary); margin-bottom: 4px;
+        }
+        .res-desc {
+            font-size: 12px; color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .res-tag {
+            display: inline-block;
+            font-size: 10px; font-weight: 600;
+            padding: 2px 8px; border-radius: 8px;
+            margin-top: 8px;
+        }
+        .res-tag.free { color: var(--success); background: var(--success-bg); }
+        .res-tag.paid { color: var(--brand); background: var(--brand-bg); }
+        .res-arrow {
+            font-size: 18px; color: var(--text-tertiary);
+            flex-shrink: 0; align-self: center;
+            transition: transform .2s;
+        }
+        .res-card:hover .res-arrow { transform: translateX(3px); color: var(--brand); }
+
+        /* Tips box */
+        .tips-box {
+            background: #fff;
+            border: 1.5px solid #e8e8ed;
+            border-radius: var(--radius-lg);
+            padding: 24px 28px;
+            margin-bottom: 40px;
+        }
+        .tips-title {
+            font-size: 14px; font-weight: 600;
+            color: var(--text-primary); margin-bottom: 12px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .tips-list {
+            list-style: none; padding: 0;
+        }
+        .tips-list li {
+            font-size: 13px; color: var(--text-secondary);
+            line-height: 1.8; padding: 4px 0;
+            padding-left: 20px; position: relative;
+        }
+        .tips-list li::before {
+            content: '';
+            position: absolute; left: 0; top: 12px;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--brand);
+        }
+        .tips-list li strong {
+            color: var(--text-primary); font-weight: 600;
+        }
+
+        /* Footer */
+        .member-footer {
+            text-align: center;
+            padding-top: 32px;
+            border-top: 1px solid #e8e8ed;
+            color: var(--text-tertiary);
+            font-size: 12px;
+        }
+        .member-footer a {
+            color: var(--brand); text-decoration: none;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .gate-box { padding: 36px 24px; }
+            .member-inner { padding: 24px 16px 48px; }
+            .welcome h1 { font-size: 24px; }
+            .resources { grid-template-columns: 1fr; }
+            .topbar { padding: 12px 16px; }
+        }
+
+        @media print {
+            .gate { display: none !important; }
+            .member { display: block !important; }
+            body { background: #fff; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== 密码验证层 ===== -->
+<div class="gate" id="gate">
+    <div class="gate-box">
+        <div class="gate-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="gate-title">会员专区</div>
+        <div class="gate-desc">请输入访问密码，进入你的专属学习空间</div>
+        <div class="gate-input-wrap">
+            <input type="password" class="gate-input" id="pwdInput" placeholder="请输入密码" autocomplete="off">
+        </div>
+        <button class="gate-btn" id="pwdBtn" onclick="checkPwd()">进入</button>
+        <div class="gate-error" id="pwdError"></div>
+    </div>
+</div>
+
+<!-- ===== 会员内容层 ===== -->
+<div class="member" id="member">
+
+    <!-- 顶部栏 -->
+    <div class="topbar">
+        <div class="topbar-brand">
+            <div class="topbar-logo"><img src="logo.png" alt="娜家视觉"></div>
+            <div class="topbar-name">NaStudio</div>
+        </div>
+        <div class="topbar-badge">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            已认证会员
+        </div>
+    </div>
+
+    <div class="member-inner">
+
+        <!-- 欢迎 -->
+        <div class="welcome">
+            <h1>欢迎，<span>创作者</span></h1>
+            <p>以下是你的专属学习资源。从实操手册到AI工具，跟着流程走，你就能自己搞定产品图。</p>
+        </div>
+
+        <!-- 知识库 -->
+        <div class="section-title">知识库</div>
+        <div class="resources">
+
+            <!-- 实操手册 -->
+            <a class="res-card" href="https://my.feishu.cn/wiki/Rgsewp0u2iPhLDkmj0RcAqoFnyd" target="_blank" rel="noopener">
+                <div class="res-ico knowledge">📖</div>
+                <div class="res-body">
+                    <div class="res-name">实拍打底 · AI增效实操手册</div>
+                    <div class="res-desc">从工具准备到案例复刻，完整的AI产品图工作流</div>
+                    <span class="res-tag paid">需要密码</span>
+                </div>
+                <div class="res-arrow">›</div>
+            </a>
+
+            <!-- 常用提示词库 -->
+            <a class="res-card" href="https://my.feishu.cn/wiki/MaZ3wXsCTiNyQ9kWDZNctmpUnAe" target="_blank" rel="noopener">
+                <div class="res-ico knowledge">💬</div>
+                <div class="res-body">
+                    <div class="res-name">常用提示词库</div>
+                    <div class="res-desc">覆盖多品类、多风格的即用提示词模板</div>
+                    <span class="res-tag paid">需要密码</span>
+                </div>
+                <div class="res-arrow">›</div>
+            </a>
+
+            <!-- AI出图修复指南 -->
+            <a class="res-card" href="https://my.feishu.cn/wiki/McnywZ5IFiCDY5kekS4cnOnOnyc" target="_blank" rel="noopener">
+                <div class="res-ico knowledge"></div>
+                <div class="res-body">
+                    <div class="res-name">AI出图修复指南</div>
+                    <div class="res-desc">消除AI味，让生成图达到商用级别</div>
+                    <span class="res-tag paid">需要密码</span>
+                </div>
+                <div class="res-arrow">›</div>
+            </a>
+
+            <!-- 案例库 -->
+            <a class="res-card" href="https://my.feishu.cn/base/ZGKpb403PagA0OsUOOsc7e6knhg?table=tbl3z7iIkkMo2wEO&view=vewFQY4wwq" target="_blank" rel="noopener">
+                <div class="res-ico case">📁</div>
+                <div class="res-body">
+                    <div class="res-name">AI创作案例库</div>
+                    <div class="res-desc">8+真实商业案例，含完整创作过程和可复用提示词</div>
+                    <span class="res-tag paid">持续更新</span>
+                </div>
+                <div class="res-arrow">›</div>
+            </a>
+        </div>
+
+        <!-- 智能体工具 -->
+        <div class="section-title">智能体工具</div>
+        <div class="resources">
+
+            <!-- 提示词生成器 -->
+            <a class="res-card" href="#" target="_blank" rel="noopener">
+                <div class="res-ico tool">️</div>
+                <div class="res-body">
+                    <div class="res-name">提示词生成器</div>
+                    <div class="res-desc">输入产品描述，自动生成专业级生图提示词</div>
+                    <span class="res-tag free">免费 · 不限次</span>
+                </div>
+                <div class="res-arrow">›</div>
+            </a>
+
+            <!-- AI创意生图 -->
+            <a class="res-card" href="#" target="_blank" rel="noopener">
+                <div class="res-ico agent">🎨</div>
+                <div class="res-body">
+                    <div class="res-name">AI创意生图</div>
+                    <div class="res-desc">基于实拍产品，AI生成商业级场景图</div>
+                    <span class="res-tag paid">每日3次免费</span>
+                </div>
+                <div class="res-arrow">›</div>
+            </a>
+
+            <!-- 实拍融合AI -->
+            <a class="res-card" href="#" target="_blank" rel="noopener">
+                <div class="res-ico agent">️</div>
+                <div class="res-body">
+                    <div class="res-name">实拍融合AI</div>
+                    <div class="res-desc">将产品实拍与AI场景自然融合，光影匹配</div>
+                    <span class="res-tag paid">每日3次免费</span>
+                </div>
+                <div class="res-arrow">›</div>
+            </a>
+        </div>
+
+        <!-- 使用提示 -->
+        <div class="tips-box">
+            <div class="tips-title">💡 使用提示</div>
+            <ul class="tips-list">
+                <li><strong>飞书文档需要二次验证</strong>：点击知识库链接后，需要输入飞书访问密码（与本页密码相同），防止链接被单独转发</li>
+                <li><strong>智能体工具</strong>：提示词生成器免费不限次；AI生图和融合工具每日免费3次，超出后可订阅或买断</li>
+                <li><strong>案例库持续更新</strong>：每周新增商业案例，建议定期回来看</li>
+                <li><strong>遇到问题</strong>：添加微信 <strong>najia9864</strong>，随时答疑</li>
+            </ul>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="member-footer">
+            © 娜家视觉 · 让每一张产品图都能卖货 · <a href="https://najia-zeng.github.io/najia-studio/" target="_blank">返回首页</a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // 密码配置 - 修改这里即可更改密码
+    const MEMBER_PASSWORD = 'najia2026';
+
+    // 检查密码（支持URL参数直接跳过）
+    function checkPwd() {
+        const input = document.getElementById('pwdInput');
+        const error = document.getElementById('pwdError');
+        if (input.value === MEMBER_PASSWORD) {
+            document.getElementById('gate').classList.add('hidden');
+            document.getElementById('member').classList.add('active');
+            sessionStorage.setItem('najia_member', '1');
+        } else {
+            input.classList.add('error');
+            error.textContent = '密码错误，请重试';
+            input.value = '';
+            setTimeout(() => { input.classList.remove('error'); }, 600);
+        }
+    }
+
+    // 回车提交
+    document.getElementById('pwdInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') checkPwd();
+    });
+
+    // 如果URL带 ?access=granted 或已有session，直接跳过密码
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('access') === 'granted' || sessionStorage.getItem('najia_member') === '1') {
+        document.getElementById('gate').classList.add('hidden');
+        document.getElementById('member').classList.add('active');
+    }
+</script>
+
+</body>
+</html>
