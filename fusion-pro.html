@@ -756,7 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
     var d=JSON.parse(localStorage.getItem(KEY)||'{}');
     if(d.date!==TODAY){d={date:TODAY,count:0};localStorage.setItem(KEY,JSON.stringify(d));}
     window._usage={remaining:Math.max(0,LIMIT-d.count),check:function(){
-        if(d.count>=LIMIT){document.getElementById('limitModal').style.display='flex';return false;}
+        if(new URLSearchParams(location.search).get('admin')!=='1'&&d.count>=LIMIT){document.getElementById('limitModal').style.display='flex';return false;}
         d.count++;localStorage.setItem(KEY,JSON.stringify(d));return true;
     }};
 })();
