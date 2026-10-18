@@ -663,7 +663,7 @@ function updateGenBtn() {
 }
 
 // ===== Generate (Fusion API) =====
-async function generate() { if(!window._usage.check()) return;
+async function generate() {
     if (busy) return;
     if (!bgDataUri || !pdCroppedSrc) return alert('请先上传背景图和产品图');
 
@@ -741,26 +741,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<!-- ===== 每日限次逻辑 ===== -->
-<div id="limitModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:16px;padding:36px 32px;max-width:380px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.12);">
-    <div style="font-size:40px;margin-bottom:16px;">&#9889;</div>
-    <div style="font-size:18px;font-weight:700;margin-bottom:8px;color:#1d1d1f;">今日体验额度已用完</div>
-    <div style="font-size:14px;color:#86868b;line-height:1.7;margin-bottom:24px;">体验版每日免费生成3次<br>如需继续使用，请联系娜家升级</div>
-    <button onclick="document.getElementById('limitModal').style.display='none'" style="padding:12px 32px;background:#1d1d1f;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;">知道了</button>
-  </div>
-</div>
-<script>
-(function(){
-    var LIMIT=3, KEY='najia_daily_count', TODAY=new Date().toDateString();
-    var d=JSON.parse(localStorage.getItem(KEY)||'{}');
-    if(d.date!==TODAY){d={date:TODAY,count:0};localStorage.setItem(KEY,JSON.stringify(d));}
-    window._usage={remaining:Math.max(0,LIMIT-d.count),check:function(){
-        if(new URLSearchParams(location.search).get('admin')!=='1'&&d.count>=LIMIT){document.getElementById('limitModal').style.display='flex';return false;}
-        d.count++;localStorage.setItem(KEY,JSON.stringify(d));return true;
-    }};
-})();
-</script>
 
 </body>
 </html>
