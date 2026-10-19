@@ -191,15 +191,18 @@
             margin-bottom: 48px;
         }
         .welcome h1 {
-            font-size: 32px; font-weight: 800;
-            color: var(--text-primary); margin-bottom: 12px;
+            font-size: 44px; font-weight: 900;
+            color: var(--text-primary); margin-bottom: 16px;
+            letter-spacing: 2px;
         }
-        .welcome h1 span {
+        .welcome .subtitle {
+            font-size: 22px; font-weight: 700;
             background: linear-gradient(135deg, var(--brand), #8b5cf6);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
         }
         .welcome p {
-            font-size: 15px; color: var(--text-secondary);
+            font-size: 14px; color: var(--text-secondary);
             line-height: 1.8; max-width: 520px; margin: 0 auto;
         }
 
@@ -312,7 +315,8 @@
         @media (max-width: 768px) {
             .gate-box { padding: 36px 24px; }
             .main { padding: 24px 16px 48px; }
-            .welcome h1 { font-size: 24px; }
+            .welcome h1 { font-size: 28px; }
+            .welcome .subtitle { font-size: 16px; }
             .resources { grid-template-columns: 1fr; }
             .topbar { padding: 12px 16px; }
 
@@ -432,9 +436,9 @@
 
         <div class="main" id="top">
             <div class="welcome">
-                <h1><span>娜家视觉</span></h1>
-                <p style="font-size:17px;font-weight:600;color:var(--text-primary);margin-bottom:12px;">实拍打底 · AI增效实操手册</p>
-                <p>从实操手册到AI工具，跟着流程走，你就能自己搞定产品图。</p>
+                <h1>实拍打底 · AI提效</h1>
+                <div class="subtitle">帮助电商卖家自己搞定产品图</div>
+                <p>从白底图到商用场景图，智能体工具 + 专业知识库，一站式搞定</p>
             </div>
 
             <!-- 知识库 -->
