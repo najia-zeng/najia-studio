@@ -332,7 +332,7 @@
         <button class="tab" data-cat="perfume" type="button">香水</button>
         <button class="tab" data-cat="skincare" type="button">护肤</button>
         <button class="tab" data-cat="wash" type="button">洗护</button>
-        <span class="cnt">共 <b id="cnt">6</b> 个案例 · 持续更新</span>
+        <span class="cnt">持续更新</span>
       </div>
 
       <div class="gallery" id="gallery">
@@ -391,18 +391,14 @@
 <script>
   var tabs=document.querySelectorAll('.tab');
   var cards=document.querySelectorAll('#gallery .card');
-  var cnt=document.getElementById('cnt');
   tabs.forEach(function(tb){
     tb.addEventListener('click',function(){
       tabs.forEach(function(t){t.classList.remove('on');});
       tb.classList.add('on');
-      var c=tb.getAttribute('data-cat'),n=0;
+      var c=tb.getAttribute('data-cat');
       cards.forEach(function(cd){
-        var show=(c==='all'||cd.getAttribute('data-cat')===c);
-        cd.style.display=show?'':'none';
-        if(show)n++;
+        cd.style.display=(c==='all'||cd.getAttribute('data-cat')===c)?'':'none';
       });
-      cnt.textContent=n;
     });
   });
 </script>
