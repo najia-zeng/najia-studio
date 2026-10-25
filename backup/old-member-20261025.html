@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>娜家视觉 · 会员专区</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --brand: #6b5ce7;
+            --brand-light: #8b7ff0;
+            --brand-bg: rgba(107,92,231,.06);
+            --brand-active: rgba(107,92,231,.10);
+
+            --text-primary: #1a1a2e;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+
+            --bg-page: #f7f7fa;
+            --bg-card: #ffffff;
+            --bg-sidebar: #fafafe;
+
+            --shadow-sm: 0 1px 3px rgba(0,0,0,.04);
+            --shadow-md: 0 4px 16px rgba(0,0,0,.06);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,.08);
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+
+            --success: #10b981;
+            --success-bg: rgba(16,185,129,.08);
+            --sidebar-w: 240px;
+        }
+        body {
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            background: var(--bg-page);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== Password Gate ===== */
+        .gate {
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #f7f7fa 0%, #ede9fe 50%, #f7f7fa 100%);
+            padding: 20px;
+        }
+        .gate.hidden { display: none; }
+        .gate-box {
+            background: #fff;
+            border-radius: var(--radius-xl);
+            padding: 48px 40px;
+            max-width: 440px; width: 100%;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+        .gate-logo {
+            width: 80px; height: 80px;
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 0 auto 24px;
+            background: #000;
+        }
+        .gate-logo img { width: 100%; height: 100%; object-fit: cover; }
+        .gate-title { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+        .gate-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 28px; }
+        .gate-input {
+            width: 100%; padding: 14px 18px;
+            border: 1.5px solid #e5e7eb; border-radius: var(--radius-md);
+            font-size: 15px; font-family: inherit; outline: none;
+            transition: border-color .2s; text-align: center; letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+        .gate-input:focus { border-color: var(--brand); }
+        .gate-input.error { border-color: #ef4444; }
+        .gate-btn {
+            width: 100%; padding: 14px;
+            background: var(--brand); color: #fff; border: none;
+            border-radius: var(--radius-md); font-size: 15px; font-weight: 600;
+            font-family: inherit; cursor: pointer; transition: all .2s;
+        }
+        .gate-btn:hover { background: var(--brand-light); }
+        .gate-error { color: #ef4444; font-size: 13px; margin-top: 12px; min-height: 20px; }
+
+        /* ===== Member Layout ===== */
+        .member { display: none; }
+        .member.active { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-w);
+            min-width: var(--sidebar-w);
+            background: var(--bg-sidebar);
+            border-right: 1px solid #e8e8ed;
+            height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            overflow-y: auto;
+            padding: 20px 0;
+            z-index: 100;
+        }
+        .sidebar-brand {
+            display: flex; align-items: center; gap: 10px;
+            padding: 4px 20px 20px;
+            border-bottom: 1px solid #e8e8ed;
+            margin-bottom: 16px;
+        }
+        .sidebar-brand-logo {
+            width: 32px; height: 32px;
+            border-radius: 8px; overflow: hidden; background: #000;
+        }
+        .sidebar-brand-logo img { width: 100%; height: 100%; object-fit: cover; }
+        .sidebar-brand-name { font-weight: 700; font-size: 15px; color: var(--text-primary); }
+
+        .sidebar-section { margin-bottom: 8px; }
+        .sidebar-section-title {
+            font-size: 11px; font-weight: 600;
+            color: var(--text-tertiary);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 8px 20px 6px;
+        }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 20px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all .15s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-link:hover {
+            background: var(--brand-bg);
+            color: var(--text-primary);
+        }
+        .sidebar-link.active {
+            background: var(--brand-active);
+            color: var(--brand);
+            border-left-color: var(--brand);
+            font-weight: 600;
+        }
+        .sidebar-link svg {
+            width: 18px; height: 18px;
+            stroke: currentColor; stroke-width: 1.8;
+            fill: none; flex-shrink: 0;
+        }
+        .sidebar-link .ext-icon {
+            margin-left: auto;
+            font-size: 12px;
+            opacity: .4;
+        }
+
+        /* Content area */
+        .content {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            min-height: 100vh;
+        }
+
+        /* Top bar */
+        .topbar {
+            background: #fff;
+            border-bottom: 1px solid #e8e8ed;
+            padding: 14px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .topbar-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: var(--success-bg);
+            color: var(--success);
+            font-size: 12px; font-weight: 600;
+            padding: 4px 10px; border-radius: 12px;
+        }
+        .topbar-badge svg { width: 12px; height: 12px; stroke: var(--success); stroke-width: 2; fill: none; }
+
+        /* Main content */
+        .main {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 32px 72px;
+        }
+
+        /* Welcome */
+        .welcome {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .welcome h1 {
+            font-size: 40px; font-weight: 900;
+            color: var(--text-primary); margin-bottom: 10px;
+            letter-spacing: 2px;
+            line-height: 1.2;
+        }
+        .welcome .subtitle {
+            font-size: 30px; font-weight: 700;
+            background: linear-gradient(135deg, var(--brand), #8b5cf6);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        .welcome p {
+            font-size: 14px; color: var(--text-secondary);
+            line-height: 1.6; max-width: 520px; margin: 0 auto;
+        }
+
+        /* Section */
+        .section-title {
+            font-size: 13px; font-weight: 600;
+            color: var(--text-tertiary);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: #e8e8ed; }
+
+        /* Resource cards */
+        .resources {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+        .res-card {
+            background: #fff;
+            border: 1.5px solid #e8e8ed;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            cursor: pointer;
+            transition: all .2s ease;
+            text-decoration: none;
+            display: flex; align-items: flex-start; gap: 16px;
+        }
+        .res-card:hover {
+            border-color: rgba(107,92,231,.2);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        .res-ico {
+            width: 44px; height: 44px;
+            border-radius: var(--radius-md);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; flex-shrink: 0;
+        }
+        .res-ico.knowledge { background: rgba(107,92,231,.08); }
+        .res-ico.agent { background: rgba(59,130,246,.08); }
+        .res-ico.tool { background: rgba(16,185,129,.08); }
+        .res-ico.case { background: rgba(245,158,11,.08); }
+        .res-body { flex: 1; }
+        .res-name { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+        .res-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+        .res-tag {
+            display: inline-block; font-size: 10px; font-weight: 600;
+            padding: 2px 8px; border-radius: 8px; margin-top: 8px;
+        }
+        .res-tag.free { color: var(--success); background: var(--success-bg); }
+        .res-tag.paid { color: var(--brand); background: var(--brand-bg); }
+        .res-arrow {
+            font-size: 18px; color: var(--text-tertiary);
+            flex-shrink: 0; align-self: center;
+            transition: transform .2s;
+        }
+        .res-card:hover .res-arrow { transform: translateX(3px); color: var(--brand); }
+
+        /* Tips box */
+        .tips-box {
+            background: #fff; border: 1.5px solid #e8e8ed;
+            border-radius: var(--radius-lg); padding: 24px 28px;
+            margin-bottom: 40px;
+        }
+        .tips-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        .tips-list { list-style: none; padding: 0; }
+        .tips-list li {
+            font-size: 13px; color: var(--text-secondary);
+            line-height: 1.8; padding: 4px 0 4px 20px; position: relative;
+        }
+        .tips-list li::before {
+            content: ''; position: absolute; left: 0; top: 12px;
+            width: 6px; height: 6px; border-radius: 50%; background: var(--brand);
+        }
+        .tips-list li strong { color: var(--text-primary); font-weight: 600; }
+
+        /* Footer */
+        .member-footer {
+            text-align: center; padding-top: 32px;
+            border-top: 1px solid #e8e8ed;
+            color: var(--text-tertiary); font-size: 12px;
+        }
+        .member-footer a { color: var(--brand); text-decoration: none; }
+
+        /* Mobile hamburger */
+        .hamburger {
+            display: none;
+            position: fixed; top: 12px; left: 12px; z-index: 200;
+            width: 40px; height: 40px;
+            background: #fff; border: 1px solid #e8e8ed;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            align-items: center; justify-content: center;
+            box-shadow: var(--shadow-sm);
+        }
+        .hamburger svg { width: 20px; height: 20px; stroke: var(--text-primary); stroke-width: 2; fill: none; }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,.3); z-index: 90;
+        }
+        .sidebar-overlay.show { display: block; }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .gate-box { padding: 36px 24px; }
+            .main { padding: 24px 16px 48px; }
+            .welcome h1 { font-size: 28px; }
+            .welcome .subtitle { font-size: 16px; }
+            .resources { grid-template-columns: 1fr; }
+            .topbar { padding: 12px 16px; }
+
+            .hamburger { display: flex; }
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform .25s ease;
+                box-shadow: var(--shadow-lg);
+            }
+            .sidebar.open { transform: translateX(0); }
+            .content { margin-left: 0; }
+        }
+
+        @media print {
+            .gate { display: none !important; }
+            .member { display: block !important; }
+            .sidebar { display: none; }
+            .content { margin-left: 0; }
+            body { background: #fff; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== 密码验证层 ===== -->
+<div class="gate" id="gate">
+    <div class="gate-box">
+        <div class="gate-logo"><img src="logo.png" alt="娜家视觉"></div>
+        <div class="gate-title">娜家视觉 · 会员专区</div>
+        <div class="gate-desc">请输入访问密码，进入你的专属学习空间</div>
+        <input type="password" class="gate-input" id="pwdInput" placeholder="请输入密码" autocomplete="off">
+        <button class="gate-btn" onclick="checkPwd()">进入</button>
+        <div class="gate-error" id="pwdError"></div>
+    </div>
+</div>
+
+<!-- ===== 会员内容层 ===== -->
+<div class="member" id="member">
+
+    <!-- 手机端汉堡按钮 -->
+    <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
+        <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- 侧边栏 -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-logo"><img src="logo.png" alt="娜家视觉"></div>
+            <div class="sidebar-brand-name">NaStudio</div>
+        </div>
+
+        <div class="sidebar-section">
+            <a class="sidebar-link active" href="#top" onclick="scrollToSection('top')">
+                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                首页
+            </a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">知识库</div>
+            <a class="sidebar-link" href="https://my.feishu.cn/wiki/Rgsewp0u2iPhLDkmj0RcAqoFnyd" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                实拍+AI实操手册
+                <span class="ext-icon">↗</span>
+            </a>
+            <a class="sidebar-link" href="https://my.feishu.cn/wiki/MaZ3wXsCTiNyQ9kWDZNctmpUnAe" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                常用提示词库
+                <span class="ext-icon">↗</span>
+            </a>
+            <a class="sidebar-link" href="https://my.feishu.cn/wiki/McnywZ5IFiCDY5kekS4cnOnOnyc" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                AI出图修复指南
+                <span class="ext-icon">↗</span>
+            </a>
+            <a class="sidebar-link" href="https://my.feishu.cn/base/ZGKpb403PagA0OsUOOsc7e6knhg?table=tbl3z7iIkkMo2wEO&view=vewFQY4wwq" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                AI创作案例库
+                <span class="ext-icon">↗</span>
+            </a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">智能体工具</div>
+            <a class="sidebar-link" href="https://najia-zeng.github.io/najia-studio/kuociq.html" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                提示词生成器
+                <span class="ext-icon">↗</span>
+            </a>
+            <a class="sidebar-link" href="https://najia-zeng.github.io/najia-studio/scene-gen.html" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                AI创意生图
+                <span class="ext-icon">↗</span>
+            </a>
+            <a class="sidebar-link" href="https://najia-zeng.github.io/najia-studio/fusion-pro.html" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                实拍融合AI
+                <span class="ext-icon">↗</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- 右侧内容 -->
+    <div class="content">
+        <div class="topbar">
+            <div></div>
+            <div class="topbar-badge">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                已认证会员
+            </div>
+        </div>
+
+        <div class="main" id="top">
+            <div class="welcome">
+                <h1>实拍打底 · AI提效</h1>
+                <div class="subtitle">帮助电商卖家自己搞定产品图</div>
+                <p>从白底图到商用场景图，智能体工具 + 专业知识库，一站式搞定</p>
+            </div>
+
+            <!-- 知识库 -->
+            <div class="section-title">知识库</div>
+            <div class="resources">
+                <a class="res-card" href="https://my.feishu.cn/wiki/Rgsewp0u2iPhLDkmj0RcAqoFnyd" target="_blank" rel="noopener">
+                    <div class="res-ico knowledge">📖</div>
+                    <div class="res-body">
+                        <div class="res-name">实拍打底 · AI增效实操手册</div>
+                        <div class="res-desc">从工具准备到案例复刻，完整的AI产品图工作流</div>
+                        <span class="res-tag paid">需要密码</span>
+                    </div>
+                    <div class="res-arrow">›</div>
+                </a>
+                <a class="res-card" href="https://my.feishu.cn/wiki/MaZ3wXsCTiNyQ9kWDZNctmpUnAe" target="_blank" rel="noopener">
+                    <div class="res-ico knowledge">💬</div>
+                    <div class="res-body">
+                        <div class="res-name">常用提示词库</div>
+                        <div class="res-desc">覆盖多品类、多风格的即用提示词模板</div>
+                        <span class="res-tag paid">需要密码</span>
+                    </div>
+                    <div class="res-arrow">›</div>
+                </a>
+                <a class="res-card" href="https://my.feishu.cn/wiki/McnywZ5IFiCDY5kekS4cnOnOnyc" target="_blank" rel="noopener">
+                    <div class="res-ico knowledge">🔧</div>
+                    <div class="res-body">
+                        <div class="res-name">AI出图修复指南</div>
+                        <div class="res-desc">消除AI味，让生成图达到商用级别</div>
+                        <span class="res-tag paid">需要密码</span>
+                    </div>
+                    <div class="res-arrow">›</div>
+                </a>
+                <a class="res-card" href="https://my.feishu.cn/base/ZGKpb403PagA0OsUOOsc7e6knhg?table=tbl3z7iIkkMo2wEO&view=vewFQY4wwq" target="_blank" rel="noopener">
+                    <div class="res-ico case">📁</div>
+                    <div class="res-body">
+                        <div class="res-name">AI创作案例库</div>
+                        <div class="res-desc">8+真实商业案例，含完整创作过程和可复用提示词</div>
+                        <span class="res-tag paid">持续更新</span>
+                    </div>
+                    <div class="res-arrow">›</div>
+                </a>
+            </div>
+
+            <!-- 智能体工具 -->
+            <div class="section-title">智能体工具</div>
+            <div class="resources">
+                <a class="res-card" href="https://najia-zeng.github.io/najia-studio/kuociq.html" target="_blank" rel="noopener">
+                    <div class="res-ico tool">✏️</div>
+                    <div class="res-body">
+                        <div class="res-name">提示词生成器</div>
+                        <div class="res-desc">输入产品描述，自动生成专业级生图提示词</div>
+                        <span class="res-tag free">免费 · 不限次</span>
+                    </div>
+                    <div class="res-arrow">›</div>
+                </a>
+                <a class="res-card" href="https://najia-zeng.github.io/najia-studio/scene-gen.html" target="_blank" rel="noopener">
+                    <div class="res-ico agent">🎨</div>
+                    <div class="res-body">
+                        <div class="res-name">AI创意生图</div>
+                        <div class="res-desc">基于实拍产品，AI生成商业级场景图</div>
+                        <span class="res-tag paid">体验版</span>
+                    </div>
+                    <div class="res-arrow">›</div>
+                </a>
+                <a class="res-card" href="https://najia-zeng.github.io/najia-studio/fusion-pro.html" target="_blank" rel="noopener">
+                    <div class="res-ico agent">🖼️</div>
+                    <div class="res-body">
+                        <div class="res-name">实拍融合AI</div>
+                        <div class="res-desc">将产品实拍与AI场景自然融合，光影匹配</div>
+                        <span class="res-tag paid">体验版</span>
+                    </div>
+                    <div class="res-arrow">›</div>
+                </a>
+            </div>
+
+            <!-- 使用提示 -->
+            <div class="tips-box">
+                <div class="tips-title">💡 使用提示</div>
+                <ul class="tips-list">
+                    <li><strong>飞书文档需要二次验证</strong>：点击知识库链接后，需要输入飞书访问密码（与本页密码相同）</li>
+                    <li><strong>智能体工具</strong>：提示词生成器免费不限次；AI生图和融合工具为体验版</li>
+                    <li><strong>遇到问题</strong>：添加微信 <strong>najia9864</strong>，随时答疑</li>
+                </ul>
+            </div>
+
+            <div class="member-footer">
+                © 娜家视觉 · 让每一张产品图都能卖货 · <a href="https://najia-zeng.github.io/najia-studio/" target="_blank">返回首页</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const MEMBER_PASSWORD = 'najia2026';
+
+    function checkPwd() {
+        const input = document.getElementById('pwdInput');
+        const error = document.getElementById('pwdError');
+        if (input.value === MEMBER_PASSWORD) {
+            document.getElementById('gate').classList.add('hidden');
+            document.getElementById('member').classList.add('active');
+            sessionStorage.setItem('najia_member', '1');
+        } else {
+            input.classList.add('error');
+            error.textContent = '密码错误，请重试';
+            input.value = '';
+            setTimeout(() => { input.classList.remove('error'); }, 600);
+        }
+    }
+
+    document.getElementById('pwdInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') checkPwd();
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('access') === 'granted' || sessionStorage.getItem('najia_member') === '1') {
+        document.getElementById('gate').classList.add('hidden');
+        document.getElementById('member').classList.add('active');
+    }
+
+    // 侧边栏导航高亮
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+        link.addEventListener('click', function() {
+            if (this.getAttribute('href') === '#top') return;
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            if (window.innerWidth <= 768) toggleSidebar();
+        });
+    });
+
+    function scrollToSection(id) {
+        document.getElementById(id)?.scrollIntoView({behavior:'smooth'});
+        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+        document.querySelector('.sidebar-link[href="#top"]').classList.add('active');
+        if (window.innerWidth <= 768) toggleSidebar();
+    }
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('show');
+    }
+</script>
+
+</body>
+</html>

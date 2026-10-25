@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>娜家拍摄台系列产品 · NaStudio</title>
+<style>
+  @font-face{
+    font-family:"Space Grotesk";
+    src:url("fonts/sg-var.woff2") format("woff2");
+    font-weight:300 700;font-style:normal;font-display:swap;
+  }
+  :root{
+    --font:"Space Grotesk","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;
+    --blue:#6b5ce7; --ink:#1a1a2e; --muted:#6a6483; --line:#e8e8ed; --bg:#f7f7fa;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;-webkit-font-smoothing:antialiased;}
+  body{font-family:var(--font);color:var(--ink);background:var(--bg);
+    line-height:1.6;font-size:14.5px;display:flex;flex-direction:column;min-height:100vh;}
+
+  /* ===== 顶栏 ===== */
+  header.topbar{position:sticky;top:0;z-index:20;height:66px;flex-shrink:0;
+    display:flex;align-items:center;gap:16px;padding:0 28px;
+    background:rgba(255,255,255,.94);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);}
+  header.topbar .brand{display:flex;align-items:center;gap:11px;}
+  header.topbar .logo{width:38px;height:38px;border-radius:12px;overflow:hidden;
+    background:#0a0a0a;box-shadow:0 3px 9px rgba(37,54,73,.18);flex-shrink:0;}
+  header.topbar .logo img{width:100%;height:100%;object-fit:cover;display:block;}
+  header.topbar .bt b{display:block;font-size:17px;font-weight:650;line-height:1.2;
+    letter-spacing:0;color:var(--ink);}
+  header.topbar .bt span{font-size:12px;letter-spacing:.8px;color:#9a94b8;
+    margin-top:3px;display:block;}
+  .topnav{margin-left:auto;display:flex;align-items:center;gap:10px;}
+  .tbtn{font-size:15px;font-weight:600;color:#56526e;background:#fff;
+    border:1px solid #e6e2f5;border-radius:10px;padding:10px 22px;
+    text-decoration:none;line-height:1.2;white-space:nowrap;transition:all .15s;}
+  .tbtn:hover{border-color:#c9c1f5;color:var(--blue);}
+  .tbtn.on{background:var(--blue);border-color:var(--blue);color:#fff;
+    box-shadow:0 3px 10px rgba(107,92,231,.26);}
+
+  /* ===== 内容 ===== */
+  main.wrap{flex:1;width:100%;max-width:1120px;margin:0 auto;padding:52px 28px 90px;}
+
+  .head{text-align:center;padding-bottom:38px;margin-bottom:40px;
+    border-bottom:1px solid var(--line);}
+  .head .kick{font-size:12.5px;letter-spacing:2.4px;color:#9a94b8;
+    text-transform:uppercase;margin-bottom:14px;}
+  .head h1{margin:0 0 16px;font-size:48px;font-weight:800;line-height:1.18;letter-spacing:-.6px;}
+  .head p{margin:0 auto;max-width:620px;font-size:15px;color:var(--muted);line-height:1.7;}
+  .head p.slogan{max-width:760px;font-size:24px;line-height:1.5;
+    letter-spacing:0;color:var(--muted);margin-top:2px;}
+
+  .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch;}
+  @media (max-width:940px){.plans{grid-template-columns:1fr;max-width:520px;margin:0 auto;}}
+
+  .plan{background:#fff;border:1px solid var(--line);border-radius:18px;
+    padding:28px 26px 26px;display:flex;flex-direction:column;
+    transition:transform .18s,box-shadow .18s,border-color .18s;}
+  .plan:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(45,35,110,.10);
+    border-color:#ddd7f8;}
+  .plan.hot{border-color:#c9c1f5;box-shadow:0 10px 26px rgba(107,92,231,.12);}
+  .plan .tag{display:inline-block;align-self:flex-start;font-size:11.5px;font-weight:700;
+    color:var(--blue);background:#efeaff;border-radius:6px;padding:3px 9px;
+    letter-spacing:.5px;margin-bottom:14px;}
+  .plan .price{font-size:44px;font-weight:700;line-height:1;letter-spacing:-1.5px;
+    color:var(--ink);}
+  .plan .price i{font-style:normal;font-size:20px;font-weight:600;vertical-align:6px;
+    margin-right:2px;color:#8a84a8;}
+  .plan .pname{margin:12px 0 0;font-size:17px;font-weight:650;line-height:1.3;color:var(--ink);}
+  .plan .pfor{margin:8px 0 0;font-size:13.5px;color:var(--muted);line-height:1.55;}
+  .plan ul{list-style:none;margin:20px 0 0;padding:20px 0 0;border-top:1px solid #f0eff5;}
+  .plan li{position:relative;padding-left:20px;font-size:14px;color:#4a4660;
+    line-height:1.5;margin-bottom:10px;}
+  .plan li:last-child{margin-bottom:0;}
+  .plan li::before{content:"";position:absolute;left:0;top:6px;width:9px;height:9px;
+    border-radius:3px;background:#e6e0fb;border:1px solid #d3c9f7;}
+  .plan .result{margin-top:20px;padding:14px 16px;border-radius:12px;
+    background:#f7f5ff;border:1px solid #eae4fb;
+    font-size:13.5px;line-height:1.6;color:#4a3f8f;}
+  .plan .result b{color:var(--blue);}
+  .plan .cta{margin-top:auto;padding-top:22px;}
+  .plan .cta a{display:block;text-align:center;font-size:14px;font-weight:600;
+    border-radius:10px;padding:11px 0;text-decoration:none;transition:all .15s;
+    border:1px solid #ddd7f8;background:#f7f5ff;color:var(--blue);}
+  .plan .cta a:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .plan.hot .cta a{background:var(--blue);color:#fff;border-color:var(--blue);
+    box-shadow:0 4px 12px rgba(107,92,231,.26);}
+  .plan.hot .cta a:hover{background:#5a4bd6;border-color:#5a4bd6;}
+
+  /* ===== 怎么选 ===== */
+  .choose{margin-top:44px;background:#fff;border:1px solid var(--line);border-radius:18px;
+    padding:30px 32px;}
+  .choose h2{margin:0 0 6px;font-size:20px;font-weight:750;letter-spacing:-.2px;}
+  .choose .sub{margin:0 0 18px;font-size:13.5px;color:var(--muted);}
+  .crow{display:flex;align-items:center;gap:14px;padding:13px 0;
+    border-top:1px solid #f0eff5;font-size:14.5px;}
+  .crow:first-of-type{border-top:none;}
+  .crow .q{flex:1;color:#4a4660;line-height:1.5;}
+  .crow .arrow{color:#c5bdf0;flex-shrink:0;}
+  .crow .a{flex-shrink:0;font-weight:650;color:var(--blue);background:#efeaff;
+    border-radius:8px;padding:5px 13px;font-size:13px;white-space:nowrap;}
+
+  .note{margin-top:34px;text-align:center;font-size:13px;color:#a5a1bb;line-height:1.8;}
+
+  @media (max-width:780px){
+    header.topbar{height:auto;padding:10px 14px;gap:10px;flex-wrap:wrap;}
+    .topnav{margin-left:0;width:100%;}
+    .tbtn{flex:1;text-align:center;padding:9px 10px;}
+    main.wrap{padding:34px 16px 60px;}
+    .head h1{font-size:30px;}
+    .head p.slogan{font-size:21px;}
+    .head .kick{font-size:11px;letter-spacing:2px;}
+    .plan{padding:24px 22px 22px;}
+    .plan .price{font-size:38px;}
+    .choose{padding:24px 20px;}
+    .crow{flex-wrap:wrap;gap:8px;}
+    .crow .arrow{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo"><img src="img/logo.png" alt="NaStudio"></div>
+    <div class="bt"><b>NaStudio</b><span>娜家视觉</span></div>
+  </div>
+  <div class="topnav">
+    <a class="tbtn on" href="index.html">出图系统</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="head">
+    <div class="kick">NAJIA STUDIO</div>
+    <h1>娜家拍摄台系列产品</h1>
+    <p class="slogan">告别外包贵  自学难——零基础也能拍</p>
+  </div>
+
+  <div class="plans">
+
+    <div class="plan">
+      <span class="tag">基础套餐 · 性价比之王</span>
+      <div class="price"><i>¥</i>3,380</div>
+      <div class="pname">整机 + 常用布光</div>
+      <div class="pfor">多 SKU 卖家——白底图、场景图、平铺图都能自己出图。</div>
+      <ul>
+        <li>拍摄台整机</li>
+        <li>常用布光方法教程（飞书知识库交付）</li>
+        <li>AI 基础包（提示词生成器等）</li>
+        <li>一年线上指导</li>
+      </ul>
+      <div class="result">白底图、场景图、平铺图、多角度产品图——<b>一台台子全覆盖</b>。</div>
+      <div class="cta"><a href="https://item.taobao.com/item.htm?id=958529127158" target="_blank">去淘宝下单</a></div>
+    </div>
+
+    <div class="plan hot">
+      <span class="tag">尊享套餐 · 最省时省力</span>
+      <div class="price"><i>¥</i>5,980</div>
+      <div class="pname">整机 + 定制教学 + AI 完整包</div>
+      <div class="pfor">多 SKU 卖家——不想自己摸索，想用最省事的方式马上上手。</div>
+      <ul>
+        <li>拍摄台整机</li>
+        <li>常用布光方法教程（飞书知识库交付）</li>
+        <li>个性定制专属教学（飞书知识库交付）</li>
+        <li>AI 完整包（增效手册 + 修复视频库 + 案例库 + 持续更新）</li>
+        <li>一年线上指导</li>
+      </ul>
+      <div class="result"><b>直接用你的产品录专属教学</b>，有个性需求也能随时录——不用摸索，拿到就知道自己的产品怎么拍；整套方法论沉淀成公司内部的知识资产。</div>
+      <div class="cta"><a href="https://item.taobao.com/item.htm?id=958529127158" target="_blank">去淘宝下单</a></div>
+    </div>
+
+    <div class="plan">
+      <span class="tag">白底图专项</span>
+      <div class="price"><i>¥</i>2,380</div>
+      <div class="pname">精拍白底图专项</div>
+      <div class="pfor">对白底图要求高的厂家——美妆、个护这类高客单类目；以及想靠拍白底图接单赚钱的人。</div>
+      <ul>
+        <li>白底图专用背景架</li>
+        <li>精拍白底图布光方法（飞书知识库交付）</li>
+        <li>一年线上指导</li>
+      </ul>
+      <div class="result">只做一件事：<b>主攻高客单价白底图</b>，拍到精拍水准。</div>
+      <div class="cta"><a href="https://item.taobao.com/item.htm?id=1087588663538" target="_blank">去淘宝下单</a></div>
+    </div>
+
+  </div>
+
+  <div class="choose">
+    <h2>不知道选哪档？</h2>
+    <p class="sub">按你现在最想解决的问题对号入座</p>
+    <div class="crow"><div class="q">产品类型多，有一点摄影基础，喜欢自己钻研摸索</div><div class="arrow">→</div><div class="a">基础套餐</div></div>
+    <div class="crow"><div class="q">产品类型多，零基础想用最快的速度搞定自家产品图；或者公司人多，想把拍法沉淀成内部的知识资产</div><div class="arrow">→</div><div class="a">尊享套餐</div></div>
+    <div class="crow"><div class="q">只拍高要求的白底图，或者想靠白底图接单赚钱</div><div class="arrow">→</div><div class="a">白底图专项</div></div>
+  </div>
+
+  <div class="note">产品本体 100% 实拍打底 · 灯光为外接光源，需自行配置<br>具体交付内容与价格以确认单为准</div>
+
+</main>
+
+</body>
+</html>
