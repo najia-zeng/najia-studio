@@ -86,13 +86,15 @@
     letter-spacing:-.5px;color:var(--blue);}
   .posi h1 span{display:block;font-size:32px;font-weight:600;color:var(--blue);
     margin-top:11px;letter-spacing:0;line-height:1.25;}
-  .posi .posi-sub{font-size:19px;color:var(--muted);line-height:1.6;max-width:560px;margin:0 auto;}
+  .posi .posi-sub{font-size:16.5px;color:var(--muted);line-height:1.6;max-width:640px;margin:0 auto;}
 
   @media (max-width:780px){
     .posi{padding:26px 0 22px;margin-bottom:24px;}
     .posi h1{font-size:33px;letter-spacing:-.3px;}
     .posi h1 span{font-size:19px;margin-top:8px;}
     .posi .posi-sub{font-size:14px;line-height:1.6;}
+    .posi .steps{font-size:13px;gap:7px;margin-bottom:10px;}
+    .posi .steps span{padding:4px 12px;}
     .sec-badge{width:46px;height:46px;border-radius:13px;}
     .sec-badge svg{width:21px;height:21px;}
     .sec-copy h2{font-size:18px;}
@@ -100,10 +102,12 @@
     .sec-head{gap:12px;}
   }
   .posi .row2{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:11px;}
-  .posi .steps{display:flex;align-items:center;gap:7px;font-size:12.5px;color:#5f5b76;}
-  .posi .steps span{background:#fff;border:1px solid #e2ddfb;border-radius:999px;padding:3px 13px;font-weight:600;color:var(--ink);}
-  .posi .steps span b{color:var(--blue);margin-right:5px;}
-  .posi .steps i{font-style:normal;color:#d1cde8;font-size:14px;}
+  .posi .steps{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+    font-size:15px;color:#5f5b76;justify-content:center;margin:0 0 13px;}
+  .posi .steps span{background:#fff;border:1px solid #e2ddfb;border-radius:999px;
+    padding:6px 16px;font-weight:600;color:var(--ink);}
+  .posi .steps span b{color:var(--blue);margin-right:6px;}
+  .posi .steps i{font-style:normal;color:#c9c3e8;font-size:15px;}
   .posi .rule{margin-left:auto;font-size:12px;color:#0d8a5f;background:#e9faf2;border:1px solid #c9efdd;border-radius:999px;padding:3px 13px;font-weight:600;}
 
   /* ===== 品类 Tab ===== */
@@ -265,7 +269,12 @@
 
       <div class="posi">
         <h1>帮助电商卖家自己搞定产品图</h1>
-        <div class="posi-sub">从白底图到商用场景图，智能体工具 + 专业知识库，一站式搞定</div>
+        <div class="steps">
+          <span><b>📷</b>拍摄台 · 实拍打底</span><i>→</i>
+          <span><b>🤖</b>AI · 场景生图</span><i>→</i>
+          <span><b>📖</b>手册 · 判断修复</span>
+        </div>
+        <div class="posi-sub">硬件 ＋ 方法 ＋ 工具，搭一条你自己的产品图生产线</div>
       </div>
 
       <!-- 智能体工具 -->
