@@ -77,7 +77,7 @@
   /* ===== 右侧 ===== */
   .right{flex:1;min-width:0;display:flex;flex-direction:column;}
 
-  main.content{flex:1;min-width:0;padding:26px 28px 80px;max-width:1200px;width:100%;margin:0 auto;}
+  main.content{flex:1;min-width:0;padding:26px 28px 56px;max-width:1200px;width:100%;margin:0 auto;}
 
   /* ===== 定位条 ===== */
   .posi{text-align:center;padding:22px 0 34px;margin-bottom:36px;
@@ -151,13 +151,18 @@
   .how .h-note{font-size:13px;color:var(--muted);line-height:1.65;margin-top:8px;}
 
   .foot{font-size:12px;color:#a5a1bb;text-align:center;line-height:1.8;padding:20px 0 0;}
+  /* ===== 通栏页脚 ===== */
+  footer.site-foot{flex-shrink:0;background:#fff;border-top:1px solid var(--line);
+    padding:24px 28px;text-align:center;}
+  footer.site-foot .f1{font-size:13px;color:#5f5b76;font-weight:600;letter-spacing:.2px;}
+  footer.site-foot .f2{font-size:11.5px;color:#a5a1bb;margin-top:6px;}
 
   @media (max-width:780px){
     .shell{flex-direction:column;}
     nav.side{width:100%;position:static;height:auto;border-right:none;
       border-bottom:1px solid #e6e2f5;}
     .side-foot{margin-top:10px;}
-    main.content{padding:16px 14px 60px;}
+    main.content{padding:16px 14px 44px;}
     header.topbar{height:auto;padding:10px 14px;gap:10px;flex-wrap:wrap;}
     header.topbar .tagline{display:none;}
     .topnav{margin-left:0;width:100%;gap:8px;}
@@ -394,13 +399,14 @@
 
       <div class="case-note">案例以方法演示为主，非品牌方投放物料</div>
 
-      <div class="foot">
-        电商视觉出图系统
-      </div>
-
     </main>
   </div>
 </div>
+
+<footer class="site-foot">
+  <div class="f1">© 2026 NaStudio 娜家视觉 · najiastudio.com</div>
+  <div class="f2">本站内容均为原创方法与案例，未经许可请勿转载</div>
+</footer>
 
 <script>
   var tabs=document.querySelectorAll('.tab');
