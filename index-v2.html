@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>娜家视觉 NaStudio · 实拍打底 AI 提效</title>
+<style>
+  /* 英数用 Space Grotesk（本地文件），中文自动回退苹方 / 雅黑 */
+  @font-face{
+    font-family:"Space Grotesk";
+    src:url("fonts/sg-var.woff2") format("woff2");
+    font-weight:300 700;font-style:normal;font-display:swap;
+  }
+  :root{
+    --font:"Space Grotesk","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    --side:#ffffff; --side-deep:#faf9ff; --side-txt:#5f5b76; --side-active:#6b5ce7;
+    --blue:#6b5ce7; --ink:#1a1a2e; --muted:#6a6483; --line:#e8e8ed;
+    --bg:#f7f7fa; --card:#ffffff; --teal:#00b8a9; --green:#2ed573;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  body{font-family:var(--font);color:var(--ink);background:var(--bg);
+    line-height:1.6;font-size:14.5px;display:flex;flex-direction:column;min-height:100vh;}
+
+  /* ===== 通栏顶栏：品牌 + 一级切换 ===== */
+  header.topbar{position:sticky;top:0;z-index:20;height:66px;flex-shrink:0;
+    display:flex;align-items:center;gap:16px;padding:0 28px;
+    background:rgba(255,255,255,.94);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);}
+  header.topbar .brand{padding:0;gap:11px;}
+  header.topbar .logo{width:38px;height:38px;border-radius:12px;}
+  header.topbar .bt b{font-size:17px;}
+  header.topbar .bt span{font-size:12px;letter-spacing:.8px;text-transform:none;
+    color:#9a94b8;margin-top:3px;display:block;}
+  header.topbar .tagline{font-size:16.5px;color:var(--ink);white-space:nowrap;
+    padding-left:16px;border-left:1px solid #e6e2f5;margin-left:2px;}
+  .topnav{margin-left:auto;display:flex;align-items:center;gap:10px;}
+  .tpill{font-size:12px;color:#6a6483;background:#f3f1fb;border-radius:999px;
+    padding:5px 12px;white-space:nowrap;}
+  .tbtn{font-size:15px;font-weight:600;color:#56526e;background:#fff;
+    border:1px solid #e6e2f5;border-radius:10px;padding:10px 22px;
+    text-decoration:none;line-height:1.2;white-space:nowrap;transition:all .15s;}
+  .tbtn:hover{border-color:#c9c1f5;color:var(--blue);}
+  .tbtn.on{background:var(--blue);border-color:var(--blue);color:#fff;
+    box-shadow:0 3px 10px rgba(107,92,231,.26);}
+
+  .shell{display:flex;flex:1;min-width:0;}
+
+  /* ===== 左侧栏（淡蓝透气版） ===== */
+  nav.side{width:224px;flex-shrink:0;
+    background:linear-gradient(180deg,#fbfaff 0%,#f3f0ff 100%);
+    color:#56526e;border-right:1px solid #e6e2f5;
+    display:flex;flex-direction:column;position:sticky;top:66px;
+    height:calc(100vh - 66px);overflow-y:auto;}
+  .brand{display:flex;align-items:center;gap:10px;padding:22px 18px 20px;}
+  .brand .logo{width:36px;height:36px;border-radius:11px;flex-shrink:0;overflow:hidden;
+    background:#0a0a0a;box-shadow:0 3px 9px rgba(37,54,73,.18);}
+  .brand .logo img{width:100%;height:100%;object-fit:cover;display:block;}
+  .brand .bt{line-height:1.35;}
+  .brand .bt b{display:block;color:var(--ink);font-size:17px;font-weight:650;letter-spacing:0;line-height:1.2;}
+  .brand .bt span{font-size:11.5px;color:#9a94b8;line-height:1.4;}
+  .nav-block{padding:16px 12px 18px;}
+  .nav-title{font-size:11px;color:#9a94b8;letter-spacing:2px;margin:12px 10px 7px;}
+  .nav-item{display:flex;align-items:center;gap:8px;width:100%;text-decoration:none;
+    font-size:14px;color:#56526e;padding:9px 12px;border-radius:10px;margin-bottom:3px;
+    line-height:1.35;transition:background .15s,color .15s;}
+  .nav-item .ico{margin-right:4px;font-size:14px;width:18px;display:inline-block;text-align:center;}
+  .nav-item .txt{flex:1;}
+  .nav-item .ext{font-size:11px;opacity:.45;}
+  .nav-item:hover{background:#efeaff;color:var(--ink);}
+  .nav-item.active{background:var(--side-active);color:#fff;font-weight:600;
+    box-shadow:0 4px 12px rgba(107,92,231,.32);}
+  .nav-item.active .ext{opacity:.8;}
+  .nav-sep{height:1px;background:#e6e2f5;margin:12px 10px;}
+  .side-foot{margin-top:auto;padding:14px 18px 18px;font-size:11px;color:#9a94b8;line-height:1.8;border-top:1px solid #e6e2f5;}
+
+  /* ===== 右侧 ===== */
+  .right{flex:1;min-width:0;display:flex;flex-direction:column;}
+
+  main.content{flex:1;min-width:0;padding:26px 28px 56px;max-width:1200px;width:100%;margin:0 auto;}
+
+  /* ===== 定位条 ===== */
+  .posi{text-align:center;padding:22px 0 34px;margin-bottom:36px;
+    border-bottom:1px solid var(--line);}
+  .posi h1{margin:0 0 18px;font-size:42px;font-weight:800;line-height:1.1;
+    letter-spacing:-.5px;color:var(--blue);}
+  .posi h1 span{display:block;font-size:32px;font-weight:600;color:var(--blue);
+    margin-top:11px;letter-spacing:0;line-height:1.25;}
+  .posi .posi-sub{font-size:22.5px;color:var(--muted);line-height:1.5;max-width:680px;margin:0 auto 14px;}
+  @media (max-width:780px){
+    .posi{padding:16px 0 22px;margin-bottom:24px;}
+    .posi h1{font-size:33px;letter-spacing:-.3px;}
+    .posi h1 span{font-size:19px;margin-top:8px;}
+    .posi .posi-sub{font-size:17px;line-height:1.5;margin-bottom:10px;}
+    .posi .steps{font-size:16px;gap:7px;margin-bottom:10px;}
+    .sec-badge{width:46px;height:46px;border-radius:13px;}
+    .sec-badge svg{width:21px;height:21px;}
+    .sec-copy h2{font-size:18px;}
+    .sec-copy p{font-size:13px;}
+    .sec-head{gap:12px;}
+  }
+  .posi .row2{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:11px;}
+  .posi .steps{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+    font-size:23.5px;color:#4a4660;justify-content:center;margin:0 0 13px;}
+  .posi .steps span{font-weight:700;color:#3a3648;}
+  .posi .steps span em{font-style:normal;font-weight:400;color:#3a3648;}
+  .posi .steps i{font-style:normal;color:#cfc9e8;font-size:17px;margin:0 4px;}
+  .posi .rule{margin-left:auto;font-size:12px;color:#0d8a5f;background:#e9faf2;border:1px solid #c9efdd;border-radius:999px;padding:3px 13px;font-weight:600;}
+
+  /* ===== 品类 Tab ===== */
+  .tabs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .tab{font-size:13.5px;font-weight:600;color:#5f5b76;background:#fff;border:1px solid var(--line);
+    border-radius:999px;padding:7px 17px;cursor:pointer;font-family:inherit;
+    line-height:1.3;transition:all .15s;}
+  .tab:hover{border-color:#c9c1f5;color:var(--blue);}
+  .tab.on{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 3px 10px rgba(107,92,231,.28);}
+  .tabs .cnt{font-size:12.5px;color:var(--muted);margin-left:auto;line-height:1.4;}
+  .tabs .cnt b{color:var(--ink);}
+
+  /* ===== 画廊 ===== */
+  .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  @media (max-width:1000px){.gallery{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:680px){.gallery{grid-template-columns:1fr;}}
+  .case-note{font-size:11.5px;color:#a0a3ab;text-align:right;margin:12px 2px 0;line-height:1.6;}
+
+  /* ===== v2 新增：这是不是给你的 ===== */
+  .fit{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  @media (max-width:680px){.fit{grid-template-columns:1fr;}}
+  .fit-card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:16px 18px;display:flex;gap:12px;align-items:flex-start;}
+  .fit-card .chk{flex-shrink:0;width:22px;height:22px;border-radius:999px;
+    background:#efeaff;color:var(--blue);font-size:13px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:2px;}
+  .fit-card .fx b{display:block;font-size:15px;font-weight:700;color:var(--ink);line-height:1.4;}
+  .fit-card .fx span{display:block;font-size:13px;color:var(--muted);line-height:1.55;margin-top:3px;}
+
+  /* ===== v2 新增：咨询动作区 ===== */
+  .cta{margin-top:30px;background:linear-gradient(135deg,#f6f4ff,#efeaff);
+    border:1px solid #e2dbfb;border-radius:20px;padding:34px 30px;
+    display:flex;align-items:center;gap:30px;flex-wrap:wrap;}
+  .cta .c-main{flex:1;min-width:260px;}
+  .cta .c-kicker{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:2px;margin:0 0 8px;}
+  .cta .c-h{font-size:25px;font-weight:800;color:var(--ink);line-height:1.3;margin:0 0 10px;letter-spacing:-.3px;}
+  .cta .c-sub{font-size:15px;color:#56526e;line-height:1.65;margin:0 0 6px;}
+  .cta .c-note{font-size:12.5px;color:#8a86a3;line-height:1.6;}
+  .cta .c-acts{display:flex;gap:16px;align-items:center;flex-shrink:0;flex-wrap:wrap;}
+  .qrbox{width:132px;height:132px;border-radius:14px;background:#fff;
+    border:1.5px dashed #c9c1f5;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:6px;color:#a5a1bb;font-size:12px;text-align:center;line-height:1.5;padding:10px;}
+  .cta-tb{display:inline-flex;flex-direction:column;gap:8px;text-decoration:none;}
+  .cta-btn{font-size:15px;font-weight:700;color:#fff;background:var(--blue);
+    border-radius:12px;padding:13px 26px;box-shadow:0 4px 14px rgba(107,92,231,.3);
+    transition:all .15s;}
+  .cta-btn:hover{transform:translateY(-2px);box-shadow:0 7px 18px rgba(107,92,231,.36);}
+  .cta-tb em{font-style:normal;font-size:12px;color:#8a86a3;text-align:center;}
+  a.card{display:block;text-decoration:none;color:inherit;background:var(--card);
+    border:1px solid var(--line);border-radius:16px;overflow:hidden;
+    transition:transform .18s,box-shadow .18s;}
+  a.card:hover{transform:translateY(-4px);box-shadow:0 10px 26px rgba(45,35,110,.12);}
+  .card .imgwrap{position:relative;overflow:hidden;aspect-ratio:3/4;background:#f1f0f7;}
+  .card .imgwrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s;}
+  a.card:hover .imgwrap img{transform:scale(1.04);}
+  .card .cat{position:absolute;top:12px;left:12px;font-size:11px;font-weight:700;
+    background:rgba(26,26,46,.68);color:#fff;border-radius:6px;padding:3px 10px;letter-spacing:1px;backdrop-filter:blur(3px);}
+  .card .badge-free{position:absolute;top:12px;left:12px;font-size:11px;font-weight:700;
+    background:#0d9a72;color:#fff;border-radius:6px;padding:3px 10px;letter-spacing:1px;}
+  .card .meta{padding:13px 15px 15px;}
+  .card .t{font-size:16px;font-weight:650;line-height:1.25;letter-spacing:0;}
+  .card .m{display:flex;align-items:center;gap:8px;margin-top:7px;font-size:12.5px;
+    line-height:1.4;color:var(--muted);flex-wrap:wrap;}
+  .card .m .in-out{color:var(--blue);font-weight:600;}
+  .card .m .dot{color:#d1cde8;}
+  .card .m .flink{margin-left:auto;font-size:11px;color:var(--blue);background:#efeaff;border-radius:5px;padding:1px 7px;font-weight:600;}
+
+  /* ===== 产线说明 ===== */
+  .how{margin-top:26px;}
+  .how .h-t{font-size:15px;font-weight:700;margin-bottom:8px;line-height:1.3;}
+  .how .h-steps{font-size:14px;color:#4a4660;line-height:1.7;}
+  .how .h-steps span{font-weight:600;color:var(--ink);}
+  .how .h-steps b{color:var(--blue);margin-right:4px;font-weight:700;}
+  .how .h-steps i{font-style:normal;color:#d1cde8;margin:0 8px;}
+  .how .h-note{font-size:13px;color:var(--muted);line-height:1.65;margin-top:8px;}
+
+  .foot{font-size:12px;color:#a5a1bb;text-align:center;line-height:1.8;padding:20px 0 0;}
+  /* ===== 通栏页脚 ===== */
+  footer.site-foot{flex-shrink:0;background:#fff;border-top:1px solid var(--line);
+    padding:24px 28px;text-align:center;}
+  footer.site-foot .f1{font-size:13px;color:#5f5b76;font-weight:600;letter-spacing:.2px;}
+  footer.site-foot .f2{font-size:11.5px;color:#a5a1bb;margin-top:6px;}
+
+  @media (max-width:780px){
+    .shell{flex-direction:column;}
+    nav.side{width:100%;position:static;height:auto;border-right:none;
+      border-bottom:1px solid #e6e2f5;}
+    .side-foot{margin-top:10px;}
+    main.content{padding:16px 14px 44px;}
+    header.topbar{height:auto;padding:10px 14px;gap:10px;flex-wrap:wrap;}
+    header.topbar .tagline{display:none;}
+    .topnav{margin-left:0;width:100%;gap:8px;}
+    .tpill{display:none;}
+    .tbtn{flex:1;text-align:center;padding:8px 10px;}
+    .posi .rule{margin-left:0;}
+  }
+
+  /* ===== 区块标题（徽章式） ===== */
+  .sec-head{display:flex;align-items:center;gap:15px;margin:0 0 18px;}
+  .sec-badge{width:54px;height:54px;border-radius:16px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid rgba(107,92,231,.10);box-shadow:0 2px 8px rgba(107,92,231,.06);}
+  .sec-badge svg{width:25px;height:25px;fill:none;stroke-width:1.8;
+    stroke-linecap:round;stroke-linejoin:round;}
+  .sec-badge.purple{background:linear-gradient(135deg,#f4f0ff,#e8e0fc);}
+  .sec-badge.purple svg{stroke:#6b5ce7;}
+  .sec-badge.pink{background:linear-gradient(135deg,#fdeff6,#f9dcea);
+    border-color:rgba(224,96,154,.14);box-shadow:0 2px 8px rgba(224,96,154,.06);}
+  .sec-badge.pink svg{stroke:#dc5b96;}
+  .sec-copy{min-width:0;}
+  .sec-copy h2{font-size:20px;font-weight:700;margin:0;letter-spacing:0;line-height:1.25;}
+  .sec-copy p{margin:5px 0 0;font-size:13.5px;color:var(--muted);line-height:1.5;}
+  .sec-head .s-more{margin-left:auto;font-size:12.5px;color:var(--blue);
+    font-weight:600;text-decoration:none;flex-shrink:0;}
+  .sec-head .s-more:hover{text-decoration:underline;}
+
+  /* ===== 工具区（研习社式卡片） ===== */
+  .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:38px;}
+  @media (max-width:1000px){.tools{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:680px){.tools{grid-template-columns:1fr;}}
+  .tool{background:#fff;border:1px solid var(--line);border-radius:16px;
+    padding:20px 20px 16px;display:flex;flex-direction:column;
+    transition:transform .18s,box-shadow .18s;}
+  .tool:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(45,35,110,.10);}
+  .tool .t-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;}
+  .tool .t-ico{width:42px;height:42px;border-radius:12px;background:#f3f1ff;
+    display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .tool .t-title{flex:1;min-width:0;}
+  .tool .t-name{font-size:17px;font-weight:650;line-height:1.25;letter-spacing:0;}
+  .tool .t-tags{display:flex;gap:9px;flex-wrap:wrap;margin-top:5px;}
+  .tool .t-tags span{font-size:12px;font-weight:600;line-height:1.2;opacity:.72;}
+  .tool .t-tags .c1{color:#6b5ce7;}
+  .tool .t-tags .c2{color:#0d9a72;}
+  .tool .t-tags .c3{color:#e0609a;}
+  .tool .t-star{color:#c6c2dd;font-size:16px;flex-shrink:0;margin-top:2px;}
+  .tool .t-desc{font-size:14px;color:#4a4660;line-height:1.55;margin-bottom:16px;}
+  .tool .t-acts{display:flex;align-items:center;gap:10px;margin-top:auto;}
+  .tool .btn-use{font-size:13px;font-weight:600;color:#fff;
+    background:#0d9a72;border:1px solid #0d9a72;border-radius:999px;
+    padding:5px 16px;text-decoration:none;transition:all .15s;}
+  .tool .btn-use:hover{background:#0b8663;border-color:#0b8663;color:#fff;}
+  .tool .btn-more{margin-left:auto;font-size:12.5px;color:var(--muted);line-height:1.4;
+    text-decoration:none;white-space:nowrap;}
+  .tool .btn-more:hover{color:var(--blue);}
+  .tool-more{border:1px dashed #cfc7f2;border-radius:16px;background:#fbfaff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:170px;color:#8a86a3;text-decoration:none;font-size:13px;gap:9px;
+    line-height:1.4;transition:background .15s,color .15s,border-color .15s;}
+  .tool-more:hover{background:#f6f3ff;color:var(--blue);border-color:#b9aef0;}
+  .tool-more .plus{width:38px;height:38px;border-radius:50%;background:#efeaff;
+    color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:19px;line-height:1;}
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo"><img src="img/logo.png" alt="NaStudio"></div>
+    <div class="bt"><b>NaStudio</b><span>娜家视觉</span></div>
+    <div class="tagline">实拍打底 · AI提效</div>
+  </div>
+  <div class="topnav">
+    <a class="tbtn on" href="product.html">娜家拍摄台系列产品</a>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="side">
+    <div class="nav-block">
+      <div class="nav-title">知 识 库</div>
+      <a class="nav-item" href="https://my.feishu.cn/wiki/Ysh3wE1otiT7OukYyiXcKi6vnDc" target="_blank">
+        <span class="ico">📘</span><span class="txt">实拍+AI实操手册</span><span class="ext">↗</span></a>
+      <a class="nav-item" href="https://www.najiastudio.com/member.html" target="_blank">
+        <span class="ico">🎨</span><span class="txt">生图系统</span><span class="ext">↗</span></a>
+      <a class="nav-item" href="https://www.najiastudio.com/member.html" target="_blank">
+        <span class="ico">🔍</span><span class="txt">判断系统</span><span class="ext">↗</span></a>
+      <a class="nav-item" href="https://www.najiastudio.com/member.html" target="_blank">
+        <span class="ico">🛠</span><span class="txt">修复系统</span><span class="ext">↗</span></a>
+      <a class="nav-item" href="https://www.najiastudio.com/member.html" target="_blank">
+        <span class="ico">📚</span><span class="txt">案例库</span><span class="ext">↗</span></a>
+
+      <div class="nav-sep"></div>
+      <div class="nav-title">智 能 体 工 具</div>
+      <a class="nav-item" href="https://www.najiastudio.com/kuociq.html" target="_blank">
+        <span class="ico">✍️</span><span class="txt">提示词生成器</span><span class="ext">↗</span></a>
+      <a class="nav-item" href="https://www.najiastudio.com/scene-gen.html" target="_blank">
+        <span class="ico">🎬</span><span class="txt">AI创意生图</span><span class="ext">↗</span></a>
+      <a class="nav-item" href="https://www.najiastudio.com/fusion-pro.html" target="_blank">
+        <span class="ico">🧩</span><span class="txt">实拍融合AI</span><span class="ext">↗</span></a>
+    </div>
+  </nav>
+
+  <div class="right">
+    <main class="content">
+
+      <div class="posi">
+        <div class="posi-sub">告别 “外包贵 自学难”</div>
+        <h1>帮助电商卖家自己搞定产品图</h1>
+        <div class="steps">
+          <span>拍摄台 · <em>实拍打底</em></span><i>|</i>
+          <span>AI · <em>生成背景</em></span><i>|</i>
+          <span>手册 · <em>判断修复</em></span>
+        </div>
+      </div>
+
+      <!-- 智能体工具 -->
+      <div class="sec-head">
+        <div class="sec-badge purple"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+        <div class="sec-copy">
+          <h2>智能体工具</h2>
+          <p>把行业方法装进工具，公测期全部免费开放</p>
+        </div>
+      </div>
+
+      <div class="tools">
+        <div class="tool">
+          <div class="t-head">
+            <div class="t-ico">✍️</div>
+            <div class="t-title">
+              <div class="t-name">提示词生成器</div>
+              <div class="t-tags"><span class="c1">提示词扩写</span></div>
+            </div>
+            <span class="t-star">☆</span>
+          </div>
+          <div class="t-desc">上传产品图片，生成专业 AI 摄影提示词。</div>
+          <div class="t-acts"><a class="btn-use" href="https://www.najiastudio.com/kuociq.html" target="_blank">限时免费</a><a class="btn-more" href="#cases">查看详情 ›</a></div>
+        </div>
+
+        <div class="tool">
+          <div class="t-head">
+            <div class="t-ico">🎬</div>
+            <div class="t-title">
+              <div class="t-name">AI 创意生图</div>
+              <div class="t-tags"><span class="c1">场景生图</span></div>
+            </div>
+            <span class="t-star">☆</span>
+          </div>
+          <div class="t-desc">上传产品加参考图，AI 一步生成场景图。</div>
+          <div class="t-acts"><a class="btn-use" href="https://www.najiastudio.com/scene-gen.html" target="_blank">限时免费</a><a class="btn-more" href="#cases">查看详情 ›</a></div>
+        </div>
+
+        <div class="tool">
+          <div class="t-head">
+            <div class="t-ico">🧩</div>
+            <div class="t-title">
+              <div class="t-name">实拍融合 AI</div>
+              <div class="t-tags"><span class="c1">本体保真</span></div>
+            </div>
+            <span class="t-star">☆</span>
+          </div>
+          <div class="t-desc">无需 PS，拖拽即可融合 AI 场景。</div>
+          <div class="t-acts"><a class="btn-use" href="https://www.najiastudio.com/fusion-pro.html" target="_blank">限时免费</a><a class="btn-more" href="#cases">查看详情 ›</a></div>
+        </div>
+
+        <a class="tool-more" href="https://www.najiastudio.com/" target="_blank">
+          <div class="plus">＋</div>
+          查看更多工具
+        </a>
+      </div>
+
+      <!-- 案例集 -->
+      <div class="sec-head" id="cases">
+        <div class="sec-badge pink"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
+        <div class="sec-copy">
+          <h2>案例集</h2>
+          <p>每个案例都能达到商用标准：白底图 → 一整套氛围主图</p>
+        </div>
+      </div>
+
+      <div class="tabs" id="tabs">
+        <button class="tab on" data-cat="all" type="button">精选</button>
+        <button class="tab" data-cat="perfume" type="button">香水</button>
+        <button class="tab" data-cat="skincare" type="button">护肤</button>
+        <button class="tab" data-cat="wash" type="button">洗护</button>
+        <span class="cnt">持续更新</span>
+      </div>
+
+      <div class="gallery" id="gallery">
+        <a class="card" data-cat="skincare" href="https://my.feishu.cn/wiki/NSm0wRnrJiZpffkpi0Kc92qDnA0" target="_blank">
+          <div class="imgwrap"><span class="badge-free">免费看全文</span><img src="img/out_01.jpg" alt="科研医美 · 5ml 安瓶"></div>
+          <div class="meta">
+            <div class="t">科研医美风 · 5ml 安瓶</div>
+            <div class="m"><span class="in-out">3 张白底 → 一套主图</span><span class="dot">·</span><span>40 分钟</span><span class="flink">完整过程</span></div>
+          </div>
+        </a>
+        <a class="card" data-cat="perfume" href="https://my.feishu.cn/wiki/NyQRw2Mk5ikaV3kjqVocWo6gnlf" target="_blank">
+          <div class="imgwrap"><span class="badge-free">免费看全文</span><img src="img/c_prada.jpg" alt="PRADA · 奢华极简"></div>
+          <div class="meta">
+            <div class="t">PRADA · 奢华极简</div>
+            <div class="m"><span class="in-out">1 张白底 → 创意套图</span><span class="dot">·</span><span>青柠 · 梨</span><span class="flink">完整过程</span></div>
+          </div>
+        </a>
+        <a class="card" data-cat="perfume" href="https://www.najiastudio.com/member.html" target="_blank">
+          <div class="imgwrap"><img src="img/c_replica.jpg" alt="REPLICA · 海边度假"></div>
+          <div class="meta">
+            <div class="t">REPLICA · 海边度假</div>
+            <div class="m"><span class="in-out">1 张白底 → 度假套图</span><span class="dot">·</span><span>海蓝 · 救生圈</span><span class="flink">完整过程</span></div>
+          </div>
+        </a>
+        <a class="card" data-cat="perfume" href="https://www.najiastudio.com/member.html" target="_blank">
+          <div class="imgwrap"><img src="img/c_loewe.jpg" alt="LOEWE · 暖调质感"></div>
+          <div class="meta">
+            <div class="t">LOEWE · 暖调质感</div>
+            <div class="m"><span class="in-out">1 张白底 → 质感套图</span><span class="dot">·</span><span>琥珀玻璃</span><span class="flink">完整过程</span></div>
+          </div>
+        </a>
+        <a class="card" data-cat="skincare" href="https://www.najiastudio.com/member.html" target="_blank">
+          <div class="imgwrap"><img src="img/c_osm.jpg" alt="欧诗漫 · 美白淡斑"></div>
+          <div class="meta">
+            <div class="t">欧诗漫 · 美白淡斑</div>
+            <div class="m"><span class="in-out">1 张白底 → 光影氛围</span><span class="dot">·</span><span>水泡分子</span><span class="flink">完整过程</span></div>
+          </div>
+        </a>
+        <a class="card" data-cat="wash" href="https://www.najiastudio.com/member.html" target="_blank">
+          <div class="imgwrap"><img src="img/c_bath.jpg" alt="SETHWOOO · 晨光浴室"></div>
+          <div class="meta">
+            <div class="t">SETHWOOO · 晨光浴室</div>
+            <div class="m"><span class="in-out">1 支泵瓶 → 浴室套图</span><span class="dot">·</span><span>窗光 · 浴缸</span><span class="flink">完整过程</span></div>
+          </div>
+        </a>
+      </div>
+
+      <div class="case-note">案例以方法演示为主，非品牌方投放物料</div>
+
+      <!-- v2 新增：这是不是给你的 -->
+      <div class="sec-head" style="margin-top:36px;">
+        <div class="sec-badge purple"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg></div>
+        <div class="sec-copy">
+          <h2>这是不是给你的</h2>
+          <p>对上任意一条，这套方案就是为你准备的</p>
+        </div>
+      </div>
+
+      <div class="fit">
+        <div class="fit-card"><div class="chk">✓</div><div class="fx"><b>SKU 多，天天都要图</b><span>上新快、链接多，外包排期根本跟不上你的节奏</span></div></div>
+        <div class="fit-card"><div class="chk">✓</div><div class="fx"><b>被外包价格磨没了耐心</b><span>一张几十到几百，改一次收一次，越算越不划算</span></div></div>
+        <div class="fit-card"><div class="chk">✓</div><div class="fx"><b>不想成为摄影师</b><span>你只想把自家产品拍出来，不想从基础理论学起</span></div></div>
+        <div class="fit-card"><div class="chk">✓</div><div class="fx"><b>图的事想自己可控</b><span>设计师、运营想自己掌握出图，不用等人、不用求人</span></div></div>
+      </div>
+
+      <!-- v2 新增：咨询动作区 -->
+      <div class="cta">
+        <div class="c-main">
+          <div class="c-kicker">下一步</div>
+          <div class="c-h">想让你家的产品也这样出图？</div>
+          <div class="c-sub">发你的产品给我，我帮你看适不适用、要怎么搭。</div>
+          <div class="c-note">一问一答，不刷屏；先看方案合不合适，再决定往下走。</div>
+        </div>
+        <div class="c-acts">
+          <div class="qrbox"><!-- 娜家放二维码后替换本占位：<img src="img/qr-weixin.png" alt="微信二维码" style="width:100%;height:100%;object-fit:contain;border-radius:10px;"> -->微信二维码<br>（待放）</div>
+          <a class="cta-tb" href="https://www.najiastudio.com/product.html">
+            <span class="cta-btn">看产品方案与价格 ›</span>
+            <em>或淘宝搜索「娜家拍摄台」</em>
+          </a>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<footer class="site-foot">
+  <div class="f1">© 2026 NaStudio 娜家视觉 · najiastudio.com</div>
+  <div class="f2">本站内容均为原创方法与案例，未经许可请勿转载</div>
+</footer>
+
+<script>
+  var tabs=document.querySelectorAll('.tab');
+  var cards=document.querySelectorAll('#gallery .card');
+  tabs.forEach(function(tb){
+    tb.addEventListener('click',function(){
+      tabs.forEach(function(t){t.classList.remove('on');});
+      tb.classList.add('on');
+      var c=tb.getAttribute('data-cat');
+      cards.forEach(function(cd){
+        cd.style.display=(c==='all'||cd.getAttribute('data-cat')===c)?'':'none';
+      });
+    });
+  });
+</script>
+</body>
+</html>
