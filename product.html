@@ -24,7 +24,7 @@
     display:flex;align-items:center;gap:16px;padding:0 28px;
     background:rgba(255,255,255,.94);backdrop-filter:blur(12px);
     border-bottom:1px solid var(--line);}
-  header.topbar .brand{display:flex;align-items:center;gap:11px;}
+  header.topbar .brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:inherit;}
   header.topbar .logo{width:38px;height:38px;border-radius:12px;overflow:hidden;
     background:#0a0a0a;box-shadow:0 3px 9px rgba(37,54,73,.18);flex-shrink:0;}
   header.topbar .logo img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -123,10 +123,10 @@
 <body>
 
 <header class="topbar">
-  <div class="brand">
+  <a class="brand" href="index.html">
     <div class="logo"><img src="img/logo.png" alt="NaStudio"></div>
     <div class="bt"><b>NaStudio</b><span>娜家视觉</span></div>
-  </div>
+  </a>
   <div class="topnav">
     <a class="tbtn on" href="index.html">出图系统</a>
   </div>
