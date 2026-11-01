@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>解锁完整版手册 · 全套 AI 出图方法 · NaStudio</title>
+<title>《实拍+AI实操手册》· NaStudio</title>
 <style>
   @font-face{
     font-family:"Space Grotesk";
@@ -50,15 +50,47 @@
   .sub{margin:0 auto 26px;font-size:14.5px;color:var(--muted);line-height:1.75;max-width:460px;}
   .sub b{color:var(--ink);}
 
-  .get{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:30px;}
-  .get span{font-size:13px;font-weight:600;color:var(--blue);background:#f3f1ff;
-    border:1px solid #e2ddfb;border-radius:999px;padding:6px 15px;}
+  .lead{margin:0 auto 28px;font-size:15px;font-weight:600;color:#3d3856;line-height:1.9;max-width:470px;}
+  .lead .lead-main{display:block;font-size:16px;font-weight:750;color:var(--ink);margin-bottom:2px;}
+  .lead .lead-tag{display:block;margin-top:11px;font-size:14.5px;font-weight:750;
+    color:var(--blue);letter-spacing:-.1px;}
+
+  .diff{text-align:left;background:#fff;border:1px solid var(--line);border-radius:16px;
+    padding:22px 24px;margin-bottom:22px;}
+  .diff .sec-t{margin:0 0 12px;font-size:15px;font-weight:750;color:var(--ink);}
+  .diff p{margin:0 0 10px;font-size:13.8px;color:#4a4660;line-height:1.8;}
+  .diff p.hl{color:var(--ink);font-weight:700;margin-top:15px;margin-bottom:4px;}
+  .diff p.item-t{margin:15px 0 5px;font-size:14.5px;font-weight:780;color:var(--ink);}
+  .diff p:last-child{margin-bottom:0;}
+  .diff ul{margin:0;padding:0;list-style:none;}
+  .diff li{position:relative;padding-left:16px;font-size:13.5px;color:#4a4660;line-height:1.78;}
+  .diff li+li{margin-top:9px;}
+  .diff li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;
+    border-radius:50%;background:#b9b0ee;}
+  .diff li b{color:var(--ink);font-weight:700;}
+
+  .price{text-align:center;background:linear-gradient(135deg,#f8f5ff,#efe9fd);
+    border:1px solid #e6defb;border-radius:16px;padding:22px 24px 20px;margin-bottom:26px;}
+  .price .amt{margin:0;font-size:40px;font-weight:800;letter-spacing:-1.2px;
+    color:var(--ink);line-height:1.1;}
+  .price .amt span{font-size:16px;font-weight:700;margin-left:2px;letter-spacing:0;}
+  .price .amt em{font-style:normal;font-size:13px;font-weight:600;color:var(--muted);margin-left:8px;}
+  .price .price-d{margin:9px 0 0;font-size:13px;color:#5f5878;line-height:1.7;}
+  .price .price-d b{color:#4636b4;font-weight:700;}
+
+  .update{text-align:left;background:linear-gradient(135deg,#f5f2ff,#ebe4fd);
+    border:1px solid #ded4fa;border-radius:16px;padding:19px 22px;margin-bottom:24px;}
+  .update .up-t{margin:0;font-size:16.5px;font-weight:800;color:#4636b4;
+    line-height:1.5;letter-spacing:-.2px;}
+  .update .up-d{margin:7px 0 0;font-size:13.3px;color:#4a4660;line-height:1.75;}
 
   .fit{text-align:left;background:#fbfaff;border:1px solid #eae4fb;border-radius:16px;
     padding:18px 22px;margin-bottom:28px;}
   .fit .fit-t{margin:0 0 8px;font-size:14.5px;font-weight:700;color:var(--ink);}
-  .fit p{margin:0 0 6px;font-size:13.5px;color:#4a4660;line-height:1.7;}
+  .fit .fit-t2{margin:16px 0 9px;padding-top:14px;border-top:1px solid #eae4fb;}
+  .fit p{font-size:13.5px;color:#4a4660;line-height:1.7;margin:0 0 6px;}
   .fit p:last-child{margin-bottom:0;}
+  .fit p.no{color:#8b86a3;}
   .fit .fit-note{margin-top:10px;padding-top:10px;border-top:1px solid #eae4fb;
     font-size:12.5px;color:var(--muted);line-height:1.7;}
 
@@ -106,24 +138,50 @@
 
 <main class="wrap">
   <div class="card">
-    <div class="lock">🔒</div>
-    <h1>解锁完整版手册 · 全套 AI 出图方法</h1>
-    <p class="sub">完整版<b>《实拍打底 · AI增效实操手册》</b>沉淀了全套 AI 实操方法：从 AI 生图的具体操作，到各种翻车图的修复技巧——颜色断层、材质变形、文字歪斜怎么修，每个问题都配了实操视频。解锁完整版后，所有内容都能看。</p>
-    <div class="get">
-      <span>生图系统</span><span>判断系统</span><span>修复系统</span><span>案例库</span>
+    <div class="lock">📘</div>
+    <h1>《实拍+AI实操手册》</h1>
+    <p class="lead">
+      <span class="lead-main">不是教你学 AI，也不是卖你一套课</span>
+      是一套让公司内部高效出图的工作流方法
+      <span class="lead-tag">从产品图到交付一整套氛围主图</span>
+    </p>
+
+    <div class="diff">
+      <p class="sec-t">它跟纯 AI 教程差在哪</p>
+      <p>纯 AI 教程卖的是怎么用 AI：提示词怎么写、模型怎么选。</p>
+      <p>这套手册给的是工作流：从一张产品图开始，判断、修复、出整套氛围主图，每一步都有明确动作和验收标准。</p>
+      <p class="hl">其中判断和修复，是 AI 做不到、也是最多人卡住的两段：</p>
+      <ul>
+        <li><b>会判断</b>：瓶身看着有点歪、标签上的字糊了、影子方向和光对不上——算法随机出来的东西，工具不会提醒你哪张不能用</li>
+        <li><b>会修复</b>：材质变形、颜色断层、logo 变形、文字歪——每一个都有对应的修法</li>
+      </ul>
     </div>
+
     <div class="fit">
-      <p class="fit-t">这套知识库适合谁</p>
-      <p>✓ AI 生图老是翻车——产品变形、颜色断层、材质不对，自己修不好的人</p>
-      <p>✓ 零基础小白，对 AI 接触不多，不知道从哪里下手的人</p>
-      <p>✓ 网上方法看了一堆，照着做图却对不上，全靠碰运气的人</p>
-      <p class="fit-note">不玩复杂工作流，只用国内好上手的基础工具；AI 生图再强，也有它现在做不到的地方——我们用一套能实操落地的方法，把这些环节和小问题一个个修到位。</p>
+      <p class="fit-t">这套手册适合谁</p>
+      <p>✓ 公司或工厂有稳定出图需求，不想外包，想把流程固定下来</p>
+      <p>✓ 试过 AI 生图，但出来的图不敢上架，不知道哪张能用</p>
+      <p>✓ 知道图有问题，但修不回来：材质变形、颜色断层、文字歪</p>
+      <p class="fit-t fit-t2">不适合谁</p>
+      <p class="no">✕ 想一键出图、不想自己动手的</p>
+      <p class="no">✕ 没有实拍能力，指望 AI 从零把产品画出来的</p>
+      <p class="fit-note">不用自己搭复杂工作流，只用国内好上手的基础工具，普通电脑也能跑。</p>
+    </div>
+
+    <div class="update">
+      <p class="up-t">不是网盘资料，是持续更新的方法论知识库</p>
+      <p class="up-d">手册会一直往里加：新的案例、新的翻车修法。今天买到的是起点，往后新增的都同步进来，不用再补钱。</p>
+    </div>
+
+    <div class="price">
+      <p class="amt">199<span>元</span><em>一次买断</em></p>
+      <p class="price-d"><b>差不多是一张外包图的价钱。</b><br>没有订阅、没有年费、没有二次收费。</p>
     </div>
     <div class="qrbox">
       <img class="qrimg" src="img/qr-weixin.png" alt="娜家微信二维码" onerror="this.style.display='none'">
       <div>
-        <p class="t">扫码添加娜家微信</p>
-        <p class="d">回复「<b>手册</b>」两个字，<br>告诉你怎么解锁完整版。</p>
+        <p class="t">扫码加微信 → 回复「手册」</p>
+        <p class="d">我直接把解锁方式发你。<br>手册和案例库，看完就能自己出图。</p>
       </div>
     </div>
     <div class="acts">
