@@ -82,6 +82,19 @@
         .err-d { font-size: 14px; color: var(--text-sec); line-height: 1.7; max-width: 400px; margin: 0 auto; }
         .retry-btn { margin-top: 16px; padding: 10px 28px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-s); cursor: pointer; font-size: 14px; font-family: inherit; }
 
+        .style-grid { display: flex; flex-direction: column; gap: 7px; }
+        .style-card { border: 1px solid var(--border); border-radius: var(--radius-s); padding: 9px 12px; cursor: pointer; transition: all .15s; background: #fafafa; }
+        .style-card:hover { border-color: #bbb; }
+        .style-card.active { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 2px rgba(29,29,31,.08); }
+        .style-card b { font-size: 14px; display: block; margin-bottom: 2px; font-weight: 500; }
+        .style-card span { font-size: 12px; color: var(--text-sec); line-height: 1.4; }
+        .ratio-row { display: flex; gap: 7px; }
+        .ratio-btn { flex: 1; padding: 9px 0; border: 1px solid var(--border); background: #fafafa; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; color: var(--text-sec); transition: all .15s; }
+        .ratio-btn:hover { border-color: #bbb; }
+        .ratio-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+        .opt-tag { font-size: 11px; color: #aaa; font-weight: 400; margin-left: 4px; }
+        .set-name { font-size: 12px; color: var(--text-sec); margin-bottom: 6px; }
+
         @media (max-width: 860px) {
             .wrap { flex-direction: column; height: auto; }
             .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
@@ -130,25 +143,37 @@
 <div class="page">
 <div class="hdr">
     <span class="hdr-title">AI创意生图</span>
-    <span class="hdr-sub">上传产品+参考，一次生成 5 张成套场景图</span>
+    <span class="hdr-sub">上传产品 · 选风格 · 一次生成 3 张成套场景图</span>
 </div>
 <div class="wrap">
     <div class="left">
         <div>
-            <div class="sec-label">产品白底图</div>
+            <div class="sec-label">① 产品白底图</div>
             <div class="up-area" id="pdArea" onclick="$('pdFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'pd')">
                 <input type="file" id="pdFile" accept="image/*" style="display:none" onchange="pdSel(event)">
                 <div id="pdContent"><div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div></div>
             </div>
         </div>
         <div>
-            <div class="sec-label">参考风格图</div>
-            <div class="up-area" id="refArea" onclick="$('refFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'ref')">
-                <input type="file" id="refFile" accept="image/*" style="display:none" onchange="refSel(event)">
-                <div id="refContent"><div class="up-ico">🎨</div><div class="up-txt">上传参考风格图</div></div>
+            <div class="sec-label">② 场景风格</div>
+            <div class="style-grid" id="styleGrid"></div>
+        </div>
+        <div>
+            <div class="sec-label">③ 画幅</div>
+            <div class="ratio-row" id="ratioRow">
+                <button class="ratio-btn active" data-r="1:1" onclick="pickRatio('1:1')">1:1 主图</button>
+                <button class="ratio-btn" data-r="3:4" onclick="pickRatio('3:4')">3:4 竖版</button>
+                <button class="ratio-btn" data-r="9:16" onclick="pickRatio('9:16')">9:16 长图</button>
             </div>
         </div>
-        <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成 5 张成套场景</button>
+        <div>
+            <div class="sec-label">参考色调图<span class="opt-tag">选填 · 只取色调</span></div>
+            <div class="up-area" id="refArea" onclick="$('refFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'ref')">
+                <input type="file" id="refFile" accept="image/*" style="display:none" onchange="refSel(event)">
+                <div id="refContent"><div class="up-ico">🎨</div><div class="up-txt">上传参考图，决定色调<br><span style="font-size:12px;color:#bbb;">不传则按产品本身颜色定</span></div></div>
+            </div>
+        </div>
+        <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成 3 张场景图</button>
     </div>
     <div class="right" id="right">
         <div class="empty" id="vEmpty">
@@ -197,30 +222,102 @@ const IMAGE_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
 const VISION_MODELS = ['doubao-seed-2-1-pro-260915', 'doubao-seed-2-0-lite-260428', 'doubao-seed-2-0-mini-260428'];
 // 图像模型按优先级回退：seedream-4-0-250828 已列入下线计划，备用 20260415 版本
 const IMAGE_MODELS = ['doubao-seedream-4-0-250828', 'doubao-seedream-4-0-20260415'];
-const IMAGE_SIZE = '1080x1920';
+
 const CROP_THRESHOLD = 240;
 const CROP_PADDING = 20;
 const REF_IMAGE_MAX = 1536;
+const SHOTS_PER_RUN = 3;
 
-// 一套图的 5 种构图变体：产品位置、大小、光影、色彩全部锁死，只有机位俯仰和背景结构形态变
-const SHOT_VARIANTS = [
-  '平视正面机位，产品水平居中，背景结构位于产品右后方，呈斜向块面延伸',
-  '轻微俯视机位（俯角约 15 度），产品水平居中，背景结构在产品下方呈环形环绕',
-  '平视机位，产品水平居中，背景结构位于产品左后方，呈弧形呼应',
-  '轻微仰视机位（仰角约 10 度），产品水平居中，背景结构在产品上方呈纵向延伸',
-  '平视微侧机位（水平偏转约 20 度），产品水平居中，背景结构在产品后方呈层叠排布'
+// 画幅：产品只占画面 1/3，画布不用太大
+const RATIOS = {
+    '1:1':  { size: '1440x1440', label: '1:1 主图' },
+    '3:4':  { size: '1200x1600', label: '3:4 竖版' },
+    '9:16': { size: '1080x1920', label: '9:16 长图' }
+};
+
+/* ============================================================
+   场景风格库
+   一个风格 = 一套统一的光影与色调基调 + 多种道具搭配
+   每次出图从选中的风格里随机抽 3 套不同道具
+   产品位置、尺寸、光影在同一风格内锁死，只有道具变化
+   ============================================================ */
+const STYLE_PACKS = [
+    {
+        id: 'lab',
+        name: '冷调科研风',
+        desc: '亚克力 · 实验器皿 · 分子结构',
+        tone: '冷白与浅灰为主，透明材质，低饱和，干净通透',
+        light: '顶部大面积柔光作为主光，左前方补一道柔和轮廓光，浅景深，产品右下方形成自然柔和的投影，背景有柔和的明暗渐变，产品表面有一道清晰的竖向高光带',
+        sets: [
+            { name: '实验器皿', props: '产品放置在白色亚克力台面上，后方摆放玻璃培养皿与金属试管架，前景有一支虚化的玻璃螺旋管，背景散落数颗透明玻璃珠，层次由虚到实' },
+            { name: '亚克力道具', props: '产品放置在白色圆形亚克力台座正中，背后一片弧形亚克力挡板形成柔和的空间过渡，台座边缘有细腻的折射高光' },
+            { name: '亚克力+分子结构', props: '白色亚克力层叠台面，背景有淡色半透明的分子结构模型，右侧一片弧形亚克力板，整体通透干净' },
+            { name: '磨砂玻璃隔断', props: '产品立于浅灰石膏台面，背后一块磨砂玻璃隔断形成朦胧背景，前景有一道虚化的玻璃边缘' },
+            { name: '金属+玻璃罩', props: '拉丝不锈钢台面，产品右侧放置一个透明玻璃罩，背景为深灰到浅灰的垂直渐变' }
+        ]
+    },
+    {
+        id: 'water',
+        name: '水感通透风',
+        desc: '水面 · 水珠 · 玻璃砖',
+        tone: '浅蓝到青白，透明水感，高亮度，低饱和',
+        light: '逆光加轮廓光为主，水面形成细碎高光，产品边缘透亮，浅景深，背景有柔和的水波光斑',
+        sets: [
+            { name: '水面涟漪', props: '产品立于浅水面之上，水面有一圈柔和的涟漪，背景为浅蓝到白的垂直渐变，水面有细碎的反射光' },
+            { name: '水珠附着', props: '产品表面附着细密水珠，背景为深灰蓝色，强逆光从后方打透，产品边缘形成明亮轮廓光' },
+            { name: '亚克力+水花', props: '产品立于透明亚克力块上，周围有水花溅起的瞬间，高光在亚克力边缘折射' },
+            { name: '湿润石材', props: '深灰色湿润石材台面，表面有水痕与反光，背景为浅灰渐变，产品下方有浅倒影' },
+            { name: '玻璃砖', props: '长虹玻璃砖作为背景形成条纹折射，台面为浅色亚克力，空气中有轻薄水汽' }
+        ]
+    },
+    {
+        id: 'minimal',
+        name: '极简白底风',
+        desc: '白底 · 石膏 · 丝绸',
+        tone: '纯白到浅灰，几乎无色相，极低饱和，干净克制',
+        light: '大面积柔光箱效果，光线均匀柔和，产品上有清晰的竖向高光带，下方有柔和过渡的投影，背景为极浅的垂直渐变，无死白',
+        sets: [
+            { name: '纯白渐变', props: '产品置于纯白无缝背景前，背景为极浅的白到浅灰垂直渐变，产品下方有柔和自然的投影，大面积干净留白' },
+            { name: '石膏台', props: '产品立于浅灰哑光石膏台面，背景为浅灰渐变，左侧有一块虚化的石膏几何体，阴影柔和' },
+            { name: '白色亚克力台', props: '产品放在白色亚克力台上，台面边缘有细腻高光，背景为白色渐变，产品左侧有边缘光勾轮廓' },
+            { name: '米白背景纸', props: '产品置于米白色背景纸前，光线从右上方自然落下，产品左下方有自然投影，留白充足' },
+            { name: '白色丝绸', props: '产品立于白色丝绸褶皱之上，丝绸有柔和的褶皱高光，背景为白色渐变' }
+        ]
+    },
+    {
+        id: 'nature',
+        name: '自然植物风',
+        desc: '绿意 · 石材 · 木与亚麻',
+        tone: '浅米色、雾绿、灰白，自然柔和，中低饱和',
+        light: '侧上方自然光为主，光线有方向感和柔和过渡，植物形成虚化剪影，浅景深，背景有自然的光斑',
+        sets: [
+            { name: '虚化绿叶', props: '产品置于浅米色台面，前景有虚化的绿色叶片，背景为浅色渐变，绿意作为层次而非主体' },
+            { name: '洞石+干花', props: '产品立于米色洞石台面，背景有干花枝与虚化的枝叶，色调温暖克制' },
+            { name: '浅木+亚麻', props: '产品放在浅木色台面上，旁边有亚麻布的自然褶皱，背景为浅米色渐变' },
+            { name: '水面花瓣', props: '产品立于浅水面，水面漂浮数片花瓣，背景为浅米到浅绿渐变' },
+            { name: '苔藓石材', props: '产品置于灰色石材上，周围有少量苔藓，背景为浅灰绿渐变，光线柔和' }
+        ]
+    },
+    {
+        id: 'luxury',
+        name: '奢华质感风',
+        desc: '大理石 · 金属 · 丝绒',
+        tone: '深色与暖金对比，中低明度，高质感，克制的饱和',
+        light: '单点聚光为主，光比明显，产品上有清晰高光，背景压暗，产品边缘有金属反光或轮廓光，深色背景中有柔和光晕',
+        sets: [
+            { name: '深色大理石', props: '产品立于深色大理石台面，背景为深灰渐变，远处有一道细金属线条作为结构，产品下方有浅倒影' },
+            { name: '丝绸暖光', props: '产品置于深香槟色丝绸褶皱上，丝绸有柔和高光，背景压暗为深暖灰' },
+            { name: '黑色亚克力', props: '产品立于黑色高反光亚克力台面，单点聚光从上方打下，形成清晰光斑与倒影，背景为纯黑' },
+            { name: '镜面倒影', props: '产品置于镜面台面，形成完整倒影，背景为深灰渐变，光线克制' },
+            { name: '天鹅绒+金', props: '产品立于深色天鹅绒上，旁边有极少量金色元素，背景压暗，光线柔和集中' }
+        ]
+    }
 ];
 
-// 每一张都必须遵守的统一硬约束：产品大小锁定、居中、道具降级为背景层
-const UNIFIED_LOCK =
-  '\n\n【五张统一硬约束——优先级最高，高于以上任何描述】' +
-  '① 产品尺寸锁定：产品在画面中的高度严格占画面总高度的 45%~55%，视觉面积不小于画面总面积的 1/5。五张图的产品大小必须完全一致，绝对禁止忽大忽小。' +
-  '② 产品位置锁定：产品水平居中，左右留白差值不超过画面宽度的 5%；垂直方向居中或略偏上；产品必须完整出现在画面内，任何部位不得被画面边缘裁切、不得贴边、不得被道具遮挡。' +
-  '③ 产品姿态：允许直立、斜放、平躺，不限定角度，但产品必须完整可辨。' +
-  '④ 道具层级降级：道具只能作为背景层次存在——色块、几何结构、材质肌理、虚化远景。绝对禁止把道具做成与产品同层级的立体实物摆件；道具不得比产品更清晰、更抢眼，单个道具面积不得大于产品面积。' +
-  '⑤ 画面第一视觉焦点必须是产品本身，任何一张都不例外。';
+let productSrc = null, productCroppedSrc = null, refSrc = null, busy = false;
+let sceneProduct = '', sceneTone = '';
+let curPack = STYLE_PACKS[0], curRatio = '1:1';
 
-let productSrc = null, productCroppedSrc = null, refSrc = null, scenePrompt = null, busy = false;
 const $ = id => document.getElementById(id);
 
 function dOver(e, el) { e.preventDefault(); el.style.borderColor = '#999'; }
@@ -236,7 +333,7 @@ function loadPd(file) {
 }
 function loadRef(file) {
     const reader = new FileReader();
-    reader.onload = e => { refSrc = e.target.result; showPreview('ref', refSrc); updateGenBtn(); };
+    reader.onload = e => { refSrc = e.target.result; showPreview('ref', refSrc); };
     reader.readAsDataURL(file);
 }
 function showPreview(type, src) {
@@ -244,11 +341,28 @@ function showPreview(type, src) {
     const contentId = type === 'pd' ? 'pdContent' : 'refContent';
     const clearFn = type === 'pd' ? 'clearPd' : 'clearRef';
     $(areaId).classList.add('has');
-    $(contentId).innerHTML = `<img src="${src}" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();${clearFn}()">×</button>`;
+    $(contentId).innerHTML = '<img src="' + src + '" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();' + clearFn + '()">×</button>';
 }
 function clearPd() { productSrc = null; productCroppedSrc = null; $('pdFile').value = ''; $('pdArea').classList.remove('has'); $('pdArea').style.borderColor = ''; $('pdContent').innerHTML = '<div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div>'; updateGenBtn(); }
-function clearRef() { refSrc = null; $('refFile').value = ''; $('refArea').classList.remove('has'); $('refArea').style.borderColor = ''; $('refContent').innerHTML = '<div class="up-ico">🎨</div><div class="up-txt">上传参考风格图</div>'; updateGenBtn(); }
-function updateGenBtn() { $('genBtn').disabled = !(productCroppedSrc && refSrc); }
+function clearRef() { refSrc = null; $('refFile').value = ''; $('refArea').classList.remove('has'); $('refArea').style.borderColor = ''; $('refContent').innerHTML = '<div class="up-ico">🎨</div><div class="up-txt">上传参考图，决定色调<br><span style="font-size:12px;color:#bbb;">不传则按产品本身颜色定</span></div>'; }
+function updateGenBtn() { $('genBtn').disabled = !productCroppedSrc; }
+
+function renderStyleGrid() {
+    const g = $('styleGrid');
+    if (!g) return;
+    g.innerHTML = '';
+    STYLE_PACKS.forEach(p => {
+        const d = document.createElement('div');
+        d.className = 'style-card' + (p.id === curPack.id ? ' active' : '');
+        d.innerHTML = '<b>' + p.name + '</b><span>' + p.desc + '</span>';
+        d.onclick = () => { curPack = p; renderStyleGrid(); };
+        g.appendChild(d);
+    });
+}
+function pickRatio(r) {
+    curRatio = r;
+    document.querySelectorAll('.ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.r === r));
+}
 
 function autoCrop(imgSrc) {
     return new Promise(resolve => {
@@ -257,10 +371,10 @@ function autoCrop(imgSrc) {
             const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0);
             const id = ctx.getImageData(0, 0, c.width, c.height), d = id.data, w = c.width, h = c.height, t = CROP_THRESHOLD;
             let top = 0, bottom = h - 1, left = 0, right = w - 1;
-            for (let y = 0; y < h; y++) { let f = false; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if (d[i] < t || d[i+1] < t || d[i+2] < t) { top = y; f = true; break; } } if (f) break; }
-            for (let y = h - 1; y >= 0; y--) { let f = false; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if (d[i] < t || d[i+1] < t || d[i+2] < t) { bottom = y; f = true; break; } } if (f) break; }
-            for (let x = 0; x < w; x++) { let f = false; for (let y = top; y <= bottom; y++) { const i = (y * w + x) * 4; if (d[i] < t || d[i+1] < t || d[i+2] < t) { left = x; f = true; break; } } if (f) break; }
-            for (let x = w - 1; x >= 0; x--) { let f = false; for (let y = top; y <= bottom; y++) { const i = (y * w + x) * 4; if (d[i] < t || d[i+1] < t || d[i+2] < t) { right = x; f = true; break; } } if (f) break; }
+            for (let y = 0; y < h; y++) { let f = false; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if (d[i] < t || d[i + 1] < t || d[i + 2] < t) { top = y; f = true; break; } } if (f) break; }
+            for (let y = h - 1; y >= 0; y--) { let f = false; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if (d[i] < t || d[i + 1] < t || d[i + 2] < t) { bottom = y; f = true; break; } } if (f) break; }
+            for (let x = 0; x < w; x++) { let f = false; for (let y = top; y <= bottom; y++) { const i = (y * w + x) * 4; if (d[i] < t || d[i + 1] < t || d[i + 2] < t) { left = x; f = true; break; } } if (f) break; }
+            for (let x = w - 1; x >= 0; x--) { let f = false; for (let y = top; y <= bottom; y++) { const i = (y * w + x) * 4; if (d[i] < t || d[i + 1] < t || d[i + 2] < t) { right = x; f = true; break; } } if (f) break; }
             const cw = right - left + 1, ch = bottom - top + 1, pad = CROP_PADDING;
             const cc = document.createElement('canvas'); cc.width = cw + pad * 2; cc.height = ch + pad * 2;
             const cctx = cc.getContext('2d'); cctx.fillStyle = '#FFFFFF'; cctx.fillRect(0, 0, cc.width, cc.height);
@@ -270,7 +384,8 @@ function autoCrop(imgSrc) {
     });
 }
 
-function resizeForAPI(dataUri, maxDim = 1024) {
+function resizeForAPI(dataUri, maxDim) {
+    maxDim = maxDim || 1024;
     return new Promise(resolve => {
         const img = new Image(); img.onload = () => {
             if (img.width <= maxDim && img.height <= maxDim) { resolve(dataUri); return; }
@@ -283,7 +398,8 @@ function resizeForAPI(dataUri, maxDim = 1024) {
 }
 
 // 把产品图处理成可直接传给方舟参考图参数的 base64（白底填充，避免透明区域变黑）
-function prepareRefImage(dataUri, maxDim = REF_IMAGE_MAX) {
+function prepareRefImage(dataUri, maxDim) {
+    maxDim = maxDim || REF_IMAGE_MAX;
     return new Promise(resolve => {
         const img = new Image(); img.onload = () => {
             let w = img.width, h = img.height;
@@ -300,104 +416,63 @@ function prepareRefImage(dataUri, maxDim = REF_IMAGE_MAX) {
     });
 }
 
-// 主提示词 + 本张构图指定 = 一套里的一张
-function buildShotPrompt(basePrompt, variant, idx) {
-    return basePrompt + UNIFIED_LOCK +
-        `\n\n【本张构图指定】${variant}。以上构图指定只改变机位俯仰角度和背景结构的形态位置；产品大小、产品居中位置、光影、色彩、材质、画质、道具层级等其余要求完全不变。` +
-        `这是同一套系列中的第 ${idx + 1} 张（共 ${SHOT_VARIANTS.length} 张），必须与其他张保持完全相同的产品大小、产品位置、色调、光向和产品外观。`;
+/* 把「产品外观 + 色调 + 风格道具 + 尺寸硬约束」拼成单张生图提示词
+   产品尺寸和位置在这里写死：占画面高度约 1/3，正中央 */
+function buildScenePrompt(productDesc, toneDesc, pack, set) {
+    return '专业商业产品摄影，单张成品图。\n\n' +
+        '【主体锁定】' + productDesc + '\n' +
+        '产品必须完整呈现，外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与标签文字完全保持原样，禁止替换、美化或重新设计产品本身的任何特征。\n\n' +
+        '【尺寸与位置】产品高度约占画面总高度的三分之一（30%~38%），不要更大。产品必须位于画面正中央：水平居中，左右留白相等；垂直居中，产品中心与画面中心重合。产品必须完整出现在画面内，任何部位都不得被画面边缘裁切、不得贴边、不得被道具遮挡。产品可以直立、斜放或平躺，但必须完整可辨。\n\n' +
+        '【场景道具】' + set.props + '\n' +
+        '道具只能作为背景层次存在：色块、几何结构、材质肌理、虚化远景。道具不得比产品更清晰、更抢眼，单个道具的面积不得大于产品面积。画面第一视觉焦点必须是产品本身。\n\n' +
+        '【光影】' + pack.light + '\n\n' +
+        '【色调】' + toneDesc + '\n' +
+        '风格基调：' + pack.tone + '。必须与同套其他图片保持完全相同的色调、光向、背景色和明暗关系。\n\n' +
+        '【画质】8K超写实，专业商业产品摄影，细节清晰锐利，色彩还原准确，边缘轮廓分明，极高清晰度。\n\n' +
+        '【禁止】禁止画面中出现任何摄影棚设备（补光灯、柔光箱、反光伞、灯架、反光板、黑色方框灯具），所有光源必须是自然光或环境光效果，不可见光源本体。禁止道具成为画面主体或与产品争夺视觉焦点。禁止产品过大、过小、被裁切、贴边、偏离画面中心。禁止杂乱背景、无关元素、文字、水印、logo。禁止色调偏差、光影不均。';
 }
 
 async function analyzeImages() {
-    const [product, ref] = await Promise.all([resizeForAPI(productSrc, 2048), resizeForAPI(refSrc, 2048)]);
+    const product = await resizeForAPI(productSrc, 2048);
+    const ref = refSrc ? await resizeForAPI(refSrc, 2048) : null;
 
-    const systemPrompt = `你是专业产品摄影提示词工程师，精通AI生图提示词编写。你的任务是把产品特征和参考风格图的视觉元素，翻译成AI生图模型能精准理解的专业提示词。
+    const systemPrompt = '你是专业产品摄影视觉分析师。用户会给你一张产品白底图，可能还会给一张参考风格图（也可能没有）。\n\n' +
+        '你的任务只有两项，不要输出任何其他内容。\n\n' +
+        '【任务一：产品外观描述】\n' +
+        '仔细观察产品白底图，写一段能让生图模型精准还原该产品外观的描述。必须包含：产品类型、外形轮廓（圆/方/异形，瓶身与瓶盖的比例关系）、材质类型、精确颜色（用具体色名，不用"深色""浅色"）、表面质感（哑光/光面/磨砂/拉丝/半透明）、反光特性（强反光/微反光/不反光/半透光）、标签位置与标签上的文字内容、瓶盖或泵头等结构细节。\n' +
+        '不写具体尺寸数字，不写场景、道具、背景。\n' +
+        '这段必须以"以参考图中的产品为唯一主体，严格保持其外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与文字完全不变"开头。\n\n' +
+        '【任务二：色调方案】\n' +
+        '确定这一套图要用的色调。\n' +
+        '- 如果给了参考风格图：把参考图的色彩倾向（背景色、主色、氛围色）和产品自身的颜色融合，得出协调的色调方案。参考图只提供色彩参考，不提供道具。\n' +
+        '- 如果没有参考图：完全根据产品本身的颜色推导。\n' +
+        '必须写清：主色（精确色名）、辅色1-2个（精确色名）、背景色（精确色名）、饱和度倾向（高/中/低）、明度倾向（明亮/中性/偏暗）、整体氛围（如清爽通透、温润高级、科技冷感）。\n' +
+        '全部用具体色名，禁止"深色""浅色""高级色"这类模糊词。\n\n' +
+        '【输出格式，严格照此输出】\n' +
+        '产品外观：\n（这里写产品外观描述）\n\n' +
+        '色调方案：\n（这里写色调方案）';
 
-用户会给你两张图：第一张是产品白底图，第二张是参考风格图。
+    const userPrompt = '请分析图片，严格按格式输出"产品外观"和"色调方案"两段。\n\n' +
+        (ref ? '本次给了参考风格图，色调方案要把参考图的色彩倾向和产品自身颜色融合。' : '本次没有给参考风格图，色调方案完全根据产品本身的颜色来确定。') + '\n\n' +
+        '要求：\n' +
+        '1. 产品外观段必须以"以参考图中的产品为唯一主体，严格保持其外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与文字完全不变"开头\n' +
+        '2. 颜色必须用精确色名，例如"冷调银白""雾面米白""香槟金""灰蓝""浅青瓷白"，不要写"深色""浅色"\n' +
+        '3. 标签上的文字要如实写出，这是产品识别度的关键\n' +
+        '4. 只输出这两段，不要输出解释、不要输出道具和场景描述';
 
-【第一步：识别产品特征】
-仔细观察产品白底图，逐一识别：产品类型、外形轮廓（圆/方/异形）、材质类型、颜色（精确色名，不用"深色""浅色"）、表面质感（哑光/光面/磨砂/拉丝/纹理）、反光特性（强反光/微反光/不反光/半透光）。不写具体尺寸数字。
-
-【重要前提】
-生图时会同时把这张产品原图作为参考图传给生图模型。所以提示词第一段必须明确要求"以参考图中的产品为唯一主体，外形、比例、材质、颜色、标签完全保持不变"，让模型照着原图画，而不是凭文字重新发明一个产品。
-
-【第二步：识别参考图元素】
-仔细观察参考图，逐一清点：台面/地面材质及颜色、每个道具的形状和位置、背景环境、光源方向和色温、整体色调倾向。
-
-【第三步：材质→摄影语言翻译】
-- 反光材质（金属、玻璃、陶瓷釉面）→ 柔光箱漫射光，控制高光扩散范围，避免硬反射
-- 吸光材质（布料、哑光塑料、木质）→ 45度侧光，强调纹理和质感表现
-- 透明/半透明材质（香水、玻璃瓶、水体）→ 逆光+轮廓光，表现通透感和液体折射光泽
-- 粗糙材质（石材、海盐、沙地）→ 低角度侧光，强调表面凹凸和肌理
-- 小体积产品→微距特写构图，大光圈背景虚化
-- 大体积产品→场景化构图，配比例参照物，营造空间感
-
-【第四步：生成六段式提示词】
-严格按以下结构输出，六段缺一不可：
-
-场景提示词：
-① 主体锁定：以参考图中的产品为唯一主体，严格保持其外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与文字完全不变，不得替换、美化或重新设计产品本身的任何特征。随后再描述产品名称、外形轮廓、材质、精确颜色、表面质感、反光特性。不写具体尺寸数字，不写场景、道具、背景]
-② 场景构图：[参考图同类型元素的全新构图。每个道具的具体形态、材质、与产品的空间关系。道具只能作为背景层次出现——色块、几何结构、材质肌理、虚化远景，禁止把任何道具写成与产品同层级的立体实物摆件。只写道具种类和相对关系，不要写死相机视角，也不要写死产品在画面中的绝对位置，视角由后续构图指定决定]
-③ 光影质感：[根据产品材质选光线类型。明确写出：主光源方向和角度、辅光位置、光线类型（柔光/逆光/侧光/漫射光）、产品表面的光影效果（高光位置、阴影形态、反射情况）。产品光影必须与场景光源一致。所有光源必须是自然光或环境光效果，画面中绝对不可出现任何灯具、灯架、柔光箱等摄影设备。质控：无脏影、无杂光、无过曝、无死黑]
-④ 色彩氛围：[主色调（精确色名）、2-4个核心色彩、整体氛围和情绪]
-⑤ 画质参数：8K超写实，专业商业产品摄影，细节清晰锐利，色彩还原准确，边缘轮廓分明
-⑥ 负面避坑：禁止添加参考图中不存在的任何元素（尤其禁止因为场景主题而联想添加装饰物，如看到飞机窗就加飞机模型，看到海滩就加贝壳），只允许出现参考图里肉眼可见的元素类型。绝对禁止画面中出现任何摄影棚设备（补光灯、柔光箱、反光伞、灯架、反光板、黑色方框灯具等），所有光源效果必须是自然光或环境光，不可见光源本体。禁止道具成为画面主体、禁止道具与产品争夺视觉焦点、禁止道具比产品更大更清晰。禁止产品过小、禁止产品被画面边缘裁切、禁止产品贴边、禁止产品偏离画面中心。禁止场景杂乱，禁止色调偏差，禁止光影不均
-
-【输出示例——①主体还原的正确写法】
-好：① 主体还原：圆形透明玻璃水盘，高透硼硅玻璃材质，表面光滑有玻璃光泽，边缘微微反光，盘内盛有清澈水，水面有轻微弧度，整体通透晶莹
-好：① 主体还原：哑光白色陶瓷马克杯，杯身圆柱形，带C形把手，表面哑光釉面质感细腻不反光，杯壁厚度均匀
-错：① 主体还原：蓝色网球场地面放置透明圆形水盘，水盘左侧放网球拍——（错误：这是场景构图，不是产品外观）
-
-【③光影段输出示例】
-好：③ 光影质感：主光源从画面左上方45度照射，柔光箱漫射光，产品表面呈现均匀柔和的高光带，边缘有轻微环境反射，产品右下方形成自然过渡的柔和阴影，场景道具受同一光源照射，明暗过渡自然，无脏影、无杂光、无过曝、无死黑
-
-【段落分工原则】
-- ①只描述产品本身的外观（第一张图的东西），绝不写场景、道具、背景
-- ②只写构图位置布局，不写材质和光影
-- ③只写光影，不写构图和材质
-- ④只写色彩和氛围
-每段各司其职，不要交叉重叠
-
-【核心规则】
-1. ①主体还原必须精确到让AI能准确还原产品外观
-2. 产品必须出现在画面中，光影与场景一致
-3. 元素类型必须与参考图完全一致，绝不替换，绝不联想添加（看到海洋主题不加贝壳，看到花园不加蝴蝶）
-4. 绝不发明参考图中没有的元素，②场景构图只能写参考图里肉眼可见的元素
-5. 色调严格保留参考图
-6. 构图必须重新设计
-7. 用专业摄影术语（柔光箱、漫射光、轮廓光、色温等），不用模糊描述（好看的光、漂亮的颜色）
-8. 每段都要非常详细具体，宁可多写不能少写
-9. ②场景构图里写的道具只能当背景层用，绝不能写成与产品并排的立体实物摆件
-10. 提示词中不得出现"产品很小""大量留白""产品位于画面一角""远景全景"这类会让产品变小的描述`;
-
-    const userPrompt = `请仔细观察两张图，然后按六段式结构生成场景提示词。
-
-本次生图会把第一张图（产品图）原样作为参考图传给生图模型，所以①段必须写明"以参考图中的产品为唯一主体，外形、比例、材质、颜色、标签完全保持不变"。
-
-最重要：①主体锁定只写第一张图里产品本身的外观！只写产品！不要写场景、道具、背景！
-例如产品是水盘就只写水盘的外观（形状、材质、颜色、质感），不要写水盘旁边有什么。
-
-其他要求：
-1. 产品必须出现在画面中，光影与场景一致
-2. ②写构图位置，③写光影，④写色彩，各司其职不交叉
-3. 根据产品材质选光线（反光→柔光控制高光，吸光→侧光增质感，透明→逆光通透感）
-4. 光影段必须写清主光源方向、角度、光线类型、产品表面效果
-5. 只用参考图实际存在的元素类型，不添加不替换，不因主题联想加装饰物，画面中禁止出现任何灯具和摄影设备
-6. 色调与参考图一致，构图重新设计
-7. ①段必须写明"以参考图中的产品为唯一主体，外形、比例、材质、颜色、标签完全保持不变"
-8. ②段里的道具必须写成背景层次（色块、几何结构、肌理、虚化远景），不能写成摆放在产品旁边的立体实物，道具不能比产品更抢眼`;
+    const parts = [{ type: 'image_url', image_url: { url: product } }];
+    if (ref) parts.push({ type: 'image_url', image_url: { url: ref } });
+    parts.push({ type: 'text', text: userPrompt });
 
     const reqBody = {
         messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: [
-                { type: 'image_url', image_url: { url: product } },
-                { type: 'image_url', image_url: { url: ref } },
-                { type: 'text', text: userPrompt }
-            ] }
+            { role: 'user', content: parts }
         ],
         thinking: { type: 'disabled' },
-        temperature: 0.6, max_tokens: 2500
+        temperature: 0.5, max_tokens: 1600
     };
+
     let data = null, lastErr = '';
     for (const vm of VISION_MODELS) {
         try {
@@ -408,7 +483,7 @@ async function analyzeImages() {
             });
             if (!response.ok) {
                 const ed = await response.json().catch(() => ({}));
-                lastErr = ed.error?.message || String(response.status);
+                lastErr = (ed.error && ed.error.message) || String(response.status);
                 continue;
             }
             data = await response.json();
@@ -418,25 +493,21 @@ async function analyzeImages() {
         }
     }
     if (!data) throw new Error('风格分析失败: ' + (lastErr || '所有视觉模型均不可用'));
-    const content = data.choices?.[0]?.message?.content || '';
-    const m = content.match(/场景提示词[：:]\s*([\s\S]+?)$/);
-    if (m) {
-        scenePrompt = m[1].trim();
-    } else {
-        scenePrompt = content.trim();
-    }
-    window._promptSegments = scenePrompt;
-    return scenePrompt;
+
+    const content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+    const pm = content.match(/产品外观[：:]\s*([\s\S]+?)(?=\n\s*色调方案|$)/);
+    const tm = content.match(/色调方案[：:]\s*([\s\S]+)$/);
+    sceneProduct = pm ? pm[1].trim() : '';
+    sceneTone = tm ? tm[1].trim() : '';
+    if (!sceneProduct) sceneProduct = content.trim();
+    if (!sceneTone) sceneTone = '保持产品自身固有色，低饱和，背景干净通透';
+    return { product: sceneProduct, tone: sceneTone };
 }
 
 async function generateSceneImage(prompt, refImage) {
-    // 提取⑥负面避坑内容，在末尾再强调一遍
-    const negMatch = prompt.match(/⑥\s*负面避坑[：:]\s*([\s\S]+?)$/);
-    const negReminder = negMatch ? '。严格约束：' + negMatch[1].trim() : '';
-    const fullPrompt = prompt + negReminder;
     const baseBody = {
-        prompt: fullPrompt,
-        size: IMAGE_SIZE,
+        prompt: prompt,
+        size: RATIOS[curRatio].size,
         stream: false,
         response_format: 'b64_json',
         watermark: false
@@ -450,7 +521,7 @@ async function generateSceneImage(prompt, refImage) {
                 body: JSON.stringify(Object.assign({ model: im }, baseBody)) });
             if (!r.ok) {
                 const ed = await r.json().catch(() => ({}));
-                lastErr = ed.error?.message || String(r.status);
+                lastErr = (ed.error && ed.error.message) || String(r.status);
                 continue;
             }
             data = await r.json();
@@ -460,61 +531,82 @@ async function generateSceneImage(prompt, refImage) {
         }
     }
     if (!data) throw new Error('场景图生成失败: ' + (lastErr || '所有图像模型均不可用'));
-    if (data.data?.[0]?.b64_json) return 'data:image/png;base64,' + data.data[0].b64_json;
-    if (data.data?.[0]?.url) return data.data[0].url;
-    if (data.data?.[0]?.error) throw new Error('图片生成错误: ' + data.data[0].error.message);
+    const first = data.data && data.data[0];
+    if (first && first.b64_json) return 'data:image/png;base64,' + first.b64_json;
+    if (first && first.url) return first.url;
+    if (first && first.error) throw new Error('图片生成错误: ' + first.error.message);
     throw new Error('未获取到图片结果');
 }
 
 function setStep(n) {
     for (let i = 1; i <= 2; i++) {
-        const ico = $('step' + i).querySelector('.step-ico');
-        ico.className = 'step-ico';
-        ico.classList.add(i < n ? 'done' : i === n ? 'active' : 'wait');
+        const el = $('step' + i);
+        if (!el) continue;
+        const ico = el.querySelector('.step-ico');
+        if (!ico) continue;
+        ico.className = 'step-ico ' + (i < n ? 'done' : i === n ? 'active' : 'wait');
     }
 }
 
 async function generate() {
-    if (busy || !productCroppedSrc || !refSrc) return;
+    if (busy || !productCroppedSrc) return;
     busy = true; $('genBtn').disabled = true;
     try {
         showView('l');
-        setStep(1); $('ldgTxt').textContent = '正在分析图片生成提示词...'; $('ldgSub').textContent = '大约需要5-10秒';
+        setStep(1); $('ldgTxt').textContent = '正在分析产品与色调...'; $('ldgSub').textContent = '大约需要 5-10 秒';
         await analyzeImages();
         const refImage = await prepareRefImage(productCroppedSrc);
 
-        setStep(2); $('ldgTxt').textContent = `正在生成 ${SHOT_VARIANTS.length} 张成套场景图...`; $('ldgSub').textContent = '同一套光影色彩，5 种构图，大约需要 40-90 秒';
+        // 从选中风格里随机抽 3 套不同的道具搭配
+        const pool = curPack.sets.slice();
+        for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+        const picked = pool.slice(0, Math.min(SHOTS_PER_RUN, pool.length));
+
+        setStep(2);
+        $('ldgTxt').textContent = '正在生成 ' + picked.length + ' 张场景图...';
+        $('ldgSub').textContent = curPack.name + ' · ' + RATIOS[curRatio].label + ' · 大约需要 30-60 秒';
+
         const settled = await Promise.allSettled(
-            SHOT_VARIANTS.map((variant, i) => generateSceneImage(buildShotPrompt(scenePrompt, variant, i), refImage))
+            picked.map(set => generateSceneImage(buildScenePrompt(sceneProduct, sceneTone, curPack, set), refImage))
         );
-        const imageDataUris = settled.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
-        if (!imageDataUris.length) {
+
+        const items = [];
+        settled.forEach((r, i) => { if (r.status === 'fulfilled' && r.value) items.push({ src: r.value, name: picked[i].name }); });
+        if (!items.length) {
             const firstErr = settled.find(r => r.status === 'rejected');
-            throw new Error(firstErr && firstErr.reason && firstErr.reason.message ? firstErr.reason.message : '全部生成失败，请重试');
+            throw new Error((firstErr && firstErr.reason && firstErr.reason.message) ? firstErr.reason.message : '全部生成失败，请重试');
         }
 
-        showResults(imageDataUris);
+        window._promptSegments =
+            '【风格】' + curPack.name + '（' + curPack.desc + '）\n' +
+            '【画幅】' + RATIOS[curRatio].label + ' · ' + RATIOS[curRatio].size + '\n\n' +
+            '【产品外观】\n' + sceneProduct + '\n\n' +
+            '【色调方案】\n' + sceneTone + '\n\n' +
+            '【本次道具搭配】\n' + picked.map((s, i) => (i + 1) + '. ' + s.name + '：' + s.props).join('\n');
+
+        showResults(items);
     } catch (err) {
         console.error(err); showView('x'); $('errTxt').textContent = err.message || '请稍后重试';
     } finally { busy = false; updateGenBtn(); }
 }
 
-function showResults(imageDataUris) {
+function showResults(items) {
     showView('r');
     const container = $('resContent');
     container.innerHTML = '';
-    const pairDiv = document.createElement('div');
-    pairDiv.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;';
-    imageDataUris.forEach((src, idx) => {
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;';
+    items.forEach((it, idx) => {
         const card = document.createElement('div');
         card.className = 'res-card';
-        card.innerHTML = `<div class="res-card-img"><img src="${src}" alt="场景图${idx+1}"></div>
-            <div style="padding:10px 14px;text-align:center;">
-                <a href="${src}" download="scene-${idx+1}.jpg" style="font-size:13px;color:var(--text);text-decoration:none;cursor:pointer;">下载场景图</a>
-            </div>`;
-        pairDiv.appendChild(card);
+        card.innerHTML = '<div class="res-card-img"><img src="' + it.src + '" alt="场景图' + (idx + 1) + '"></div>' +
+            '<div style="padding:10px 14px;text-align:center;">' +
+            '<div class="set-name">' + it.name + '</div>' +
+            '<a href="' + it.src + '" download="scene-' + (idx + 1) + '.jpg" style="font-size:13px;color:var(--text);text-decoration:none;cursor:pointer;">下载场景图</a>' +
+            '</div>';
+        grid.appendChild(card);
     });
-    container.appendChild(pairDiv);
+    container.appendChild(grid);
     if (window._promptSegments) {
         $('promptDebug').style.display = 'block';
         renderPromptSegments(window._promptSegments);
@@ -526,8 +618,8 @@ function renderPromptSegments(fullText) {
     container.innerHTML = '';
     const wrap = document.createElement('div');
     wrap.style.cssText = 'position:relative;padding:12px;background:#fff;border:1px solid var(--border);border-radius:8px;';
-    wrap.innerHTML = `<button onclick="copyAllPrompt(this)" style="position:absolute;top:8px;right:8px;font-size:12px;color:var(--text-sec);background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:3px 10px;">复制</button>
-        <div style="font-size:12px;color:#444;line-height:1.8;white-space:pre-wrap;padding-right:50px;">${fullText}</div>`;
+    wrap.innerHTML = '<button onclick="copyAllPrompt(this)" style="position:absolute;top:8px;right:8px;font-size:12px;color:var(--text-sec);background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:3px 10px;">复制</button>' +
+        '<div style="font-size:12px;color:#444;line-height:1.8;white-space:pre-wrap;padding-right:50px;">' + fullText + '</div>';
     container.appendChild(wrap);
 }
 
@@ -545,8 +637,9 @@ function showView(v) {
     $('vErr').style.display = v === 'x' ? 'block' : 'none';
 }
 
-function resetAll() { clearPd(); clearRef(); scenePrompt = null; $('promptDebug').style.display = 'none'; showView('e'); }
-document.addEventListener('DOMContentLoaded', () => { showView('e'); });
+function resetAll() { clearPd(); clearRef(); sceneProduct = ''; sceneTone = ''; $('promptDebug').style.display = 'none'; showView('e'); }
+document.addEventListener('DOMContentLoaded', () => { showView('e'); renderStyleGrid(); pickRatio('1:1'); });
+
 </script>
 
 
