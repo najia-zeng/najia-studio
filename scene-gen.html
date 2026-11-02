@@ -260,41 +260,41 @@ const RATIOS = {
    ============================================================ */
 const SCENE_PACK = {
     name: '科研医美风',
-    tone: '冷白与浅灰为主，透明材质，低饱和，干净通透，克制的专业感',
+    tone: '色彩以参考图和产品自身颜色为准，白与浅灰只作环境底色，低饱和，干净通透，克制的专业感',
     light: '顶部大面积柔光作为主光，左前方补一道柔和轮廓光，浅景深，产品右下方形成自然柔和的投影，背景有柔和的明暗渐变，产品表面有一道清晰的竖向高光带',
     sets: [
         { name: '实验器皿',
           tag: '实验器皿',
-          props: '产品放置在白色亚克力台面上，后方摆放两三个透明玻璃培养皿与一支金属试管架，前景有一支虚化的玻璃螺旋管，背景散落数颗透明玻璃珠，层次由虚到实' },
+          props: '产品放置在白色亚克力台面上，后方摆放两三个透明玻璃培养皿与一支金属试管架，前景有一支虚化的玻璃螺旋管，背景散落数颗{C}透明玻璃珠，层次由虚到实' },
         { name: '亚克力台座',
           tag: '亚克力台座',
-          props: '产品放置在白色圆形亚克力台座正中，背后一片弧形亚克力挡板形成柔和的空间过渡，台座边缘有细腻的折射高光，背景为浅灰到白的渐变' },
+          props: '产品放置在白色圆形亚克力台座正中，背后一片弧形{C}半透明亚克力挡板形成柔和的空间过渡，台座边缘有细腻的折射高光，背景为浅灰到白的渐变' },
         { name: '亚克力+分子结构',
           tag: '分子结构',
-          props: '白色亚克力层叠台面，背景有淡色半透明的分子结构球棍模型，右侧一片弧形亚克力板，整体通透干净' },
+          props: '白色亚克力层叠台面，背景有{C}半透明的分子结构球棍模型，右侧一片弧形{C}亚克力板，整体通透干净' },
         { name: '培养皿环绕',
           tag: '培养皿',
-          props: '产品立于浅灰台面上，周围高低错落堆叠着数个透明玻璃培养皿，其中一两个里有浅色液体，背景为冷白渐变，玻璃边缘有细腻折射' },
+          props: '产品立于浅灰台面上，周围高低错落堆叠着数个透明玻璃培养皿，其中一两个里盛着{C}液体，背景为{C}到白的柔和渐变，玻璃边缘有细腻折射' },
         { name: '水面倒影',
           tag: '水面倒影',
-          props: '产品立于浅水面之上，水面有一圈柔和的涟漪与完整倒影，背景为浅蓝到白的垂直渐变，水面有细碎的反射光' },
+          props: '产品立于浅水面之上，水面有一圈柔和的涟漪与完整倒影，背景为{C}到白的垂直渐变，水面有细碎的反射光' },
         { name: '水珠附着',
           tag: '水珠',
-          props: '产品表面附着细密水珠，背景为深灰蓝色，强逆光从后方打透，产品边缘形成明亮轮廓光，周围空气中有极细的水雾' },
+          props: '产品表面附着细密水珠，背景为深{C}色，强逆光从后方打透，产品边缘形成明亮轮廓光，周围空气中有极细的水雾' },
         { name: '磨砂玻璃隔断',
           tag: '磨砂玻璃',
-          props: '产品立于浅灰石膏台面，背后一块磨砂玻璃隔断形成朦胧背景，前景有一道虚化的玻璃边缘，光线透过玻璃形成柔和漫射' },
+          props: '产品立于浅灰石膏台面，背后一块{C}磨砂玻璃隔断形成朦胧背景，前景有一道虚化的玻璃边缘，光线透过玻璃形成柔和漫射' },
         { name: '不锈钢+玻璃罩',
           tag: '玻璃罩',
-          props: '拉丝不锈钢台面，产品右侧放置一个透明玻璃罩，背景为深灰到浅灰的垂直渐变，不锈钢表面有拉丝纹理和冷调高光' },
+          props: '拉丝不锈钢台面，产品右侧放置一个透明玻璃罩，背景为{C}到浅灰的垂直渐变，不锈钢表面有拉丝纹理和高光' },
         { name: '长虹玻璃',
           tag: '长虹玻璃',
-          props: '长虹玻璃砖作为背景形成竖向条纹折射，台面为浅色亚克力，空气中有轻薄水汽，产品左侧有一道柔和的竖向光带' }
+          props: '长虹玻璃砖作为背景透出{C}的竖向条纹折射，台面为浅色亚克力，空气中有轻薄水汽，产品左侧有一道柔和的竖向光带' }
     ]
 };
 
 let productSrc = null, productCroppedSrc = null, refSrc = null, busy = false;
-let sceneProduct = '', sceneTone = '';
+let sceneProduct = '', sceneTone = '', sceneAccent = '';
 let curPack = SCENE_PACK, curRatio = '1:1';
 
 const $ = id => document.getElementById(id);
@@ -395,15 +395,20 @@ function prepareRefImage(dataUri, maxDim) {
 
 /* 把「产品外观 + 色调 + 风格道具 + 尺寸硬约束」拼成单张生图提示词
    产品尺寸和位置在这里写死：占画面高度约 1/3，正中央 */
-function buildScenePrompt(productDesc, toneDesc, pack, set) {
+function buildScenePrompt(productDesc, toneDesc, accent, pack, set) {
+    const accentFull = accent || '产品标签上的主色';
+    const accentName = accentFull.replace(/#[0-9A-Fa-f]{3,8}/g, '').trim() || accentFull;
+    const propsText = set.props.replace(/\{C\}/g, accentName);
     return '专业商业产品摄影，单张成品图。\n\n' +
         '【主体锁定】' + productDesc + '\n' +
         '产品必须完整呈现，外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与标签文字完全保持原样，禁止替换、美化或重新设计产品本身的任何特征。\n\n' +
         '【尺寸与位置】产品高度约占画面总高度的三分之一（30%~38%），不要更大。产品必须位于画面正中央：水平居中，左右留白相等；垂直居中，产品中心与画面中心重合。产品必须完整出现在画面内，任何部位都不得被画面边缘裁切、不得贴边、不得被道具遮挡。产品可以直立、斜放或平躺，但必须完整可辨。\n\n' +
-        '【场景道具】' + set.props + '\n' +
+        '【场景道具】' + propsText + '\n' +
         '道具只能作为背景层次存在：色块、几何结构、材质肌理、虚化远景。道具不得比产品更清晰、更抢眼，单个道具的面积不得大于产品面积。画面第一视觉焦点必须是产品本身。\n\n' +
         '【光影】' + pack.light + '\n\n' +
         '【色调】' + toneDesc + '\n' +
+        '点睛色：' + accentFull + '。画面中必须真实、明显地出现这个颜色——落在道具、背景渐变或材质上，形成可见的色彩层次。禁止把这个颜色削弱成接近白灰的浅色，禁止整张图只剩白灰而看不到这个颜色。\n' +
+        '环境底色：白与浅灰只作环境底色和留白，不能占据画面全部色彩。\n' +
         '风格基调：' + pack.tone + '。必须与同套其他图片保持完全相同的色调、光向、背景色和明暗关系。\n\n' +
         '【画质】8K超写实，专业商业产品摄影，细节清晰锐利，色彩还原准确，边缘轮廓分明，极高清晰度。\n\n' +
         '【禁止】禁止画面中出现任何摄影棚设备（补光灯、柔光箱、反光伞、灯架、反光板、黑色方框灯具），所有光源必须是自然光或环境光效果，不可见光源本体。禁止道具成为画面主体或与产品争夺视觉焦点。禁止产品过大、过小、被裁切、贴边、偏离画面中心。禁止杂乱背景、无关元素、文字、水印、logo。禁止色调偏差、光影不均。';
@@ -421,13 +426,21 @@ async function analyzeImages() {
         '这段必须以"以参考图中的产品为唯一主体，严格保持其外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与文字完全不变"开头。\n\n' +
         '【任务二：色调方案】\n' +
         '确定这一套图要用的色调。\n' +
-        '- 如果给了参考风格图：把参考图的色彩倾向（背景色、主色、氛围色）和产品自身的颜色融合，得出协调的色调方案。参考图只提供色彩参考，不提供道具。\n' +
+        '- 如果给了参考风格图：先找出参考图里最抢眼的那一个彩色（红/粉/珊瑚/蓝/绿/紫等），这个颜色必须成为整套图的主色或点睛色，不允许被白灰取代。再把它的色彩倾向和产品自身的颜色融合。参考图只提供色彩参考，不提供道具和构图。\n' +
         '- 如果没有参考图：完全根据产品本身的颜色推导。\n' +
-        '必须写清：主色（精确色名）、辅色1-2个（精确色名）、背景色（精确色名）、饱和度倾向（高/中/低）、明度倾向（明亮/中性/偏暗）、整体氛围（如清爽通透、温润高级、科技冷感）。\n' +
+        '必须写清：\n' +
+        '  主色——有参考图时必须写成参考图那个彩色的精确色名（例如"珊瑚红""蜜桃粉""雾霾蓝"），不允许把白、灰、米白写成主色；没有参考图时写产品最鲜明的那个颜色。\n' +
+        '  环境色——白、浅灰、米白，明确说明只用于背景和留白。\n' +
+        '  辅色1-2个（精确色名）、饱和度倾向（高/中/低）、明度倾向（明亮/中性/偏暗）、整体氛围（如清爽通透、温润高级、科技冷感）。\n' +
         '全部用具体色名，禁止"深色""浅色""高级色"这类模糊词。\n\n' +
+        '【任务三：强调色】\n' +
+        '从上面的色调里挑出唯一一个必须真实出现在画面中的颜色。有参考图时优先取参考图的那个主彩色；没有参考图时取产品标签或产品本身最鲜明的颜色。\n' +
+        '只输出一个颜色，格式为"色名 色值"，例如"珊瑚红 #E8654F"。\n' +
+        '这个颜色会直接被写进画面道具的描述里，所以必须是能一眼看出来的颜色，不能是白、灰、米白这类环境色。\n\n' +
         '【输出格式，严格照此输出】\n' +
         '产品外观：\n（这里写产品外观描述）\n\n' +
-        '色调方案：\n（这里写色调方案）';
+        '色调方案：\n（这里写色调方案）\n\n' +
+        '强调色：\n（这里只写一个色名和一个色值）';
 
     const userPrompt = '请分析图片，严格按格式输出"产品外观"和"色调方案"两段。\n\n' +
         (ref ? '本次给了参考风格图，色调方案要把参考图的色彩倾向和产品自身颜色融合。' : '本次没有给参考风格图，色调方案完全根据产品本身的颜色来确定。') + '\n\n' +
@@ -435,7 +448,8 @@ async function analyzeImages() {
         '1. 产品外观段必须以"以参考图中的产品为唯一主体，严格保持其外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与文字完全不变"开头\n' +
         '2. 颜色必须用精确色名，例如"冷调银白""雾面米白""香槟金""灰蓝""浅青瓷白"，不要写"深色""浅色"\n' +
         '3. 标签上的文字要如实写出，这是产品识别度的关键\n' +
-        '4. 只输出这两段，不要输出解释、不要输出道具和场景描述';
+        '4. 强调色只能输出一个颜色，格式"色名 色值"，禁止白、灰、米白这类环境色\n' +
+        '5. 只输出这三段，不要输出解释、不要输出道具和场景描述';
 
     const parts = [{ type: 'image_url', image_url: { url: product } }];
     if (ref) parts.push({ type: 'image_url', image_url: { url: ref } });
@@ -473,12 +487,15 @@ async function analyzeImages() {
 
     const content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
     const pm = content.match(/产品外观[：:]\s*([\s\S]+?)(?=\n\s*色调方案|$)/);
-    const tm = content.match(/色调方案[：:]\s*([\s\S]+)$/);
+    const tm = content.match(/色调方案[：:]\s*([\s\S]+?)(?=\n\s*强调色|$)/);
+    const am = content.match(/强调色[：:]\s*([\s\S]+)$/);
     sceneProduct = pm ? pm[1].trim() : '';
     sceneTone = tm ? tm[1].trim() : '';
+    sceneAccent = am ? am[1].trim().split('\n')[0].trim() : '';
     if (!sceneProduct) sceneProduct = content.trim();
     if (!sceneTone) sceneTone = '保持产品自身固有色，低饱和，背景干净通透';
-    return { product: sceneProduct, tone: sceneTone };
+    if (!sceneAccent) sceneAccent = '产品标签上的主色';
+    return { product: sceneProduct, tone: sceneTone, accent: sceneAccent };
 }
 
 async function generateSceneImage(prompt, refImage) {
@@ -544,7 +561,7 @@ async function generate() {
         $('ldgSub').textContent = curPack.name + ' · ' + RATIOS[curRatio].label + ' · 大约需要 30-60 秒';
 
         const settled = await Promise.allSettled(
-            picked.map(set => generateSceneImage(buildScenePrompt(sceneProduct, sceneTone, curPack, set), refImage))
+            picked.map(set => generateSceneImage(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, set), refImage))
         );
 
         const items = [];
@@ -559,6 +576,7 @@ async function generate() {
             '【画幅】' + RATIOS[curRatio].label + ' · ' + RATIOS[curRatio].size + '\n\n' +
             '【产品外观】\n' + sceneProduct + '\n\n' +
             '【色调方案】\n' + sceneTone + '\n\n' +
+            '【强调色】\n' + sceneAccent + '\n\n' +
             '【本次道具搭配】\n' + picked.map((s, i) => (i + 1) + '. ' + s.name + '：' + s.props).join('\n');
 
         showResults(items);
@@ -614,7 +632,7 @@ function showView(v) {
     $('vErr').style.display = v === 'x' ? 'block' : 'none';
 }
 
-function resetAll() { clearPd(); clearRef(); sceneProduct = ''; sceneTone = ''; $('promptDebug').style.display = 'none'; showView('e'); }
+function resetAll() { clearPd(); clearRef(); sceneProduct = ''; sceneTone = ''; sceneAccent = ''; $('promptDebug').style.display = 'none'; showView('e'); }
 document.addEventListener('DOMContentLoaded', () => { showView('e'); renderPropTags(); pickRatio('1:1'); });
 
 </script>
