@@ -94,6 +94,23 @@
         .ratio-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
         .opt-tag { font-size: 11px; color: #aaa; font-weight: 400; margin-left: 4px; }
         .set-name { font-size: 12px; color: var(--text-sec); margin-bottom: 6px; }
+        .res-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+        @media (max-width: 1080px) { .res-grid { grid-template-columns: 1fr; } }
+        .res-card-body { padding: 10px 14px 14px; }
+        .view-thumbs { display: flex; gap: 6px; padding: 0 12px 10px; }
+        .view-thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 2px solid transparent; cursor: pointer; opacity: .5; transition: all .15s; }
+        .view-thumb:hover { opacity: .8; }
+        .view-thumb.active { border-color: var(--accent); opacity: 1; }
+        .tune-row { display: flex; gap: 8px; margin: 8px 0 10px; align-items: stretch; }
+        .tune-box { flex: 1; min-height: 52px; max-height: 140px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-family: inherit; color: var(--text); resize: vertical; line-height: 1.55; background: #fafafa; }
+        .tune-box:focus { outline: none; border-color: #999; background: #fff; }
+        .tune-box::placeholder { color: #bbb; }
+        .tune-btn { padding: 0 16px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; white-space: nowrap; }
+        .tune-btn:hover { background: var(--accent-h); }
+        .res-links { display: flex; gap: 16px; justify-content: center; align-items: center; }
+        .res-links a { font-size: 13px; color: var(--text-sec); text-decoration: none; cursor: pointer; }
+        .res-links a:first-child { color: var(--text); }
+        .res-links a:hover { color: var(--text); }
 
         .style-fixed { border: 1px solid var(--border); border-radius: var(--radius-s); padding: 10px 12px; background: #fafafa; }
         .style-fixed b { font-size: 14px; font-weight: 500; display: block; margin-bottom: 3px; }
@@ -149,7 +166,7 @@
 <div class="page">
 <div class="hdr">
     <span class="hdr-title">AI创意生图</span>
-    <span class="hdr-sub">上传产品 · 科研医美风 · 一次生成 3 张不同道具的场景图</span>
+    <span class="hdr-sub">上传产品 · 科研医美风 · 一次生成 4 张不同道具的场景图</span>
 </div>
 <div class="wrap">
     <div class="left">
@@ -164,8 +181,7 @@
             <div class="sec-label">② 场景风格</div>
             <div class="style-fixed">
                 <b>科研医美风</b>
-                <span>9 套道具搭配，每次随机抽 3 套不同</span>
-                <div class="prop-tags" id="propTags"></div>
+                <span>预设场景，每次随机搭配 4 套不同道具</span>
             </div>
         </div>
         <div>
@@ -191,13 +207,13 @@
                 <div id="refContent"><div class="up-ico">🎨</div><div class="up-txt">上传参考图，决定色调<br><span style="font-size:12px;color:#bbb;">不传则按产品本身颜色定</span></div></div>
             </div>
         </div>
-        <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成 3 张场景图</button>
+        <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成 4 张场景图</button>
     </div>
     <div class="right" id="right">
         <div class="empty" id="vEmpty">
             <div class="empty-ico"><span>◇</span></div>
             <div class="empty-t">准备开始</div>
-            <div class="empty-d">上传产品白底图，AI 照着你的产品原样画，一次出 3 张科研医美风场景图。同一套色调和光影，道具各不相同。参考图选填，只用来定色调。</div>
+            <div class="empty-d">上传产品白底图，AI 照着你的产品原样画，一次出 4 张科研医美风场景图。同一套色调和光影，道具各不相同。参考图选填，只用来定色调。</div>
         </div>
         <div class="ldg" id="vLoad" style="display:none">
             <div class="spin"></div>
@@ -205,7 +221,7 @@
             <div class="ldg-sub" id="ldgSub">大约需要20-40秒</div>
             <div class="ldg-steps">
                 <div class="ldg-step" id="step1"><div class="step-ico wait">1</div>分析图片生成提示词</div>
-                <div class="ldg-step" id="step2"><div class="step-ico wait">2</div>生成 3 张不同道具的场景图</div>
+                <div class="ldg-step" id="step2"><div class="step-ico wait">2</div>生成 4 张不同道具的场景图</div>
             </div>
         </div>
         <div class="res-wrap" id="vRes" style="display:none">
@@ -245,7 +261,7 @@ const IMAGE_MODELS = ['doubao-seedream-4-0-250828', 'doubao-seedream-4-0-2026041
 const CROP_THRESHOLD = 240;
 const CROP_PADDING = 20;
 const REF_IMAGE_MAX = 1536;
-const SHOTS_PER_RUN = 3;
+const SHOTS_PER_RUN = 4;
 
 // 画幅：产品只占画面 1/3，画布不用太大
 // 产品只占画面 1/3，画布要给足像素，否则产品细节会糊
@@ -336,16 +352,6 @@ function clearPd() { productSrc = null; productCroppedSrc = null; $('pdFile').va
 function clearRef() { refSrc = null; $('refFile').value = ''; $('refArea').classList.remove('has'); $('refArea').style.borderColor = ''; $('refContent').innerHTML = '<div class="up-ico">🎨</div><div class="up-txt">上传参考图，决定色调<br><span style="font-size:12px;color:#bbb;">不传则按产品本身颜色定</span></div>'; }
 function updateGenBtn() { $('genBtn').disabled = !productCroppedSrc; }
 
-function renderPropTags() {
-    const g = $('propTags');
-    if (!g) return;
-    g.innerHTML = '';
-    SCENE_PACK.sets.forEach(set => {
-        const t = document.createElement('i');
-        t.textContent = set.tag;
-        g.appendChild(t);
-    });
-}
 function pickSize(v) {
     curSize = v;
     document.querySelectorAll('#sizeRow .ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.s === v));
@@ -566,11 +572,23 @@ function setStep(n) {
     }
 }
 
-// 抽 3 套不重复的道具
+// 抽 N 套不重复的道具
 function pickSets() {
     const pool = curPack.sets.slice();
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
     return pool.slice(0, Math.min(SHOTS_PER_RUN, pool.length));
+}
+
+// 把微调指令接到提示词末尾：放最后、权重最高，用来覆盖前面的相关描述
+function withTune(prompt, tune) {
+    const t = (tune || '').trim();
+    if (!t) return prompt;
+    return prompt + '\n\n【额外调整 · 优先级最高，覆盖前面所有与之相关的描述】\n' + t;
+}
+
+// 按某个 view 组装最终提示词
+function promptForView(item, view) {
+    return withTune(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, item.set), view.tune);
 }
 
 // 只跑出图，不重新分析（换一批道具用这个，省掉分析的钱和时间）
@@ -584,57 +602,127 @@ async function runShots() {
         const picked = pickSets();
         setStep(2);
         $('ldgTxt').textContent = '正在生成 ' + picked.length + ' 张场景图...';
-        $('ldgSub').textContent = curPack.name + ' · ' + RATIOS[curRatio].label + ' · 大约需要 30-60 秒';
+        $('ldgSub').textContent = curPack.name + ' · ' + RATIOS[curRatio].label + ' · 大约需要 40-70 秒';
 
         const settled = await Promise.allSettled(
             picked.map(set => generateSceneImage(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, set), lastRefImage))
         );
 
         const items = [];
-        settled.forEach((r, i) => { if (r.status === 'fulfilled' && r.value) items.push({ src: r.value, name: picked[i].name, set: picked[i] }); });
+        settled.forEach((r, i) => {
+            if (r.status === 'fulfilled' && r.value) {
+                items.push({
+                    name: picked[i].name,
+                    set: picked[i],
+                    active: 0,
+                    views: [{ angle: '主图', src: r.value, refImage: lastRefImage, tune: '' }]
+                });
+            }
+        });
         if (!items.length) {
             const firstErr = settled.find(r => r.status === 'rejected');
             throw new Error((firstErr && firstErr.reason && firstErr.reason.message) ? firstErr.reason.message : '全部生成失败，请重试');
         }
 
         lastItems = items;
-        window._promptSegments =
-            '【风格】' + curPack.name + '\n' +
-            '【画幅】' + RATIOS[curRatio].label + ' · ' + RATIOS[curRatio].size + '\n' +
-            '【产品大小】' + (SIZE_LEVELS[curSize] ? SIZE_LEVELS[curSize].text : '40%~46%') + '\n\n' +
-            '【产品外观】\n' + sceneProduct + '\n\n' +
-            '【色调方案】\n' + sceneTone + '\n\n' +
-            '【强调色】\n' + sceneAccent + '\n\n' +
-            '【本次道具搭配】\n' + items.map((it, i) => (i + 1) + '. ' + it.name + '：' + it.set.props.replace(/\{C\}/g, sceneAccent)).join('\n');
-
-        showResults(items);
+        updatePromptDebug();
+        showResults();
     } catch (err) {
         console.error(err); showView('x'); $('errTxt').textContent = err.message || '请稍后重试';
     } finally { busy = false; updateGenBtn(); }
 }
 
-// 换一批道具：跳过分析，直接重抽 3 套
+// 换一批道具：跳过分析，直接重抽 N 套
 async function regenerateProps() {
     if (busy) return;
     await runShots();
 }
 
-// 单张重出：同一套道具重新画一次
+// 重出某一张（当前角度，原样再画一次）
 async function regenerateOne(idx) {
     if (busy) return;
     const it = lastItems[idx];
-    if (!it || !it.set || !lastRefImage) return;
+    if (!it) return;
+    const v = it.views[it.active];
+    if (!v) return;
     busy = true;
     const card = document.querySelector('[data-idx="' + idx + '"]');
     if (card) card.style.opacity = '.35';
     try {
-        const src = await generateSceneImage(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, it.set), lastRefImage);
-        lastItems[idx] = { src: src, name: it.name, set: it.set };
-        showResults(lastItems);
+        const src = await generateSceneImage(promptForView(it, v), v.refImage);
+        v.src = src;
+        showResults();
     } catch (e) {
         alert('重出失败：' + (e.message || '请稍后重试'));
         if (card) card.style.opacity = '1';
     } finally { busy = false; }
+}
+
+// 提交微调指令：把框里的话拼进这张图的提示词，只重出这一张
+async function submitTune(idx) {
+    if (busy) return;
+    const it = lastItems[idx];
+    if (!it) return;
+    const v = it.views[it.active];
+    const box = document.querySelector('[data-tune="' + idx + '"]');
+    if (!v || !box) return;
+    const t = box.value.trim();
+    if (!t) { alert('先写一句想改什么，比如「不要分子结构」或「红色改成浅蓝」'); return; }
+    v.tune = t;
+    busy = true;
+    const card = document.querySelector('[data-idx="' + idx + '"]');
+    if (card) card.style.opacity = '.35';
+    try {
+        const src = await generateSceneImage(promptForView(it, v), v.refImage);
+        v.src = src;
+        showResults();
+    } catch (e) {
+        alert('微调失败：' + (e.message || '请稍后重试'));
+        if (card) card.style.opacity = '1';
+    } finally { busy = false; }
+}
+
+// 补其他角度：锁定道具搭配 + 色调 + 产品外观描述，只把参考图换成新角度
+function addAngle(idx) {
+    if (busy) return;
+    const it = lastItems[idx];
+    if (!it) return;
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = async () => {
+        const f = inp.files && inp.files[0];
+        if (!f) return;
+        busy = true;
+        const card = document.querySelector('[data-idx="' + idx + '"]');
+        if (card) card.style.opacity = '.35';
+        try {
+            const raw = await new Promise((res, rej) => {
+                const r = new FileReader();
+                r.onload = () => res(r.result);
+                r.onerror = rej;
+                r.readAsDataURL(f);
+            });
+            const cropped = await autoCrop(raw);
+            const ref = await prepareRefImage(cropped);
+            // 注意：这里不重新分析，复用第一次的产品外观 / 色调 / 强调色，保证成套
+            const src = await generateSceneImage(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, it.set), ref);
+            it.views.push({ angle: '角度' + (it.views.length + 1), src: src, refImage: ref, tune: '' });
+            it.active = it.views.length - 1;
+            showResults();
+        } catch (e) {
+            alert('补角度失败：' + (e.message || '请稍后重试'));
+            if (card) card.style.opacity = '1';
+        } finally { busy = false; }
+    };
+    inp.click();
+}
+
+// 切换某一张显示哪个角度
+function pickView(idx, vi) {
+    const it = lastItems[idx];
+    if (!it || !it.views[vi]) return;
+    it.active = vi;
+    showResults();
 }
 
 async function generate() {
@@ -653,23 +741,51 @@ async function generate() {
     await runShots();
 }
 
-function showResults(items) {
+function updatePromptDebug() {
+    window._promptSegments =
+        '【风格】' + curPack.name + '\n' +
+        '【画幅】' + RATIOS[curRatio].label + ' · ' + RATIOS[curRatio].size + '\n' +
+        '【产品大小】' + (SIZE_LEVELS[curSize] ? SIZE_LEVELS[curSize].text : '40%~46%') + '\n\n' +
+        '【产品外观】\n' + sceneProduct + '\n\n' +
+        '【色调方案】\n' + sceneTone + '\n\n' +
+        '【强调色】\n' + sceneAccent + '\n\n' +
+        '【本次道具搭配】\n' + lastItems.map((it, i) => (i + 1) + '. ' + it.name + '：' + it.set.props.replace(/\{C\}/g, sceneAccent)).join('\n');
+}
+
+function showResults() {
     showView('r');
     const container = $('resContent');
     container.innerHTML = '';
     const grid = document.createElement('div');
-    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;';
-    items.forEach((it, idx) => {
+    grid.className = 'res-grid';
+    lastItems.forEach((it, idx) => {
+        const v = it.views[it.active] || it.views[0];
         const card = document.createElement('div');
         card.className = 'res-card';
         card.setAttribute('data-idx', idx);
-        card.innerHTML = '<div class="res-card-img"><img src="' + it.src + '" alt="场景图' + (idx + 1) + '"></div>' +
-            '<div style="padding:10px 14px;text-align:center;">' +
-            '<div class="set-name">' + it.name + '</div>' +
-            '<div style="display:flex;gap:14px;justify-content:center;align-items:center;">' +
-            '<a href="' + it.src + '" download="scene-' + (idx + 1) + '.jpg" style="font-size:13px;color:var(--text);text-decoration:none;cursor:pointer;">下载</a>' +
-            '<a onclick="regenerateOne(' + idx + ')" style="font-size:13px;color:var(--text-sec);text-decoration:none;cursor:pointer;">重出这张</a>' +
-            '</div></div>';
+
+        let thumbs = '';
+        if (it.views.length > 1) {
+            thumbs = '<div class="view-thumbs">' + it.views.map((vv, vi) =>
+                '<img src="' + vv.src + '" class="view-thumb' + (vi === it.active ? ' active' : '') + '" onclick="pickView(' + idx + ',' + vi + ')" title="' + vv.angle + '">'
+            ).join('') + '</div>';
+        }
+
+        card.innerHTML =
+            '<div class="res-card-img"><img src="' + v.src + '" alt="场景图' + (idx + 1) + '"></div>' +
+            thumbs +
+            '<div class="res-card-body">' +
+            '<div class="set-name">' + it.name + (it.views.length > 1 ? ' · ' + v.angle : '') + '</div>' +
+            '<div class="tune-row">' +
+            '<textarea class="tune-box" data-tune="' + idx + '" placeholder="想改什么就写一句，比如：不要分子结构 / 红色改成浅蓝 / 背景再虚一点">' + (v.tune || '') + '</textarea>' +
+            '<button class="tune-btn" onclick="submitTune(' + idx + ')">提交</button>' +
+            '</div>' +
+            '<div class="res-links">' +
+            '<a href="' + v.src + '" download="scene-' + (idx + 1) + '.jpg">下载</a>' +
+            '<a onclick="regenerateOne(' + idx + ')">重出这张</a>' +
+            '<a onclick="addAngle(' + idx + ')">补其他角度</a>' +
+            '</div>' +
+            '</div>';
         grid.appendChild(card);
     });
     container.appendChild(grid);
@@ -703,8 +819,16 @@ function showView(v) {
     $('vErr').style.display = v === 'x' ? 'block' : 'none';
 }
 
-function resetAll() { clearPd(); clearRef(); sceneProduct = ''; sceneTone = ''; sceneAccent = ''; lastRefImage = null; lastItems = []; $('promptDebug').style.display = 'none'; showView('e'); }
-document.addEventListener('DOMContentLoaded', () => { showView('e'); renderPropTags(); pickRatio('1:1'); pickSize('medium'); });
+function resetAll() {
+    clearPd(); clearRef();
+    sceneProduct = ''; sceneTone = ''; sceneAccent = '';
+    lastRefImage = null; lastItems = [];
+    $('promptDebug').style.display = 'none';
+    showView('e');
+}
+
+document.addEventListener('DOMContentLoaded', () => { showView('e'); pickRatio('1:1'); pickSize('medium'); });
+
 
 </script>
 
