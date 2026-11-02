@@ -112,11 +112,6 @@
         .res-links a:first-child { color: var(--text); }
         .res-links a:hover { color: var(--text); }
 
-        .style-fixed { border: 1px solid var(--border); border-radius: var(--radius-s); padding: 10px 12px; background: #fafafa; }
-        .style-fixed b { font-size: 14px; font-weight: 500; display: block; margin-bottom: 3px; }
-        .style-fixed span { font-size: 12px; color: var(--text-sec); }
-        .prop-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
-        .prop-tags i { font-style: normal; font-size: 11px; color: var(--text-sec); background: #fff; border: 1px solid var(--border); border-radius: 5px; padding: 2px 7px; }
 
         @media (max-width: 860px) {
             .wrap { flex-direction: column; height: auto; }
@@ -178,14 +173,7 @@
             </div>
         </div>
         <div>
-            <div class="sec-label">② 场景风格</div>
-            <div class="style-fixed">
-                <b>科研医美风</b>
-                <span>预设场景，每次随机搭配 4 套不同道具</span>
-            </div>
-        </div>
-        <div>
-            <div class="sec-label">③ 画幅</div>
+            <div class="sec-label">② 画幅</div>
             <div class="ratio-row" id="ratioRow">
                 <button class="ratio-btn active" data-r="1:1" onclick="pickRatio('1:1')">1:1 主图</button>
                 <button class="ratio-btn" data-r="3:4" onclick="pickRatio('3:4')">3:4 竖版</button>
@@ -193,7 +181,7 @@
             </div>
         </div>
         <div>
-            <div class="sec-label">④ 产品大小</div>
+            <div class="sec-label">③ 产品大小</div>
             <div class="ratio-row" id="sizeRow">
                 <button class="ratio-btn" data-s="small" onclick="pickSize('small')">小</button>
                 <button class="ratio-btn active" data-s="medium" onclick="pickSize('medium')">中</button>
@@ -234,10 +222,6 @@
                 </div>
             </div>
             <div id="resContent"></div>
-            <div id="promptDebug" style="display:none;margin-top:16px;padding:14px;background:#f9f9fb;border:1px solid var(--border);border-radius:var(--radius-s);font-size:12px;color:var(--text-sec);line-height:1.6;">
-                <div style="font-weight:600;margin-bottom:6px;color:var(--text);">📝 生成提示词</div>
-                <div id="promptText"></div>
-            </div>
         </div>
         <div class="err" id="vErr" style="display:none">
             <div class="err-ico">✕</div>
@@ -625,7 +609,6 @@ async function runShots() {
         }
 
         lastItems = items;
-        updatePromptDebug();
         showResults();
     } catch (err) {
         console.error(err); showView('x'); $('errTxt').textContent = err.message || '请稍后重试';
@@ -741,17 +724,6 @@ async function generate() {
     await runShots();
 }
 
-function updatePromptDebug() {
-    window._promptSegments =
-        '【风格】' + curPack.name + '\n' +
-        '【画幅】' + RATIOS[curRatio].label + ' · ' + RATIOS[curRatio].size + '\n' +
-        '【产品大小】' + (SIZE_LEVELS[curSize] ? SIZE_LEVELS[curSize].text : '40%~46%') + '\n\n' +
-        '【产品外观】\n' + sceneProduct + '\n\n' +
-        '【色调方案】\n' + sceneTone + '\n\n' +
-        '【强调色】\n' + sceneAccent + '\n\n' +
-        '【本次道具搭配】\n' + lastItems.map((it, i) => (i + 1) + '. ' + it.name + '：' + it.set.props.replace(/\{C\}/g, sceneAccent)).join('\n');
-}
-
 function showResults() {
     showView('r');
     const container = $('resContent');
@@ -789,27 +761,6 @@ function showResults() {
         grid.appendChild(card);
     });
     container.appendChild(grid);
-    if (window._promptSegments) {
-        $('promptDebug').style.display = 'block';
-        renderPromptSegments(window._promptSegments);
-    }
-}
-
-function renderPromptSegments(fullText) {
-    const container = $('promptText');
-    container.innerHTML = '';
-    const wrap = document.createElement('div');
-    wrap.style.cssText = 'position:relative;padding:12px;background:#fff;border:1px solid var(--border);border-radius:8px;';
-    wrap.innerHTML = '<button onclick="copyAllPrompt(this)" style="position:absolute;top:8px;right:8px;font-size:12px;color:var(--text-sec);background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:3px 10px;">复制</button>' +
-        '<div style="font-size:12px;color:#444;line-height:1.8;white-space:pre-wrap;padding-right:50px;">' + fullText + '</div>';
-    container.appendChild(wrap);
-}
-
-function copyAllPrompt(btn) {
-    const fullText = window._promptSegments || '';
-    navigator.clipboard.writeText(fullText).then(() => {
-        btn.textContent = '已复制'; setTimeout(() => btn.textContent = '复制', 1500);
-    });
 }
 
 function showView(v) {
@@ -823,7 +774,6 @@ function resetAll() {
     clearPd(); clearRef();
     sceneProduct = ''; sceneTone = ''; sceneAccent = '';
     lastRefImage = null; lastItems = [];
-    $('promptDebug').style.display = 'none';
     showView('e');
 }
 
