@@ -130,7 +130,7 @@
 <div class="page">
 <div class="hdr">
     <span class="hdr-title">AI创意生图</span>
-    <span class="hdr-sub">上传产品+参考，AI一步生成场景图</span>
+    <span class="hdr-sub">上传产品+参考，一次生成 5 张成套场景图</span>
 </div>
 <div class="wrap">
     <div class="left">
@@ -148,13 +148,13 @@
                 <div id="refContent"><div class="up-ico">🎨</div><div class="up-txt">上传参考风格图</div></div>
             </div>
         </div>
-        <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成场景</button>
+        <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成 5 张成套场景</button>
     </div>
     <div class="right" id="right">
         <div class="empty" id="vEmpty">
             <div class="empty-ico"><span>◇</span></div>
             <div class="empty-t">准备开始</div>
-            <div class="empty-d">上传产品白底图和参考风格图，AI一步生成产品融入场景的完整效果图</div>
+            <div class="empty-d">上传产品白底图和参考风格图，AI 照着你的产品原样画，一次出 5 张同色调、同光向、只有构图不同的成套场景图</div>
         </div>
         <div class="ldg" id="vLoad" style="display:none">
             <div class="spin"></div>
@@ -162,12 +162,12 @@
             <div class="ldg-sub" id="ldgSub">大约需要20-40秒</div>
             <div class="ldg-steps">
                 <div class="ldg-step" id="step1"><div class="step-ico wait">1</div>分析图片生成提示词</div>
-                <div class="ldg-step" id="step2"><div class="step-ico wait">2</div>一步生成场景图</div>
+                <div class="ldg-step" id="step2"><div class="step-ico wait">2</div>生成 5 张成套场景图</div>
             </div>
         </div>
         <div class="res-wrap" id="vRes" style="display:none">
             <div class="res-top">
-                <h2>场景生成结果</h2>
+                <h2>成套场景图</h2>
                 <div class="res-actions-top">
                     <button class="new-btn" onclick="generate()">再生成一次</button>
                     <button class="new-btn" onclick="resetAll()">重新开始</button>
@@ -193,11 +193,23 @@
 const ARK_API_KEY = 'ark-32e3cca5-30ab-4d17-91c1-5024b1c57850-5bda0';
 const CHAT_API = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
 const IMAGE_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
-const VISION_MODEL = 'doubao-seed-1-6-vision-250815';
-const IMAGE_MODEL = 'doubao-seedream-4-0-250828';
+// 视觉模型按优先级回退：方舟模型迭代快，旧版下线后自动切下一个
+const VISION_MODELS = ['doubao-seed-2-1-pro-260915', 'doubao-seed-2-0-lite-260428', 'doubao-seed-2-0-mini-260428'];
+// 图像模型按优先级回退：seedream-4-0-250828 已列入下线计划，备用 20260415 版本
+const IMAGE_MODELS = ['doubao-seedream-4-0-250828', 'doubao-seedream-4-0-20260415'];
 const IMAGE_SIZE = '1080x1920';
 const CROP_THRESHOLD = 240;
 const CROP_PADDING = 20;
+const REF_IMAGE_MAX = 1536;
+
+// 一套图的 5 种构图变体：产品、光影、色彩全部锁死，只有视角和道具排布变
+const SHOT_VARIANTS = [
+  '平视正面视角，产品居中，道具位于侧后方，画面左右留白均衡',
+  '45度俯视角，产品略偏左三分位，道具在前景轻微虚化，营造纵深',
+  '平视侧面视角，产品位于右侧黄金分割点，道具在左后方形成呼应',
+  '高角度俯拍，产品居中，道具围绕产品呈半环状分布',
+  '低角度仰视，产品居中略偏下，道具在后上方，强调产品体量感'
+];
 
 let productSrc = null, productCroppedSrc = null, refSrc = null, scenePrompt = null, busy = false;
 const $ = id => document.getElementById(id);
@@ -261,6 +273,31 @@ function resizeForAPI(dataUri, maxDim = 1024) {
     });
 }
 
+// 把产品图处理成可直接传给方舟参考图参数的 base64（白底填充，避免透明区域变黑）
+function prepareRefImage(dataUri, maxDim = REF_IMAGE_MAX) {
+    return new Promise(resolve => {
+        const img = new Image(); img.onload = () => {
+            let w = img.width, h = img.height;
+            if (Math.max(w, h) > maxDim) {
+                const s = maxDim / Math.max(w, h);
+                w = Math.round(w * s); h = Math.round(h * s);
+            }
+            const c = document.createElement('canvas'); c.width = w; c.height = h;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(c.toDataURL('image/jpeg', 0.92));
+        }; img.src = dataUri;
+    });
+}
+
+// 主提示词 + 本张构图指定 = 一套里的一张
+function buildShotPrompt(basePrompt, variant, idx) {
+    return basePrompt +
+        `\n\n【本张构图指定】${variant}。以上构图指定优先于前文的构图描述；产品锁定、光影、色彩、材质、画质、负面避坑等其余要求完全不变。` +
+        `这是同一套系列中的第 ${idx + 1} 张（共 ${SHOT_VARIANTS.length} 张），必须与其他张保持完全相同的色调、光向和产品外观。`;
+}
+
 async function analyzeImages() {
     const [product, ref] = await Promise.all([resizeForAPI(productSrc, 2048), resizeForAPI(refSrc, 2048)]);
 
@@ -270,6 +307,9 @@ async function analyzeImages() {
 
 【第一步：识别产品特征】
 仔细观察产品白底图，逐一识别：产品类型、外形轮廓（圆/方/异形）、材质类型、颜色（精确色名，不用"深色""浅色"）、表面质感（哑光/光面/磨砂/拉丝/纹理）、反光特性（强反光/微反光/不反光/半透光）。不写具体尺寸数字。
+
+【重要前提】
+生图时会同时把这张产品原图作为参考图传给生图模型。所以提示词第一段必须明确要求"以参考图中的产品为唯一主体，外形、比例、材质、颜色、标签完全保持不变"，让模型照着原图画，而不是凭文字重新发明一个产品。
 
 【第二步：识别参考图元素】
 仔细观察参考图，逐一清点：台面/地面材质及颜色、每个道具的形状和位置、背景环境、光源方向和色温、整体色调倾向。
@@ -286,8 +326,8 @@ async function analyzeImages() {
 严格按以下结构输出，六段缺一不可：
 
 场景提示词：
-① 主体还原：[只描述第一张图的产品本身：产品名称、外形轮廓、材质、精确颜色、表面质感、反光特性。不写具体尺寸数字，不写场景、道具、背景]
-② 场景构图：[产品在画面中的位置，参考图同类型元素的全新构图。每个元素的具体位置、角度、距离、与产品的空间关系。只写位置布局]
+① 主体锁定：以参考图中的产品为唯一主体，严格保持其外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与文字完全不变，不得替换、美化或重新设计产品本身的任何特征。随后再描述产品名称、外形轮廓、材质、精确颜色、表面质感、反光特性。不写具体尺寸数字，不写场景、道具、背景]
+② 场景构图：[参考图同类型元素的全新构图。每个道具的具体形态、材质、与产品的空间关系。只写道具种类和相对关系，不要写死相机视角，也不要写死产品在画面中的绝对位置，视角由后续构图指定决定]
 ③ 光影质感：[根据产品材质选光线类型。明确写出：主光源方向和角度、辅光位置、光线类型（柔光/逆光/侧光/漫射光）、产品表面的光影效果（高光位置、阴影形态、反射情况）。产品光影必须与场景光源一致。所有光源必须是自然光或环境光效果，画面中绝对不可出现任何灯具、灯架、柔光箱等摄影设备。质控：无脏影、无杂光、无过曝、无死黑]
 ④ 色彩氛围：[主色调（精确色名）、2-4个核心色彩、整体氛围和情绪]
 ⑤ 画质参数：8K超写实，专业商业产品摄影，细节清晰锐利，色彩还原准确，边缘轮廓分明
@@ -320,7 +360,9 @@ async function analyzeImages() {
 
     const userPrompt = `请仔细观察两张图，然后按六段式结构生成场景提示词。
 
-最重要：①主体还原只写第一张图里产品本身的外观！只写产品！不要写场景、道具、背景！
+本次生图会把第一张图（产品图）原样作为参考图传给生图模型，所以①段必须写明"以参考图中的产品为唯一主体，外形、比例、材质、颜色、标签完全保持不变"。
+
+最重要：①主体锁定只写第一张图里产品本身的外观！只写产品！不要写场景、道具、背景！
 例如产品是水盘就只写水盘的外观（形状、材质、颜色、质感），不要写水盘旁边有什么。
 
 其他要求：
@@ -329,26 +371,41 @@ async function analyzeImages() {
 3. 根据产品材质选光线（反光→柔光控制高光，吸光→侧光增质感，透明→逆光通透感）
 4. 光影段必须写清主光源方向、角度、光线类型、产品表面效果
 5. 只用参考图实际存在的元素类型，不添加不替换，不因主题联想加装饰物，画面中禁止出现任何灯具和摄影设备
-6. 色调与参考图一致，构图重新设计`;
+6. 色调与参考图一致，构图重新设计
+7. ①段必须写明"以参考图中的产品为唯一主体，外形、比例、材质、颜色、标签完全保持不变"`;
 
-    const response = await fetch(CHAT_API, {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + ARK_API_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            model: VISION_MODEL,
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: [
-                    { type: 'image_url', image_url: { url: product } },
-                    { type: 'image_url', image_url: { url: ref } },
-                    { type: 'text', text: userPrompt }
-                ] }
-            ],
-            temperature: 0.6, max_tokens: 2500
-        })
-    });
-    if (!response.ok) { const ed = await response.json().catch(() => ({})); throw new Error('风格分析失败: ' + (ed.error?.message || response.status)); }
-    const data = await response.json();
+    const reqBody = {
+        messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: [
+                { type: 'image_url', image_url: { url: product } },
+                { type: 'image_url', image_url: { url: ref } },
+                { type: 'text', text: userPrompt }
+            ] }
+        ],
+        thinking: { type: 'disabled' },
+        temperature: 0.6, max_tokens: 2500
+    };
+    let data = null, lastErr = '';
+    for (const vm of VISION_MODELS) {
+        try {
+            const response = await fetch(CHAT_API, {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + ARK_API_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify(Object.assign({ model: vm }, reqBody))
+            });
+            if (!response.ok) {
+                const ed = await response.json().catch(() => ({}));
+                lastErr = ed.error?.message || String(response.status);
+                continue;
+            }
+            data = await response.json();
+            break;
+        } catch (e) {
+            lastErr = e.message || String(e);
+        }
+    }
+    if (!data) throw new Error('风格分析失败: ' + (lastErr || '所有视觉模型均不可用'));
     const content = data.choices?.[0]?.message?.content || '';
     const m = content.match(/场景提示词[：:]\s*([\s\S]+?)$/);
     if (m) {
@@ -360,23 +417,37 @@ async function analyzeImages() {
     return scenePrompt;
 }
 
-async function generateSceneImage(prompt) {
+async function generateSceneImage(prompt, refImage) {
     // 提取⑥负面避坑内容，在末尾再强调一遍
     const negMatch = prompt.match(/⑥\s*负面避坑[：:]\s*([\s\S]+?)$/);
     const negReminder = negMatch ? '。严格约束：' + negMatch[1].trim() : '';
     const fullPrompt = prompt + negReminder;
-    const bodyObj = {
-        model: IMAGE_MODEL,
+    const baseBody = {
         prompt: fullPrompt,
         size: IMAGE_SIZE,
         stream: false,
         response_format: 'b64_json',
         watermark: false
     };
-    const r = await fetch(IMAGE_API, { method: 'POST', headers: { 'Authorization': 'Bearer ' + ARK_API_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyObj) });
-    if (!r.ok) { const ed = await r.json().catch(() => ({})); throw new Error('场景图生成失败: ' + (ed.error?.message || r.status)); }
-    const data = await r.json();
+    // 关键：把产品原图作为参考图传入，让模型照着原图画，而不是凭文字重新发明产品
+    if (refImage) baseBody.image = [refImage];
+    let data = null, lastErr = '';
+    for (const im of IMAGE_MODELS) {
+        try {
+            const r = await fetch(IMAGE_API, { method: 'POST', headers: { 'Authorization': 'Bearer ' + ARK_API_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify(Object.assign({ model: im }, baseBody)) });
+            if (!r.ok) {
+                const ed = await r.json().catch(() => ({}));
+                lastErr = ed.error?.message || String(r.status);
+                continue;
+            }
+            data = await r.json();
+            break;
+        } catch (e) {
+            lastErr = e.message || String(e);
+        }
+    }
+    if (!data) throw new Error('场景图生成失败: ' + (lastErr || '所有图像模型均不可用'));
     if (data.data?.[0]?.b64_json) return 'data:image/png;base64,' + data.data[0].b64_json;
     if (data.data?.[0]?.url) return data.data[0].url;
     if (data.data?.[0]?.error) throw new Error('图片生成错误: ' + data.data[0].error.message);
@@ -398,12 +469,17 @@ async function generate() {
         showView('l');
         setStep(1); $('ldgTxt').textContent = '正在分析图片生成提示词...'; $('ldgSub').textContent = '大约需要5-10秒';
         await analyzeImages();
+        const refImage = await prepareRefImage(productCroppedSrc);
 
-        setStep(2); $('ldgTxt').textContent = '正在生成场景图...'; $('ldgSub').textContent = '大约需要15-30秒';
-        const imageDataUris = await Promise.all([
-            generateSceneImage(scenePrompt),
-            generateSceneImage(scenePrompt)
-        ]);
+        setStep(2); $('ldgTxt').textContent = `正在生成 ${SHOT_VARIANTS.length} 张成套场景图...`; $('ldgSub').textContent = '同一套光影色彩，5 种构图，大约需要 40-90 秒';
+        const settled = await Promise.allSettled(
+            SHOT_VARIANTS.map((variant, i) => generateSceneImage(buildShotPrompt(scenePrompt, variant, i), refImage))
+        );
+        const imageDataUris = settled.filter(r => r.status === 'fulfilled' && r.value).map(r => r.value);
+        if (!imageDataUris.length) {
+            const firstErr = settled.find(r => r.status === 'rejected');
+            throw new Error(firstErr && firstErr.reason && firstErr.reason.message ? firstErr.reason.message : '全部生成失败，请重试');
+        }
 
         showResults(imageDataUris);
     } catch (err) {
@@ -416,13 +492,13 @@ function showResults(imageDataUris) {
     const container = $('resContent');
     container.innerHTML = '';
     const pairDiv = document.createElement('div');
-    pairDiv.style.cssText = 'display:flex;gap:16px;justify-content:center;flex-wrap:wrap;';
+    pairDiv.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;';
     imageDataUris.forEach((src, idx) => {
         const card = document.createElement('div');
         card.className = 'res-card';
         card.innerHTML = `<div class="res-card-img"><img src="${src}" alt="场景图${idx+1}"></div>
             <div style="padding:10px 14px;text-align:center;">
-                <a href="${src}" download="scene-${idx+1}.png" style="font-size:13px;color:var(--text);text-decoration:none;cursor:pointer;">下载场景图</a>
+                <a href="${src}" download="scene-${idx+1}.jpg" style="font-size:13px;color:var(--text);text-decoration:none;cursor:pointer;">下载场景图</a>
             </div>`;
         pairDiv.appendChild(card);
     });
