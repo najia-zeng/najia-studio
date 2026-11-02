@@ -189,7 +189,7 @@
         <div class="empty" id="vEmpty">
             <div class="empty-ico"><span>◇</span></div>
             <div class="empty-t">准备开始</div>
-            <div class="empty-d">上传产品白底图和参考风格图，AI 照着你的产品原样画，一次出 5 张同色调、同光向、只有构图不同的成套场景图</div>
+            <div class="empty-d">上传产品白底图，AI 照着你的产品原样画，一次出 3 张科研医美风场景图。同一套色调和光影，道具各不相同。参考图选填，只用来定色调。</div>
         </div>
         <div class="ldg" id="vLoad" style="display:none">
             <div class="spin"></div>
@@ -197,14 +197,15 @@
             <div class="ldg-sub" id="ldgSub">大约需要20-40秒</div>
             <div class="ldg-steps">
                 <div class="ldg-step" id="step1"><div class="step-ico wait">1</div>分析图片生成提示词</div>
-                <div class="ldg-step" id="step2"><div class="step-ico wait">2</div>生成 5 张成套场景图</div>
+                <div class="ldg-step" id="step2"><div class="step-ico wait">2</div>生成 3 张不同道具的场景图</div>
             </div>
         </div>
         <div class="res-wrap" id="vRes" style="display:none">
             <div class="res-top">
                 <h2>成套场景图</h2>
                 <div class="res-actions-top">
-                    <button class="new-btn" onclick="generate()">再生成一次</button>
+                    <button class="new-btn" onclick="regenerateProps()">换一批道具</button>
+                    <button class="new-btn" onclick="generate()">重新分析</button>
                     <button class="new-btn" onclick="resetAll()">重新开始</button>
                 </div>
             </div>
@@ -296,6 +297,7 @@ const SCENE_PACK = {
 let productSrc = null, productCroppedSrc = null, refSrc = null, busy = false;
 let sceneProduct = '', sceneTone = '', sceneAccent = '';
 let curPack = SCENE_PACK, curRatio = '1:1';
+let lastRefImage = null, lastItems = [];
 
 const $ = id => document.getElementById(id);
 
@@ -542,6 +544,74 @@ function setStep(n) {
     }
 }
 
+// 抽 3 套不重复的道具
+function pickSets() {
+    const pool = curPack.sets.slice();
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+    return pool.slice(0, Math.min(SHOTS_PER_RUN, pool.length));
+}
+
+// 只跑出图，不重新分析（换一批道具用这个，省掉分析的钱和时间）
+async function runShots() {
+    if (!sceneProduct || !lastRefImage) return;
+    busy = true; $('genBtn').disabled = true;
+    try {
+        showView('l');
+        const picked = pickSets();
+        setStep(2);
+        $('ldgTxt').textContent = '正在生成 ' + picked.length + ' 张场景图...';
+        $('ldgSub').textContent = curPack.name + ' · ' + RATIOS[curRatio].label + ' · 大约需要 30-60 秒';
+
+        const settled = await Promise.allSettled(
+            picked.map(set => generateSceneImage(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, set), lastRefImage))
+        );
+
+        const items = [];
+        settled.forEach((r, i) => { if (r.status === 'fulfilled' && r.value) items.push({ src: r.value, name: picked[i].name, set: picked[i] }); });
+        if (!items.length) {
+            const firstErr = settled.find(r => r.status === 'rejected');
+            throw new Error((firstErr && firstErr.reason && firstErr.reason.message) ? firstErr.reason.message : '全部生成失败，请重试');
+        }
+
+        lastItems = items;
+        window._promptSegments =
+            '【风格】' + curPack.name + '\n' +
+            '【画幅】' + RATIOS[curRatio].label + ' · ' + RATIOS[curRatio].size + '\n\n' +
+            '【产品外观】\n' + sceneProduct + '\n\n' +
+            '【色调方案】\n' + sceneTone + '\n\n' +
+            '【强调色】\n' + sceneAccent + '\n\n' +
+            '【本次道具搭配】\n' + items.map((it, i) => (i + 1) + '. ' + it.name + '：' + it.set.props.replace(/\{C\}/g, sceneAccent)).join('\n');
+
+        showResults(items);
+    } catch (err) {
+        console.error(err); showView('x'); $('errTxt').textContent = err.message || '请稍后重试';
+    } finally { busy = false; updateGenBtn(); }
+}
+
+// 换一批道具：跳过分析，直接重抽 3 套
+async function regenerateProps() {
+    if (busy) return;
+    await runShots();
+}
+
+// 单张重出：同一套道具重新画一次
+async function regenerateOne(idx) {
+    if (busy) return;
+    const it = lastItems[idx];
+    if (!it || !it.set || !lastRefImage) return;
+    busy = true;
+    const card = document.querySelector('[data-idx="' + idx + '"]');
+    if (card) card.style.opacity = '.35';
+    try {
+        const src = await generateSceneImage(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, it.set), lastRefImage);
+        lastItems[idx] = { src: src, name: it.name, set: it.set };
+        showResults(lastItems);
+    } catch (e) {
+        alert('重出失败：' + (e.message || '请稍后重试'));
+        if (card) card.style.opacity = '1';
+    } finally { busy = false; }
+}
+
 async function generate() {
     if (busy || !productCroppedSrc) return;
     busy = true; $('genBtn').disabled = true;
@@ -549,40 +619,13 @@ async function generate() {
         showView('l');
         setStep(1); $('ldgTxt').textContent = '正在分析产品与色调...'; $('ldgSub').textContent = '大约需要 5-10 秒';
         await analyzeImages();
-        const refImage = await prepareRefImage(productCroppedSrc);
-
-        // 从选中风格里随机抽 3 套不同的道具搭配
-        const pool = curPack.sets.slice();
-        for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
-        const picked = pool.slice(0, Math.min(SHOTS_PER_RUN, pool.length));
-
-        setStep(2);
-        $('ldgTxt').textContent = '正在生成 ' + picked.length + ' 张场景图...';
-        $('ldgSub').textContent = curPack.name + ' · ' + RATIOS[curRatio].label + ' · 大约需要 30-60 秒';
-
-        const settled = await Promise.allSettled(
-            picked.map(set => generateSceneImage(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, set), refImage))
-        );
-
-        const items = [];
-        settled.forEach((r, i) => { if (r.status === 'fulfilled' && r.value) items.push({ src: r.value, name: picked[i].name }); });
-        if (!items.length) {
-            const firstErr = settled.find(r => r.status === 'rejected');
-            throw new Error((firstErr && firstErr.reason && firstErr.reason.message) ? firstErr.reason.message : '全部生成失败，请重试');
-        }
-
-        window._promptSegments =
-            '【风格】' + curPack.name + '（' + curPack.desc + '）\n' +
-            '【画幅】' + RATIOS[curRatio].label + ' · ' + RATIOS[curRatio].size + '\n\n' +
-            '【产品外观】\n' + sceneProduct + '\n\n' +
-            '【色调方案】\n' + sceneTone + '\n\n' +
-            '【强调色】\n' + sceneAccent + '\n\n' +
-            '【本次道具搭配】\n' + picked.map((s, i) => (i + 1) + '. ' + s.name + '：' + s.props).join('\n');
-
-        showResults(items);
+        lastRefImage = await prepareRefImage(productCroppedSrc);
     } catch (err) {
-        console.error(err); showView('x'); $('errTxt').textContent = err.message || '请稍后重试';
-    } finally { busy = false; updateGenBtn(); }
+        console.error(err); busy = false; updateGenBtn(); showView('x'); $('errTxt').textContent = err.message || '请稍后重试';
+        return;
+    }
+    busy = false;
+    await runShots();
 }
 
 function showResults(items) {
@@ -594,11 +637,14 @@ function showResults(items) {
     items.forEach((it, idx) => {
         const card = document.createElement('div');
         card.className = 'res-card';
+        card.setAttribute('data-idx', idx);
         card.innerHTML = '<div class="res-card-img"><img src="' + it.src + '" alt="场景图' + (idx + 1) + '"></div>' +
             '<div style="padding:10px 14px;text-align:center;">' +
             '<div class="set-name">' + it.name + '</div>' +
-            '<a href="' + it.src + '" download="scene-' + (idx + 1) + '.jpg" style="font-size:13px;color:var(--text);text-decoration:none;cursor:pointer;">下载场景图</a>' +
-            '</div>';
+            '<div style="display:flex;gap:14px;justify-content:center;align-items:center;">' +
+            '<a href="' + it.src + '" download="scene-' + (idx + 1) + '.jpg" style="font-size:13px;color:var(--text);text-decoration:none;cursor:pointer;">下载</a>' +
+            '<a onclick="regenerateOne(' + idx + ')" style="font-size:13px;color:var(--text-sec);text-decoration:none;cursor:pointer;">重出这张</a>' +
+            '</div></div>';
         grid.appendChild(card);
     });
     container.appendChild(grid);
@@ -632,7 +678,7 @@ function showView(v) {
     $('vErr').style.display = v === 'x' ? 'block' : 'none';
 }
 
-function resetAll() { clearPd(); clearRef(); sceneProduct = ''; sceneTone = ''; sceneAccent = ''; $('promptDebug').style.display = 'none'; showView('e'); }
+function resetAll() { clearPd(); clearRef(); sceneProduct = ''; sceneTone = ''; sceneAccent = ''; lastRefImage = null; lastItems = []; $('promptDebug').style.display = 'none'; showView('e'); }
 document.addEventListener('DOMContentLoaded', () => { showView('e'); renderPropTags(); pickRatio('1:1'); });
 
 </script>
