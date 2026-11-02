@@ -95,6 +95,12 @@
         .opt-tag { font-size: 11px; color: #aaa; font-weight: 400; margin-left: 4px; }
         .set-name { font-size: 12px; color: var(--text-sec); margin-bottom: 6px; }
 
+        .style-fixed { border: 1px solid var(--border); border-radius: var(--radius-s); padding: 10px 12px; background: #fafafa; }
+        .style-fixed b { font-size: 14px; font-weight: 500; display: block; margin-bottom: 3px; }
+        .style-fixed span { font-size: 12px; color: var(--text-sec); }
+        .prop-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+        .prop-tags i { font-style: normal; font-size: 11px; color: var(--text-sec); background: #fff; border: 1px solid var(--border); border-radius: 5px; padding: 2px 7px; }
+
         @media (max-width: 860px) {
             .wrap { flex-direction: column; height: auto; }
             .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
@@ -143,7 +149,7 @@
 <div class="page">
 <div class="hdr">
     <span class="hdr-title">AI创意生图</span>
-    <span class="hdr-sub">上传产品 · 选风格 · 一次生成 3 张成套场景图</span>
+    <span class="hdr-sub">上传产品 · 科研医美风 · 一次生成 3 张不同道具的场景图</span>
 </div>
 <div class="wrap">
     <div class="left">
@@ -156,7 +162,11 @@
         </div>
         <div>
             <div class="sec-label">② 场景风格</div>
-            <div class="style-grid" id="styleGrid"></div>
+            <div class="style-fixed">
+                <b>科研医美风</b>
+                <span>9 套道具搭配，每次随机抽 3 套不同</span>
+                <div class="prop-tags" id="propTags"></div>
+            </div>
         </div>
         <div>
             <div class="sec-label">③ 画幅</div>
@@ -243,82 +253,49 @@ const RATIOS = {
    每次出图从选中的风格里随机抽 3 套不同道具
    产品位置、尺寸、光影在同一风格内锁死，只有道具变化
    ============================================================ */
-const STYLE_PACKS = [
-    {
-        id: 'lab',
-        name: '冷调科研风',
-        desc: '亚克力 · 实验器皿 · 分子结构',
-        tone: '冷白与浅灰为主，透明材质，低饱和，干净通透',
-        light: '顶部大面积柔光作为主光，左前方补一道柔和轮廓光，浅景深，产品右下方形成自然柔和的投影，背景有柔和的明暗渐变，产品表面有一道清晰的竖向高光带',
-        sets: [
-            { name: '实验器皿', props: '产品放置在白色亚克力台面上，后方摆放玻璃培养皿与金属试管架，前景有一支虚化的玻璃螺旋管，背景散落数颗透明玻璃珠，层次由虚到实' },
-            { name: '亚克力道具', props: '产品放置在白色圆形亚克力台座正中，背后一片弧形亚克力挡板形成柔和的空间过渡，台座边缘有细腻的折射高光' },
-            { name: '亚克力+分子结构', props: '白色亚克力层叠台面，背景有淡色半透明的分子结构模型，右侧一片弧形亚克力板，整体通透干净' },
-            { name: '磨砂玻璃隔断', props: '产品立于浅灰石膏台面，背后一块磨砂玻璃隔断形成朦胧背景，前景有一道虚化的玻璃边缘' },
-            { name: '金属+玻璃罩', props: '拉丝不锈钢台面，产品右侧放置一个透明玻璃罩，背景为深灰到浅灰的垂直渐变' }
-        ]
-    },
-    {
-        id: 'water',
-        name: '水感通透风',
-        desc: '水面 · 水珠 · 玻璃砖',
-        tone: '浅蓝到青白，透明水感，高亮度，低饱和',
-        light: '逆光加轮廓光为主，水面形成细碎高光，产品边缘透亮，浅景深，背景有柔和的水波光斑',
-        sets: [
-            { name: '水面涟漪', props: '产品立于浅水面之上，水面有一圈柔和的涟漪，背景为浅蓝到白的垂直渐变，水面有细碎的反射光' },
-            { name: '水珠附着', props: '产品表面附着细密水珠，背景为深灰蓝色，强逆光从后方打透，产品边缘形成明亮轮廓光' },
-            { name: '亚克力+水花', props: '产品立于透明亚克力块上，周围有水花溅起的瞬间，高光在亚克力边缘折射' },
-            { name: '湿润石材', props: '深灰色湿润石材台面，表面有水痕与反光，背景为浅灰渐变，产品下方有浅倒影' },
-            { name: '玻璃砖', props: '长虹玻璃砖作为背景形成条纹折射，台面为浅色亚克力，空气中有轻薄水汽' }
-        ]
-    },
-    {
-        id: 'minimal',
-        name: '极简白底风',
-        desc: '白底 · 石膏 · 丝绸',
-        tone: '纯白到浅灰，几乎无色相，极低饱和，干净克制',
-        light: '大面积柔光箱效果，光线均匀柔和，产品上有清晰的竖向高光带，下方有柔和过渡的投影，背景为极浅的垂直渐变，无死白',
-        sets: [
-            { name: '纯白渐变', props: '产品置于纯白无缝背景前，背景为极浅的白到浅灰垂直渐变，产品下方有柔和自然的投影，大面积干净留白' },
-            { name: '石膏台', props: '产品立于浅灰哑光石膏台面，背景为浅灰渐变，左侧有一块虚化的石膏几何体，阴影柔和' },
-            { name: '白色亚克力台', props: '产品放在白色亚克力台上，台面边缘有细腻高光，背景为白色渐变，产品左侧有边缘光勾轮廓' },
-            { name: '米白背景纸', props: '产品置于米白色背景纸前，光线从右上方自然落下，产品左下方有自然投影，留白充足' },
-            { name: '白色丝绸', props: '产品立于白色丝绸褶皱之上，丝绸有柔和的褶皱高光，背景为白色渐变' }
-        ]
-    },
-    {
-        id: 'nature',
-        name: '自然植物风',
-        desc: '绿意 · 石材 · 木与亚麻',
-        tone: '浅米色、雾绿、灰白，自然柔和，中低饱和',
-        light: '侧上方自然光为主，光线有方向感和柔和过渡，植物形成虚化剪影，浅景深，背景有自然的光斑',
-        sets: [
-            { name: '虚化绿叶', props: '产品置于浅米色台面，前景有虚化的绿色叶片，背景为浅色渐变，绿意作为层次而非主体' },
-            { name: '洞石+干花', props: '产品立于米色洞石台面，背景有干花枝与虚化的枝叶，色调温暖克制' },
-            { name: '浅木+亚麻', props: '产品放在浅木色台面上，旁边有亚麻布的自然褶皱，背景为浅米色渐变' },
-            { name: '水面花瓣', props: '产品立于浅水面，水面漂浮数片花瓣，背景为浅米到浅绿渐变' },
-            { name: '苔藓石材', props: '产品置于灰色石材上，周围有少量苔藓，背景为浅灰绿渐变，光线柔和' }
-        ]
-    },
-    {
-        id: 'luxury',
-        name: '奢华质感风',
-        desc: '大理石 · 金属 · 丝绒',
-        tone: '深色与暖金对比，中低明度，高质感，克制的饱和',
-        light: '单点聚光为主，光比明显，产品上有清晰高光，背景压暗，产品边缘有金属反光或轮廓光，深色背景中有柔和光晕',
-        sets: [
-            { name: '深色大理石', props: '产品立于深色大理石台面，背景为深灰渐变，远处有一道细金属线条作为结构，产品下方有浅倒影' },
-            { name: '丝绸暖光', props: '产品置于深香槟色丝绸褶皱上，丝绸有柔和高光，背景压暗为深暖灰' },
-            { name: '黑色亚克力', props: '产品立于黑色高反光亚克力台面，单点聚光从上方打下，形成清晰光斑与倒影，背景为纯黑' },
-            { name: '镜面倒影', props: '产品置于镜面台面，形成完整倒影，背景为深灰渐变，光线克制' },
-            { name: '天鹅绒+金', props: '产品立于深色天鹅绒上，旁边有极少量金色元素，背景压暗，光线柔和集中' }
-        ]
-    }
-];
+/* ============================================================
+   场景风格：科研医美风（固定）
+   同一套色调与光影，9 套不同的道具搭配
+   每次出图随机抽 3 套不重复的，保证三张道具不一样
+   ============================================================ */
+const SCENE_PACK = {
+    name: '科研医美风',
+    tone: '冷白与浅灰为主，透明材质，低饱和，干净通透，克制的专业感',
+    light: '顶部大面积柔光作为主光，左前方补一道柔和轮廓光，浅景深，产品右下方形成自然柔和的投影，背景有柔和的明暗渐变，产品表面有一道清晰的竖向高光带',
+    sets: [
+        { name: '实验器皿',
+          tag: '实验器皿',
+          props: '产品放置在白色亚克力台面上，后方摆放两三个透明玻璃培养皿与一支金属试管架，前景有一支虚化的玻璃螺旋管，背景散落数颗透明玻璃珠，层次由虚到实' },
+        { name: '亚克力台座',
+          tag: '亚克力台座',
+          props: '产品放置在白色圆形亚克力台座正中，背后一片弧形亚克力挡板形成柔和的空间过渡，台座边缘有细腻的折射高光，背景为浅灰到白的渐变' },
+        { name: '亚克力+分子结构',
+          tag: '分子结构',
+          props: '白色亚克力层叠台面，背景有淡色半透明的分子结构球棍模型，右侧一片弧形亚克力板，整体通透干净' },
+        { name: '培养皿环绕',
+          tag: '培养皿',
+          props: '产品立于浅灰台面上，周围高低错落堆叠着数个透明玻璃培养皿，其中一两个里有浅色液体，背景为冷白渐变，玻璃边缘有细腻折射' },
+        { name: '水面倒影',
+          tag: '水面倒影',
+          props: '产品立于浅水面之上，水面有一圈柔和的涟漪与完整倒影，背景为浅蓝到白的垂直渐变，水面有细碎的反射光' },
+        { name: '水珠附着',
+          tag: '水珠',
+          props: '产品表面附着细密水珠，背景为深灰蓝色，强逆光从后方打透，产品边缘形成明亮轮廓光，周围空气中有极细的水雾' },
+        { name: '磨砂玻璃隔断',
+          tag: '磨砂玻璃',
+          props: '产品立于浅灰石膏台面，背后一块磨砂玻璃隔断形成朦胧背景，前景有一道虚化的玻璃边缘，光线透过玻璃形成柔和漫射' },
+        { name: '不锈钢+玻璃罩',
+          tag: '玻璃罩',
+          props: '拉丝不锈钢台面，产品右侧放置一个透明玻璃罩，背景为深灰到浅灰的垂直渐变，不锈钢表面有拉丝纹理和冷调高光' },
+        { name: '长虹玻璃',
+          tag: '长虹玻璃',
+          props: '长虹玻璃砖作为背景形成竖向条纹折射，台面为浅色亚克力，空气中有轻薄水汽，产品左侧有一道柔和的竖向光带' }
+    ]
+};
 
 let productSrc = null, productCroppedSrc = null, refSrc = null, busy = false;
 let sceneProduct = '', sceneTone = '';
-let curPack = STYLE_PACKS[0], curRatio = '1:1';
+let curPack = SCENE_PACK, curRatio = '1:1';
 
 const $ = id => document.getElementById(id);
 
@@ -349,16 +326,14 @@ function clearPd() { productSrc = null; productCroppedSrc = null; $('pdFile').va
 function clearRef() { refSrc = null; $('refFile').value = ''; $('refArea').classList.remove('has'); $('refArea').style.borderColor = ''; $('refContent').innerHTML = '<div class="up-ico">🎨</div><div class="up-txt">上传参考图，决定色调<br><span style="font-size:12px;color:#bbb;">不传则按产品本身颜色定</span></div>'; }
 function updateGenBtn() { $('genBtn').disabled = !productCroppedSrc; }
 
-function renderStyleGrid() {
-    const g = $('styleGrid');
+function renderPropTags() {
+    const g = $('propTags');
     if (!g) return;
     g.innerHTML = '';
-    STYLE_PACKS.forEach(p => {
-        const d = document.createElement('div');
-        d.className = 'style-card' + (p.id === curPack.id ? ' active' : '');
-        d.innerHTML = '<b>' + p.name + '</b><span>' + p.desc + '</span>';
-        d.onclick = () => { curPack = p; renderStyleGrid(); };
-        g.appendChild(d);
+    SCENE_PACK.sets.forEach(set => {
+        const t = document.createElement('i');
+        t.textContent = set.tag;
+        g.appendChild(t);
     });
 }
 function pickRatio(r) {
@@ -640,7 +615,7 @@ function showView(v) {
 }
 
 function resetAll() { clearPd(); clearRef(); sceneProduct = ''; sceneTone = ''; $('promptDebug').style.display = 'none'; showView('e'); }
-document.addEventListener('DOMContentLoaded', () => { showView('e'); renderStyleGrid(); pickRatio('1:1'); });
+document.addEventListener('DOMContentLoaded', () => { showView('e'); renderPropTags(); pickRatio('1:1'); });
 
 </script>
 
