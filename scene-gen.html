@@ -97,10 +97,6 @@
         .res-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
         @media (max-width: 1080px) { .res-grid { grid-template-columns: 1fr; } }
         .res-card-body { padding: 10px 14px 14px; }
-        .view-thumbs { display: flex; gap: 6px; padding: 0 12px 10px; }
-        .view-thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 2px solid transparent; cursor: pointer; opacity: .5; transition: all .15s; }
-        .view-thumb:hover { opacity: .8; }
-        .view-thumb.active { border-color: var(--accent); opacity: 1; }
         .tune-row { display: flex; gap: 8px; margin: 8px 0 10px; align-items: stretch; }
         .tune-box { flex: 1; min-height: 52px; max-height: 140px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-family: inherit; color: var(--text); resize: vertical; line-height: 1.55; background: #fafafa; }
         .tune-box:focus { outline: none; border-color: #999; background: #fff; }
@@ -665,49 +661,6 @@ async function submitTune(idx) {
     } finally { busy = false; }
 }
 
-// 补其他角度：锁定道具搭配 + 色调 + 产品外观描述，只把参考图换成新角度
-function addAngle(idx) {
-    if (busy) return;
-    const it = lastItems[idx];
-    if (!it) return;
-    const inp = document.createElement('input');
-    inp.type = 'file'; inp.accept = 'image/*';
-    inp.onchange = async () => {
-        const f = inp.files && inp.files[0];
-        if (!f) return;
-        busy = true;
-        const card = document.querySelector('[data-idx="' + idx + '"]');
-        if (card) card.style.opacity = '.35';
-        try {
-            const raw = await new Promise((res, rej) => {
-                const r = new FileReader();
-                r.onload = () => res(r.result);
-                r.onerror = rej;
-                r.readAsDataURL(f);
-            });
-            const cropped = await autoCrop(raw);
-            const ref = await prepareRefImage(cropped);
-            // 注意：这里不重新分析，复用第一次的产品外观 / 色调 / 强调色，保证成套
-            const src = await generateSceneImage(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, it.set), ref);
-            it.views.push({ angle: '角度' + (it.views.length + 1), src: src, refImage: ref, tune: '' });
-            it.active = it.views.length - 1;
-            showResults();
-        } catch (e) {
-            alert('补角度失败：' + (e.message || '请稍后重试'));
-            if (card) card.style.opacity = '1';
-        } finally { busy = false; }
-    };
-    inp.click();
-}
-
-// 切换某一张显示哪个角度
-function pickView(idx, vi) {
-    const it = lastItems[idx];
-    if (!it || !it.views[vi]) return;
-    it.active = vi;
-    showResults();
-}
-
 async function generate() {
     if (busy || !productCroppedSrc) return;
     busy = true; $('genBtn').disabled = true;
@@ -736,18 +689,10 @@ function showResults() {
         card.className = 'res-card';
         card.setAttribute('data-idx', idx);
 
-        let thumbs = '';
-        if (it.views.length > 1) {
-            thumbs = '<div class="view-thumbs">' + it.views.map((vv, vi) =>
-                '<img src="' + vv.src + '" class="view-thumb' + (vi === it.active ? ' active' : '') + '" onclick="pickView(' + idx + ',' + vi + ')" title="' + vv.angle + '">'
-            ).join('') + '</div>';
-        }
-
         card.innerHTML =
             '<div class="res-card-img"><img src="' + v.src + '" alt="场景图' + (idx + 1) + '"></div>' +
-            thumbs +
             '<div class="res-card-body">' +
-            '<div class="set-name">' + it.name + (it.views.length > 1 ? ' · ' + v.angle : '') + '</div>' +
+            '<div class="set-name">' + it.name + '</div>' +
             '<div class="tune-row">' +
             '<textarea class="tune-box" data-tune="' + idx + '" placeholder="想改什么就写一句，比如：不要分子结构 / 红色改成浅蓝 / 背景再虚一点">' + (v.tune || '') + '</textarea>' +
             '<button class="tune-btn" onclick="submitTune(' + idx + ')">提交</button>' +
@@ -755,7 +700,6 @@ function showResults() {
             '<div class="res-links">' +
             '<a href="' + v.src + '" download="scene-' + (idx + 1) + '.jpg">下载</a>' +
             '<a onclick="regenerateOne(' + idx + ')">重出这张</a>' +
-            '<a onclick="addAngle(' + idx + ')">补其他角度</a>' +
             '</div>' +
             '</div>';
         grid.appendChild(card);
