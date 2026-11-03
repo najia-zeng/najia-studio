@@ -411,8 +411,19 @@
 
 <script>
 // ===== Config =====
-const ARK_API_KEY = 'ark-32e3cca5-30ab-4d17-91c1-5024b1c57850-5bda0';
-const ARK_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
+/* 所有 AI 请求走自有中转，火山方舟的 Key 只存在服务端，前端拿不到 */
+const API_BASE = 'https://najia-api-vsusfefxze.cn-hangzhou.fcapp.run';
+async function callApi(type, payload) {
+    const r = await fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify({ type: type, payload: payload })
+    });
+    const txt = await r.text();
+    let data;
+    try { data = JSON.parse(txt); } catch (e) { data = { error: { message: txt || ('HTTP ' + r.status) } }; }
+    return { ok: r.ok, status: r.status, data: data };
+}
 const MODEL = 'doubao-seedream-4-5-251128';
 const FUSION_PROMPT = '保持产品的形状、文字、logo和外观细节完全不变。将产品自然融入背景环境中：1.光影方向必须与背景光源一致，产品受光面和阴影方向要匹配背景环境光；2.产品底部要有自然的接触阴影，消除悬浮感，产品与背景表面要有真实的物理接触感；3.产品的透视角度要与背景视角匹配；4.产品色调要与背景环境协调融合。画面真实自然，符合商业广告质感。';
 const CROP_THRESHOLD = 252; // higher = more conservative, only crop near-pure-white
@@ -747,26 +758,19 @@ async function generate() {
         const compositeDataUri = exportComposite();
         if (!compositeDataUri) throw new Error('画布导出失败');
 
-        const res = await fetch(ARK_API, {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + ARK_API_KEY,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: MODEL,
-                prompt: FUSION_PROMPT,
-                image: compositeDataUri,
-                size: '2k',
-                guidance_scale: 3.5,
-                response_format: 'url',
-                watermark: false
-            })
+        const resp = await callApi('image', {
+            model: MODEL,
+            prompt: FUSION_PROMPT,
+            image: compositeDataUri,
+            size: '2K',
+            guidance_scale: 3.5,
+            response_format: 'url',
+            watermark: false
         });
 
-        const data = await res.json();
+        const data = resp.data || {};
 
-        if (res.status !== 200) {
+        if (!resp.ok) {
             const errMsg = data.error ? data.error.message : JSON.stringify(data);
             throw new Error('API调用失败: ' + errMsg);
         }
