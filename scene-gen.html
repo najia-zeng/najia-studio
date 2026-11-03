@@ -119,6 +119,9 @@
         .qr-id { text-align: center; font-size: 17px; font-weight: 600; letter-spacing: .6px; color: var(--accent); background: #f4f2fd; border-radius: 9px; padding: 10px; cursor: pointer; user-select: all; transition: background .15s, color .15s; }
         .qr-id:hover { background: #ebe7fb; }
         .qr-id.copied { background: #e9f8ee; color: #2f9e57; }
+        .dlg-lead { font-size: 19px; font-weight: 600; color: var(--text); line-height: 1.55; text-align: center; margin: 2px 0 18px; }
+        .dlg-lead span { font-size: 13px; font-weight: 400; color: var(--text-sec); }
+        .lic-h { font-size: 12px; color: #b0b0c0; text-align: center; margin: 20px 0 8px; }
         .cost-tag { font-size: 12px; font-weight: 400; color: #999; margin-left: 14px; letter-spacing: 0; }
         .cost-tag b { font-weight: 500; color: #666; }
         .res-actions-top { display: flex; gap: 10px; }
@@ -962,14 +965,13 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="dlg dlg-buy">
         <div class="dlg-h">免费体验已用完<span class="dlg-x" onclick="closeBuyDlg()">×</span></div>
         <div class="dlg-b">
-            <p class="dlg-p" style="text-align:center;margin-bottom:16px">3 次免费体验用完了。扫码加我微信，转账后给你激活码。</p>
+            <p class="dlg-lead">想继续用？<br><span>扫码加我微信，买断 / 订阅都可以聊</span></p>
             <div class="qr-wrap">
                 <div class="qr-box"><img src="img/qr-weixin.png" alt="微信二维码"></div>
-                <div class="qr-tip">请使用微信扫码</div>
             </div>
-            <div class="qr-or">或手动添加微信号</div>
+            <div class="qr-or">微信号</div>
             <div class="qr-id" id="qrId" onclick="copyWx()" title="点击复制微信号">najia9864</div>
-            <p class="dlg-note" style="text-align:center;margin:14px 0 10px">加好友后说明要买，转账后我把激活码发你。<br>填在下面，一次解锁，长期可用。</p>
+            <div class="lic-h">已有激活码</div>
             <input type="text" class="dlg-in" id="licInput" placeholder="NJ-XXXXXXXX-XXXX" autocomplete="off">
             <div class="dlg-err" id="licErr"></div>
         </div>
