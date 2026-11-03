@@ -19,6 +19,8 @@
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  html{scroll-behavior:smooth;}
+  #sp,#tools,#cases{scroll-margin-top:82px;}
   body{font-family:var(--font);color:var(--ink);background:var(--bg);
     line-height:1.6;font-size:14.5px;display:flex;flex-direction:column;min-height:100vh;}
 
@@ -44,6 +46,7 @@
   .tbtn.on{background:var(--blue);border-color:var(--blue);color:#fff;
     box-shadow:0 3px 10px rgba(107,92,231,.26);}
 
+  @media (max-width:1180px){ header.topbar .tagline{display:none;} }
   .shell{display:flex;flex:1;min-width:0;}
 
   /* ===== 左侧栏（淡蓝透气版） ===== */
@@ -77,7 +80,7 @@
   /* ===== 右侧 ===== */
   .right{flex:1;min-width:0;display:flex;flex-direction:column;}
 
-  main.content{flex:1;min-width:0;padding:26px 28px 56px;max-width:1200px;width:100%;margin:0 auto;}
+  main.content{flex:1;min-width:0;padding:30px 40px 64px;max-width:1240px;width:100%;margin:0 auto;}
 
   /* ===== 定位条 ===== */
   .posi{text-align:center;padding:22px 0 34px;margin-bottom:36px;
@@ -288,29 +291,14 @@
     <div class="tagline">实拍打底 · AI提效</div>
   </a>
   <div class="topnav">
+    <a class="tbtn" href="#sp">风格包</a>
+    <a class="tbtn" href="#tools">工具</a>
+    <a class="tbtn" href="#cases">实拍+AI实操手册</a>
     <a class="tbtn on" href="product.html">娜家拍摄台系列产品</a>
   </div>
 </header>
 
 <div class="shell">
-  <nav class="side">
-    <div class="nav-block">
-      <div class="nav-title">知 识 库</div>
-      <a class="nav-item" href="https://www.najiastudio.com/member.html" target="_blank">
-        <span class="ico">📘</span><span class="txt">实拍+AI实操手册</span><span class="ext">↗</span></a>
-      <a class="nav-item" href="https://www.najiastudio.com/member.html" target="_blank">
-        <span class="ico">📚</span><span class="txt">手册案例库</span><span class="ext">↗</span></a>
-
-      <div class="nav-sep"></div>
-      <div class="nav-title">风 格 包 与 工 具</div>
-      <a class="nav-item" href="https://www.najiastudio.com/scene-gen.html" target="_blank">
-        <span class="ico">🎬</span><span class="txt">科研医美风生图</span><span class="ext">↗</span></a>
-      <a class="nav-item" href="https://www.najiastudio.com/kuociq.html" target="_blank">
-        <span class="ico">✍️</span><span class="txt">提示词生成器</span><span class="ext">↗</span></a>
-      <a class="nav-item" href="https://www.najiastudio.com/fusion-pro.html" target="_blank">
-        <span class="ico">🧩</span><span class="txt">实拍融合AI</span><span class="ext">↗</span></a>
-    </div>
-  </nav>
 
   <div class="right">
     <main class="content">
@@ -325,8 +313,8 @@
         </div>
       </div>
 
-      <!-- 智能体工具 -->
-      <div class="sec-head">
+      <!-- 风格包 -->
+      <div class="sec-head" id="sp">
         <div class="sec-badge purple"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
         <div class="sec-copy">
           <h2>风格包 · 一键出成品</h2>
@@ -360,7 +348,7 @@
         </div>
       </div>
 
-      <div class="sec-head">
+      <div class="sec-head" id="tools">
         <div class="sec-badge teal"><svg viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
         <div class="sec-copy">
           <h2>单点能力 · 按需取用</h2>
