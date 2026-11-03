@@ -389,11 +389,18 @@ function getFreeUsed() {
 function setFreeUsed(n) {
     try { localStorage.setItem('nj_free_used', String(n)); } catch (e) {}
 }
-function isOwnKey() { return !!ARK_API_KEY && ARK_API_KEY !== BUILTIN_ARK_KEY; }
+function isDev() {
+    try {
+        if (/[?&]dev=1/.test(location.search)) localStorage.setItem('nj_dev', '1');
+        return localStorage.getItem('nj_dev') === '1';
+    } catch (e) { return false; }
+}
+function isOwnKey() { return isDev() || (!!ARK_API_KEY && ARK_API_KEY !== BUILTIN_ARK_KEY); }
 function freeLeft() { return Math.max(0, FREE_LIMIT - getFreeUsed()); }
 function renderQuota() {
     const el = $('quotaTag');
     if (!el) return;
+    if (isDev()) { el.className = 'quota-tag'; el.innerHTML = '开发者模式 · 不限次'; return; }
     if (isOwnKey()) { el.className = 'quota-tag'; el.innerHTML = '用自己的 Key · 不限次'; return; }
     const left = freeLeft();
     el.className = 'quota-tag' + (left === 0 ? ' used' : '');
