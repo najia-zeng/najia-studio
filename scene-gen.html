@@ -188,7 +188,7 @@
             <div class="sec-label">参考色调图<span class="opt-tag">选填 · 只影响明暗，不参与配色</span></div>
             <div class="up-area" id="refArea" onclick="$('refFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'ref')">
                 <input type="file" id="refFile" accept="image/*" style="display:none" onchange="refSel(event)">
-                <div id="refContent"><div class="up-ico">🎨</div><div class="up-txt">上传参考图，决定色调<br><span style="font-size:12px;color:#bbb;">不传则按产品本身颜色定</span></div></div>
+                <div id="refContent"><div class="up-ico">🎨</div><div class="up-txt">上传参考图，只借明暗<br><span style="font-size:12px;color:#bbb;">不传则完全按产品自身颜色</span></div></div>
             </div>
         </div>
         <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成 4 张场景图</button>
@@ -283,11 +283,11 @@ const SCENE_PACK = {
         { name: '亚克力台+玻璃器皿', tag: '亚克力+玻璃',
           props: '产品立在透明亚克力方形厚块上，厚块边缘有一条锐利的导光亮边，能看见板材厚度，产品因此被抬离台面。产品左侧一支三角烧瓶，瓶里盛着半瓶{C}色的水；右侧一支带刻度的玻璃烧杯，杯里盛着约三分之一高度的{C}色水。两件玻璃器皿与产品立在同一个亚克力厚块上，处于同一水平面，形成横向的排列节奏，玻璃边缘有锐利的细高光，口沿与液面各有一道反光。产品正后方立一片{C}色半透明亚克力薄板，板厚可见，切割面有导光亮边，板面虚化。器皿可以贴近产品，但不遮挡产品正面标签。背景为浅灰到白的垂直渐变，上方留白。' },
         { name: '铁架台悬吊', tag: '铁架台',
-          props: '浅灰色背景，没有可见台面，产品悬在空中。一根拉丝不锈钢立杆从画面右侧垂直穿过，杆上伸出两根水平横臂；上方横臂末端是一个金属夹爪，夹爪的夹口清晰可辨，螺丝与旋钮细节可见，夹爪正夹住产品瓶身的上部，把产品吊在画面中央。产品左侧立着一支竖直的玻璃冷凝管，管内是螺旋状的内管，玻璃边缘有锐利的细高光，冷凝管底部接一段明显的{C}色液体，液体高度约占冷凝管长度的五分之一。下方横臂末端伸出一个{C}色透明亚克力夹爪，形状规整、切面有导光亮边，它虚化在画面前景，只作为层次。所有金属件是磨砂银或拉丝不锈钢，机械结构清晰，螺丝、旋钮、夹口都要能看清，不能糊成一坨。产品正面标签必须完整可读，除夹爪外不得被任何物体遮挡。上方留白。' },
+          props: '浅灰色背景，没有可见台面，产品悬在空中。一根拉丝不锈钢立杆从画面右侧垂直穿过，杆上伸出两根水平横臂；上方横臂末端是一个金属夹爪，夹爪的夹口清晰可辨，螺丝与旋钮细节可见，夹爪的两个爪瓣必须实际咬住产品瓶身的上部，爪瓣与瓶身紧密接触、中间不能有缝隙，产品是被夹爪吊住的，不能凭空悬空；夹爪的金属压块压在瓶身上，接触点清晰可见。产品左侧立着一支竖直的玻璃冷凝管，管内是螺旋状的内管，玻璃边缘有锐利的细高光，冷凝管底部接一段明显的{C}色液体，液体高度约占冷凝管长度的五分之一。下方横臂末端伸出一个{C}色透明亚克力夹爪，形状规整、切面有导光亮边，它虚化在画面前景，只作为层次。所有金属件是磨砂银或拉丝不锈钢，机械结构清晰，螺丝、旋钮、夹口都要能看清，不能糊成一坨。产品正面标签必须完整可读，除夹爪外不得被任何物体遮挡。上方留白。' },
         { name: '冷凝管+放大镜', tag: '放大镜',
           props: '产品立在一条透明的玻璃层板上，层板只占画面下方三分之一，板面有清晰的厚度和一条亮边。产品左侧立着一支竖直的蛇形冷凝管，管内的螺旋结构清晰可见，冷凝管底部有一大段明显的{C}色液体，液体高度约占冷凝管长度的五分之一；右上方悬着一个球形分液漏斗，漏斗里盛着透明液体，下方的活塞与旋钮结构清晰可辨。前景横着一个金属边框的放大镜，圆环正好落在产品前面，镜片把产品的标签局部放大，放大镜的金属手柄与转轴结构清晰可见。放大镜镜片是透明的，不遮挡产品标签的完整可读。所有玻璃件边缘有锐利的细高光，金属件是拉丝或磨砂银。背景为浅灰到白的垂直渐变，上方留白。' },
         { name: '亚克力夹爪悬吊', tag: '亚克力夹爪',
-          props: '浅灰色背景，产品悬在画面中央偏右，没有可见台面。一根拉丝不锈钢立杆从画面右侧垂直穿过，横臂末端是一个{C}色的透明亚克力夹爪，夹爪有清晰的机械造型：三个爪瓣、中间的转轴，爪瓣的切面都有一条锐利的导光亮边，板材厚度可见，{C}色饱满通透、一眼可辨。夹爪正夹住产品瓶盖下方，把产品吊住。画面左侧立着一个产品的包装盒，盒子竖直放置，与悬吊的瓶子形成一高一低的呼应。产品右后方立着一支竖直的玻璃冷凝管，管内螺旋结构清晰，底部接一小段{C}色液体。所有结构必须清晰可辨，螺丝、旋钮、转轴、夹口都不能糊成一坨。产品正面标签必须完整可读。上方留白。' },
+          props: '浅灰色背景，产品悬在画面中央偏右，没有可见台面。一根拉丝不锈钢立杆从画面右侧垂直穿过，横臂末端是一个{C}色的透明亚克力夹爪，夹爪有清晰的机械造型：三个爪瓣、中间的转轴，爪瓣的切面都有一条锐利的导光亮边，板材厚度可见，{C}色饱满通透、一眼可辨。夹爪的三个爪瓣必须实际咬住产品瓶盖下方，爪瓣与瓶身紧密接触、中间不能有缝隙，产品是被夹爪吊住的，不能凭空悬空。画面左侧立着一个产品的包装盒，盒子竖直放置，与悬吊的瓶子形成一高一低的呼应。产品右后方立着一支竖直的玻璃冷凝管，管内螺旋结构清晰，底部接一小段{C}色液体。所有结构必须清晰可辨，螺丝、旋钮、转轴、夹口都不能糊成一坨。产品正面标签必须完整可读。上方留白。' },
         { name: '立体水造型', tag: '水造型',
           props: '产品立在浅色镜面台面上，台面只占画面下方三分之一，产品倒影垂直向下延伸并逐渐虚化。一条巨大的液态水带从产品右后方升起，绕过产品左侧，形成一个不闭合的立体水环；水带有清晰的厚度和体积，内部有几颗悬浮的气泡，边缘有一圈明亮的表面张力亮线，水带上能看见背景的折射。产品右侧还悬浮着两颗球形水珠，一大一小，水珠是立体的、透明的，内部有折射和一处高光点，下方没有任何支撑。水珠和水带都不得遮挡产品正面标签。背景为浅{C}色到白的柔和渐变，上方留白。' },
         { name: '不锈钢+玻璃罩', tag: '玻璃罩',
@@ -326,7 +326,7 @@ function showPreview(type, src) {
     $(contentId).innerHTML = '<img src="' + src + '" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();' + clearFn + '()">×</button>';
 }
 function clearPd() { productSrc = null; productCroppedSrc = null; $('pdFile').value = ''; $('pdArea').classList.remove('has'); $('pdArea').style.borderColor = ''; $('pdContent').innerHTML = '<div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div>'; updateGenBtn(); }
-function clearRef() { refSrc = null; $('refFile').value = ''; $('refArea').classList.remove('has'); $('refArea').style.borderColor = ''; $('refContent').innerHTML = '<div class="up-ico">🎨</div><div class="up-txt">上传参考图，决定色调<br><span style="font-size:12px;color:#bbb;">不传则按产品本身颜色定</span></div>'; }
+function clearRef() { refSrc = null; $('refFile').value = ''; $('refArea').classList.remove('has'); $('refArea').style.borderColor = ''; $('refContent').innerHTML = '<div class="up-ico">🎨</div><div class="up-txt">上传参考图，只借明暗<br><span style="font-size:12px;color:#bbb;">不传则完全按产品自身颜色</span></div>'; }
 function updateGenBtn() { $('genBtn').disabled = !productCroppedSrc; }
 
 function pickSize(v) {
