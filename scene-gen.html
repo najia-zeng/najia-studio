@@ -110,6 +110,15 @@
         .dlg-btn:hover { box-shadow: 0 6px 16px rgba(107,92,231,.32); }
         .dlg-btn.ghost { background: #fff; color: var(--text-sec); border-color: var(--border); }
         .dlg-btn.ghost:hover { background: #f5f5f5; }
+        .dlg-buy { max-width: 430px; }
+        .qr-wrap { text-align: center; margin-bottom: 12px; }
+        .qr-box { display: inline-block; padding: 13px; border: 1px dashed #dcdce8; border-radius: 14px; background: #fafafd; }
+        .qr-box img { display: block; width: 186px; height: 186px; object-fit: contain; border-radius: 8px; background: #fff; }
+        .qr-tip { font-size: 12px; color: #a8a8b8; margin-top: 10px; }
+        .qr-or { text-align: center; font-size: 12px; color: #a8a8b8; margin: 2px 0 8px; }
+        .qr-id { text-align: center; font-size: 17px; font-weight: 600; letter-spacing: .6px; color: var(--accent); background: #f4f2fd; border-radius: 9px; padding: 10px; cursor: pointer; user-select: all; transition: background .15s, color .15s; }
+        .qr-id:hover { background: #ebe7fb; }
+        .qr-id.copied { background: #e9f8ee; color: #2f9e57; }
         .cost-tag { font-size: 12px; font-weight: 400; color: #999; margin-left: 14px; letter-spacing: 0; }
         .cost-tag b { font-weight: 500; color: #666; }
         .res-actions-top { display: flex; gap: 10px; }
@@ -448,6 +457,30 @@ function renderQuota() {
 }
 function openBuyDlg() { $('buyMask').style.display = 'flex'; }
 function closeBuyDlg() { $('buyMask').style.display = 'none'; }
+function copyWx() {
+    const el = $('qrId');
+    if (!el) return;
+    const ok = () => {
+        el.classList.add('copied');
+        el.textContent = '已复制 ' + WECHAT_ID;
+        setTimeout(() => { el.classList.remove('copied'); el.textContent = WECHAT_ID; }, 1600);
+    };
+    const fallback = () => {
+        const ta = document.createElement('textarea');
+        ta.value = WECHAT_ID;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); ok(); } catch (e) {}
+        document.body.removeChild(ta);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(WECHAT_ID).then(ok).catch(fallback);
+    } else {
+        fallback();
+    }
+}
 
 function updateGenBtn() { $('genBtn').disabled = !productCroppedSrc; }
 
@@ -926,15 +959,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 <div class="dlg-mask" id="buyMask" style="display:none">
-    <div class="dlg">
+    <div class="dlg dlg-buy">
         <div class="dlg-h">免费体验已用完<span class="dlg-x" onclick="closeBuyDlg()">×</span></div>
         <div class="dlg-b">
-            <p class="dlg-p">3 次免费体验已经用完了。想继续用，加微信 <b>najia9864</b>，转账后马上给你激活码。</p>
-            <div class="dlg-steps">
-                <div class="st"><b>1</b>加微信 <span class="mn">najia9864</span>，说明要买</div>
-                <div class="st"><b>2</b>转账后，你会收到一个激活码</div>
-                <div class="st"><b>3</b>把激活码填到下面，解锁后就能一直用，不用再配任何东西</div>
+            <p class="dlg-p" style="text-align:center;margin-bottom:16px">3 次免费体验用完了。扫码加我微信，转账后给你激活码。</p>
+            <div class="qr-wrap">
+                <div class="qr-box"><img src="img/qr-weixin.png" alt="微信二维码"></div>
+                <div class="qr-tip">请使用微信扫码</div>
             </div>
+            <div class="qr-or">或手动添加微信号</div>
+            <div class="qr-id" id="qrId" onclick="copyWx()" title="点击复制微信号">najia9864</div>
+            <p class="dlg-note" style="text-align:center;margin:14px 0 10px">加好友后说明要买，转账后我把激活码发你。<br>填在下面，一次解锁，长期可用。</p>
             <input type="text" class="dlg-in" id="licInput" placeholder="NJ-XXXXXXXX-XXXX" autocomplete="off">
             <div class="dlg-err" id="licErr"></div>
         </div>
