@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>科研医美风 · 场景生图（内部测试）- NaStudio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f6f6fb; --card: #ffffff; --border: #e7e7f0;
+            --text: #1b1b2f; --text-sec: #7b7b93;
+            --accent: #6b5ce7; --accent-h: #5a4bd6;
+            --accent-2: #4a7cf7;
+            --grad: linear-gradient(135deg, #6b5ce7 0%, #4a7cf7 100%);
+            --radius: 16px; --radius-s: 12px;
+        }
+        body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--text); height: 100vh; overflow: hidden;
+            background: radial-gradient(1100px 480px at 50% -90px, #EDE9FF 0%, rgba(237,233,255,0) 62%), #f6f6fb; }
+        .page { max-width: 1400px; margin: 0 auto; height: calc(100vh - 66px); }
+
+        .hdr { height: 92px; background: linear-gradient(100deg, #ffffff 0%, #fbfaff 42%, #f2efff 100%); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; position: relative; flex-shrink: 0; }
+        .hdr::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--grad); opacity: .5; }
+        .hdr-logo { width: 34px; height: 34px; border-radius: 9px; object-fit: cover; }
+        .hdr-l { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+        .hdr-title { font-size: 27px; font-weight: 750; letter-spacing: -.6px; line-height: 1.12; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .hdr-sub { font-size: 13px; color: var(--text-sec); letter-spacing: .2px; }
+        .hdr-tag { flex-shrink: 0; display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #6b5ce7; background: rgba(107,92,231,.08); border: 1px solid rgba(107,92,231,.18); border-radius: 999px; padding: 7px 15px; font-weight: 500; }
+        .hdr-tag i { width: 6px; height: 6px; border-radius: 50%; background: var(--grad); display: block; }
+        @media (max-width: 720px) {
+            .hdr { height: auto; padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
+            .hdr-title { font-size: 21px; }
+            .hdr-tag { display: none; }
+        }
+
+        .wrap { display: flex; height: calc(100vh - 122px); }
+        .left { width: 340px; min-width: 340px; background: var(--card); border-right: 1px solid var(--border); padding: 24px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; box-shadow: 6px 0 28px rgba(27,27,47,.04); position: relative; z-index: 2; }
+        .left::-webkit-scrollbar { width: 4px; }
+        .left::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+        .sec-label { font-size: 13px; font-weight: 600; color: var(--text-sec); letter-spacing: 1px; margin-bottom: 8px; }
+
+        .up-area { border: 1px dashed var(--border); border-radius: var(--radius-s); padding: 24px 14px; text-align: center; cursor: pointer; transition: all .2s; position: relative; background: #fafafa; min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .up-area:hover { border-color: #b9b0ff; background: #fbfaff; }
+        .up-area.has { border-style: solid; border-color: var(--accent); padding: 8px; background: #fff; }
+        .up-ico { font-size: 26px; margin-bottom: 6px; color: #bbb; }
+        .up-txt { font-size: 14px; color: var(--text-sec); line-height: 1.5; }
+        .up-prev { max-width: 100%; max-height: 140px; border-radius: 6px; object-fit: contain; }
+        .up-rm { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; background: rgba(0,0,0,.4); color: #fff; border: none; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: background .15s; z-index: 2; }
+        .up-rm:hover { background: rgba(0,0,0,.7); }
+
+        .gen-btn { width: 100%; padding: 15px; background: var(--grad); color: #fff; border: none; border-radius: var(--radius-s); font-size: 16px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .22s; box-shadow: 0 6px 18px rgba(107,92,231,.28); }
+        .gen-btn:hover { box-shadow: 0 9px 26px rgba(107,92,231,.4); transform: translateY(-1px); }
+        .gen-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+        .right { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; }
+        .right::-webkit-scrollbar { width: 6px; }
+        .right::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+        .empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 19vh; text-align: center; }
+        .empty-ico { width: 72px; height: 72px; border: 2px solid #ddd8ff; border-radius: 14px; display: flex; align-items: center; justify-content: center; transform: rotate(45deg); margin-bottom: 24px; background: linear-gradient(135deg, #fbfaff, #f4f2ff); }
+        .empty-ico span { transform: rotate(-45deg); font-size: 24px; color: #ccc; }
+        .empty-t { font-size: 20px; font-weight: 500; margin-bottom: 8px; }
+        .empty-d { font-size: 14px; color: var(--text-sec); max-width: 340px; line-height: 1.7; }
+
+        .ldg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .spin { width: 40px; height: 40px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: sp .7s linear infinite; }
+        @keyframes sp { to { transform: rotate(360deg); } }
+        .ldg-txt { margin-top: 16px; font-size: 15px; color: var(--text-sec); }
+        .ldg-sub { margin-top: 4px; font-size: 13px; color: #bbb; }
+        .ldg-steps { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+        .ldg-step { font-size: 13px; color: var(--text-sec); display: flex; align-items: center; gap: 8px; }
+        .ldg-step .step-ico { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .ldg-step .step-ico.done { background: #34c759; color: #fff; }
+        .ldg-step .step-ico.active { background: var(--accent); color: #fff; animation: pulse 1s infinite; }
+        .ldg-step .step-ico.wait { background: var(--border); color: #fff; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
+
+        .res-wrap { max-width: 1100px; margin: 0 auto; width: 100%; }
+        .res-top { width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+        .res-top h2 { font-size: 17px; font-weight: 500; }
+        .dlg-mask { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 20px; }
+        .dlg { background: #fff; border-radius: 14px; width: 100%; max-width: 520px; max-height: 88vh; overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.18); }
+        .dlg-h { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 500; }
+        .dlg-x { cursor: pointer; color: #bbb; font-size: 20px; line-height: 1; }
+        .dlg-x:hover { color: #666; }
+        .dlg-b { padding: 18px 22px; }
+        .dlg-p { font-size: 13px; color: var(--text-sec); line-height: 1.7; margin: 0 0 14px; }
+        .dlg-steps { background: #fafafa; border-radius: 10px; padding: 13px 16px; margin-bottom: 14px; }
+        .dlg-steps .st { font-size: 12.5px; color: var(--text-sec); line-height: 1.7; padding: 6px 0 6px 27px; position: relative; }
+        .dlg-steps .st b { position: absolute; left: 0; top: 6px; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 1px solid var(--border); color: #999; font-weight: 500; font-size: 11px; line-height: 16px; text-align: center; box-sizing: border-box; }
+        .dlg-steps .mn { color: #555; font-weight: 500; }
+        .dlg-steps a { color: #4a7cf7; text-decoration: none; border-bottom: 1px solid rgba(74,124,247,.35); }
+        .dlg-steps a:hover { border-bottom-color: #4a7cf7; }
+        .dlg-note { font-size: 11.5px; color: #a8a8a8; line-height: 1.65; margin: 0 0 14px; }
+        .dlg-note a { color: #7a9ef9; text-decoration: none; }
+        .quota-tag { font-size: 12px; color: #999; margin-right: 14px; white-space: nowrap; }
+        .quota-tag b { font-weight: 500; color: #555; }
+        .quota-tag.used { color: #d9534f; }
+        .dlg-opt { border: 1px solid var(--border); border-radius: 10px; padding: 13px 15px; margin-bottom: 10px; }
+        .dlg-opt .opt-h { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 5px; }
+        .dlg-opt .opt-p { font-size: 12.5px; color: var(--text-sec); line-height: 1.7; }
+        .dlg-opt .opt-p a { color: #4a7cf7; cursor: pointer; text-decoration: none; border-bottom: 1px solid rgba(74,124,247,.35); }
+        .dlg-opt .opt-p b { font-weight: 500; color: #444; }
+        .dlg-in { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; color: var(--text); }
+        .dlg-in:focus { outline: none; border-color: #999; }
+        .dlg-err { font-size: 12px; color: #d9534f; min-height: 18px; padding-top: 6px; }
+        .dlg-f { display: flex; gap: 10px; justify-content: flex-end; padding: 14px 22px 20px; }
+        .dlg-btn { padding: 10px 22px; border-radius: 9px; border: none; background: var(--grad); color: #fff; font-size: 13px; cursor: pointer; font-family: inherit; box-shadow: 0 4px 12px rgba(107,92,231,.22); }
+        .dlg-btn:hover { box-shadow: 0 6px 16px rgba(107,92,231,.32); }
+        .dlg-btn.ghost { background: #fff; color: var(--text-sec); border-color: var(--border); }
+        .dlg-btn.ghost:hover { background: #f5f5f5; }
+        .dlg-buy { max-width: 430px; position: relative; }
+        .dlg-x2 { position: absolute; right: 15px; top: 11px; color: #c9c9d6; font-size: 22px; line-height: 1; cursor: pointer; z-index: 3; background: none; border: none; font-family: inherit; padding: 4px; }
+        .dlg-x2:hover { color: #888; }
+        .dlg-buy .dlg-b { padding: 34px 26px 4px; }
+        .dlg-t1 { font-size: 24px; font-weight: 700; color: var(--text); text-align: center; letter-spacing: 1.5px; }
+        .dlg-t2 { font-size: 13px; color: var(--text-sec); text-align: center; margin: 11px 0 22px; line-height: 1.65; }
+        .qr-wrap { margin-bottom: 0; }
+        .qr-box { display: block; border: 1px dashed #d9d9e6; border-radius: 16px; background: #fafafd; padding: 22px 18px 15px; }
+        .qr-box img { display: block; width: 190px; height: 190px; object-fit: contain; border-radius: 10px; background: #fff; margin: 0 auto; }
+        .qr-tip { font-size: 13px; color: #9c9cb2; text-align: center; margin-top: 13px; }
+        .qr-or { font-size: 13px; color: #8d8da3; text-align: center; margin: 20px 0 11px; }
+        .qr-id { text-align: center; font-size: 19px; font-weight: 700; letter-spacing: 1.2px; color: var(--accent); background: #f4f2fd; border-radius: 10px; padding: 11px; cursor: pointer; user-select: all; transition: background .15s, color .15s; }
+        .qr-id:hover { background: #ebe7fb; }
+        .qr-id.copied { background: #e9f8ee; color: #2f9e57; }
+        .lic-mini { font-size: 11.5px; color: #bcbccb; text-align: center; margin: 20px 0 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+        .lic-mini:hover { color: var(--accent); }
+        .lic-row { display: flex; gap: 8px; }
+        .lic-row .dlg-in { flex: 1; min-width: 0; }
+        .lic-btn { padding: 0 17px; border-radius: 8px; border: 1px solid var(--accent); background: #fff; color: var(--accent); font-size: 13px; cursor: pointer; font-family: inherit; white-space: nowrap; }
+        .lic-btn:hover { background: #f4f2fd; }
+        .cost-tag { font-size: 12px; font-weight: 400; color: #999; margin-left: 14px; letter-spacing: 0; }
+        .cost-tag b { font-weight: 500; color: #666; }
+        .res-actions-top { display: flex; gap: 10px; }
+        .new-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-s); font-size: 13px; cursor: pointer; font-family: inherit; transition: all .15s; color: var(--text-sec); }
+        .new-btn:hover { border-color: #999; color: var(--text); }
+
+        .res-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+        .res-card-img { padding: 12px; display: flex; align-items: center; justify-content: center; background: #fafafa; }
+        .res-card-img img { max-width: 100%; max-height: 630px; object-fit: contain; border-radius: 4px; }
+        .res-card-actions { padding: 14px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+        .err { text-align: center; padding: 40px; }
+        .err-ico { font-size: 40px; margin-bottom: 16px; }
+        .err-t { font-size: 17px; font-weight: 500; margin-bottom: 8px; }
+        .err-d { font-size: 14px; color: var(--text-sec); line-height: 1.7; max-width: 400px; margin: 0 auto; }
+        .retry-btn { margin-top: 16px; padding: 10px 28px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-s); cursor: pointer; font-size: 14px; font-family: inherit; }
+
+        .style-grid { display: flex; flex-direction: column; gap: 7px; }
+        .style-card { border: 1px solid var(--border); border-radius: var(--radius-s); padding: 9px 12px; cursor: pointer; transition: all .15s; background: #fafafa; }
+        .style-card:hover { border-color: #bbb; }
+        .style-card.active { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(107,92,231,.14); }
+        .style-card b { font-size: 14px; display: block; margin-bottom: 2px; font-weight: 500; }
+        .style-card span { font-size: 12px; color: var(--text-sec); line-height: 1.4; }
+        .ratio-row { display: flex; gap: 7px; }
+        .ratio-btn { flex: 1; padding: 9px 0; border: 1px solid var(--border); background: #fafafa; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; color: var(--text-sec); transition: all .15s; }
+        .ratio-btn:hover { border-color: #bbb; }
+        .ratio-btn.active { border-color: transparent; background: var(--grad); color: #fff; box-shadow: 0 4px 12px rgba(107,92,231,.24); }
+        .opt-tag { font-size: 11px; color: #aaa; font-weight: 400; margin-left: 4px; }
+        .set-name { font-size: 12px; color: var(--text-sec); margin-bottom: 6px; }
+        .res-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+        @media (max-width: 1080px) { .res-grid { grid-template-columns: 1fr; } }
+        .res-card-body { padding: 10px 14px 14px; }
+        .tune-row { display: flex; gap: 8px; margin: 8px 0 10px; align-items: stretch; }
+        .tune-box { flex: 1; min-height: 52px; max-height: 140px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-family: inherit; color: var(--text); resize: vertical; line-height: 1.55; background: #fafafa; }
+        .tune-box:focus { outline: none; border-color: #999; background: #fff; }
+        .tune-box::placeholder { color: #bbb; }
+        .tune-btn { padding: 0 16px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; white-space: nowrap; }
+        .tune-btn:hover { background: var(--accent-h); }
+        .tune-hint { font-size: 11px; color: #b0b0b0; line-height: 1.5; margin: 0 0 8px; }
+        .res-links { display: flex; gap: 16px; justify-content: center; align-items: center; }
+        .res-links a { font-size: 13px; color: var(--text-sec); text-decoration: none; cursor: pointer; }
+        .res-links a:first-child { color: var(--text); }
+        .res-links a:hover { color: var(--text); }
+
+
+        @media (max-width: 860px) {
+            .wrap { flex-direction: column; height: auto; }
+            .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
+            .right { min-height: 50vh; }
+        }
+    </style>
+<style>
+/* ===== NaStudio 统一顶栏（与主页一致） ===== */
+#ns-topbar{position:sticky;top:0;z-index:9999;height:66px;flex-shrink:0;
+  display:flex;align-items:center;gap:16px;padding:0 28px;box-sizing:border-box;
+  background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border-bottom:1px solid #e8e8ed;
+  font-family:"Space Grotesk","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;}
+#ns-topbar *{box-sizing:border-box;}
+#ns-topbar .brand{display:flex;align-items:center;gap:11px;padding:0;text-decoration:none;}
+#ns-topbar .logo{width:38px;height:38px;border-radius:12px;flex-shrink:0;overflow:hidden;background:#0a0a0a;box-shadow:0 3px 9px rgba(37,54,73,.18);}
+#ns-topbar .logo img{width:100%;height:100%;object-fit:cover;display:block;}
+#ns-topbar .bt{line-height:1.35;}
+#ns-topbar .bt b{display:block;font-size:17px;font-weight:650;color:#1a1a2e;line-height:1.2;}
+#ns-topbar .bt span{font-size:12px;letter-spacing:.8px;color:#9a94b8;margin-top:3px;display:block;}
+#ns-topbar .topnav{margin-left:auto;display:flex;align-items:center;gap:10px;}
+#ns-topbar .tbtn{font-size:15px;font-weight:600;color:#6b5ce7;background:#fff;
+  border:1px solid #e2ddfb;border-radius:10px;padding:10px 22px;
+  text-decoration:none;line-height:1.2;white-space:nowrap;transition:all .15s;}
+#ns-topbar .tbtn:hover{border-color:#c9c1f5;color:#5a4be0;}
+#ns-topbar .tbtn.on{color:#fff;background:#6b5ce7;border-color:#6b5ce7;
+  box-shadow:0 3px 10px rgba(107,92,231,.26);}
+#ns-topbar .tbtn.on:hover{filter:brightness(1.08);}
+@media(max-width:768px){
+  #ns-topbar{height:auto;padding:10px 14px;gap:10px;flex-wrap:wrap;}
+  #ns-topbar .topnav{margin-left:0;width:100%;gap:8px;}
+  #ns-topbar .tbtn{width:100%;text-align:center;}
+}
+</style>
+</head>
+<body>
+<header id="ns-topbar">
+  <a class="brand" href="https://www.najiastudio.com/">
+    <div class="logo"><img src="img/logo.png" alt="NaStudio"></div>
+    <div class="bt"><b>NaStudio</b><span>娜家视觉</span></div>
+  </a>
+  <div class="topnav">
+  <span class="quota-tag" id="quotaTag"></span>
+  <a class="tbtn" href="product.html">娜家拍摄台系列产品</a>
+  <a class="tbtn on" href="tools.html">AI 工具</a>
+  <a class="tbtn" href="member.html">实拍+AI实操手册</a>
+</div>
+</header>
+
+
+<div class="page">
+<div class="hdr">
+    <div class="hdr-l">
+        <div class="hdr-title">科研医美风 · 场景生图 <span style="font-size:13px;font-weight:500;color:#e8574a;background:#fff0ee;border:1px solid #ffd9d4;border-radius:6px;padding:2px 8px;vertical-align:middle;margin-left:8px">内部测试 · 不限次</span></div>
+        <div class="hdr-sub">上传产品白底图，一次出 4 张同风格场景图</div>
+    </div>
+    <div class="hdr-tag"><i></i>专为美妆护肤场景</div>
+</div>
+<div class="wrap">
+    <div class="left">
+        <div>
+            <div class="sec-label">① 产品白底图</div>
+            <div class="up-area" id="pdArea" onclick="$('pdFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'pd')">
+                <input type="file" id="pdFile" accept="image/*" style="display:none" onchange="pdSel(event)">
+                <div id="pdContent"><div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div></div>
+            </div>
+        </div>
+        <div>
+            <div class="sec-label">② 画幅</div>
+            <div class="ratio-row" id="ratioRow">
+                <button class="ratio-btn active" data-r="1:1" onclick="pickRatio('1:1')">1:1 主图</button>
+                <button class="ratio-btn" data-r="3:4" onclick="pickRatio('3:4')">3:4 竖版</button>
+                <button class="ratio-btn" data-r="9:16" onclick="pickRatio('9:16')">9:16 长图</button>
+            </div>
+        </div>
+        <div>
+            <div class="sec-label">③ 产品大小</div>
+            <div class="ratio-row" id="sizeRow">
+                <button class="ratio-btn" data-s="small" onclick="pickSize('small')">小</button>
+                <button class="ratio-btn active" data-s="medium" onclick="pickSize('medium')">中</button>
+                <button class="ratio-btn" data-s="large" onclick="pickSize('large')">大</button>
+            </div>
+        </div>
+        <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成 4 张场景图</button>
+    </div>
+    <div class="right" id="right">
+        <div class="empty" id="vEmpty">
+            <div class="empty-ico"><span>◇</span></div>
+            <div class="empty-t">准备开始</div>
+            <div class="empty-d">上传产品白底图，一次出 4 张科研医美风场景图</div>
+        </div>
+        <div class="ldg" id="vLoad" style="display:none">
+            <div class="spin"></div>
+            <div class="ldg-txt" id="ldgTxt">正在生成场景...</div>
+            <div class="ldg-sub" id="ldgSub">大约需要20-40秒</div>
+            <div class="ldg-steps">
+                <div class="ldg-step" id="step1"><div class="step-ico wait">1</div>分析图片生成提示词</div>
+                <div class="ldg-step" id="step2"><div class="step-ico wait">2</div>生成 4 张不同道具的场景图</div>
+            </div>
+        </div>
+        <div class="res-wrap" id="vRes" style="display:none">
+            <div class="res-top">
+                <h2>成套场景图<span class="cost-tag" id="costTag"></span></h2>
+                <div class="res-actions-top">
+                    <button class="new-btn" onclick="regenerateProps()">换一批道具</button>
+                    <button class="new-btn" onclick="generate()">重新分析</button>
+                    <button class="new-btn" onclick="resetAll()">重新开始</button>
+                </div>
+            </div>
+            <div id="resContent"></div>
+        </div>
+        <div class="err" id="vErr" style="display:none">
+            <div class="err-ico">✕</div>
+            <div class="err-t">生成失败</div>
+            <div class="err-d" id="errTxt">请稍后重试</div>
+            <button class="retry-btn" onclick="generate()">重新生成</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+/* 所有 AI 请求走自有中转，火山方舟的 Key 只存在服务端，前端完全拿不到 */
+const API_BASE = 'https://najia-api-vsusfefxze.cn-hangzhou.fcapp.run';
+async function callApi(type, payload) {
+    const r = await fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify({ type: type, payload: payload })
+    });
+    const txt = await r.text();
+    let data;
+    try { data = JSON.parse(txt); } catch (e) { data = { error: { message: txt || ('HTTP ' + r.status) } }; }
+    return { ok: r.ok, status: r.status, data: data };
+}
+// 视觉模型按优先级回退：方舟模型迭代快，旧版下线后自动切下一个
+const VISION_MODELS = ['doubao-seed-2-1-pro-260915', 'doubao-seed-2-0-lite-260428', 'doubao-seed-2-0-mini-260428'];
+// 图像模型按优先级回退：seedream-4-0-250828 已列入下线计划，备用 20260415 版本
+const IMAGE_MODELS = ['doubao-seedream-4-0-250828', 'doubao-seedream-4-0-20260415'];
+
+const CROP_THRESHOLD = 240;
+const CROP_PADDING = 20;
+const REF_IMAGE_MAX = 1536;
+const SHOTS_PER_RUN = 4;
+
+// 画幅：产品只占画面 1/3，画布不用太大
+// 产品只占画面 1/3，画布要给足像素，否则产品细节会糊
+// 方舟 seedream 4.0 总像素范围 [1280x720, 4096x4096]，宽高比 [1/16, 16]
+const RATIOS = {
+    '1:1':  { size: '2048x2048', label: '1:1 主图' },
+    '3:4':  { size: '1728x2304', label: '3:4 竖版' },
+    '9:16': { size: '1440x2560', label: '9:16 长图' }
+};
+
+/* ============================================================
+   场景风格库
+   一个风格 = 一套统一的光影与色调基调 + 多种道具搭配
+   每次出图从选中的风格里随机抽 3 套不同道具
+   产品位置、尺寸、光影在同一风格内锁死，只有道具变化
+   ============================================================ */
+/* ============================================================
+   场景风格：科研医美风（固定）
+   同一套色调与光影，9 套不同的道具搭配
+   每次出图随机抽 3 套不重复的，保证三张道具不一样
+   ============================================================ */
+const SCENE_PACK = {
+    name: '科研医美风',
+    tone: '色彩以产品自身颜色为唯一来源，白与浅灰只作环境底色，低饱和，干净通透，克制的专业感',
+    light: '柔和均匀的顶部柔光作为主光，左侧补一道极轻的轮廓光，浅景深，产品下方是自然柔和的浅投影，背景为干净的柔和渐变，产品表面有一道自然的竖向高光。整体光比柔和，不要戏剧化打光',
+    sets: [
+        { name: '实验器皿', tag: '实验器皿',
+          props: '产品立在镜面般的浅色反光台面上，台面只占画面下方三分之一，产品倒影垂直向下延伸、长度约为产品高度的一半并逐渐虚化。产品左后方一支细长的玻璃滴管斜倚在一支三角烧瓶口上，滴管细长透明，可以高过产品，但因为是细长透明的形态，视觉重量远轻于产品；这支三角烧瓶里盛着大半瓶{C}色的水，水的颜色饱满清晰。产品右侧立一支带刻度的玻璃烧杯，杯里盛着约三分之一高度的{C}色水，刻度数字清晰可见。产品正后方一支圆底烧瓶横卧在台面上，瓶身完全虚化，只作为背景的体积。前景左下角露出一小片虚化的玻璃口沿，用来把视线推回产品。所有器皿都是真实存在的实验室玻璃器皿，边缘有锐利的细高光，口沿与液面各有一道反光。器皿可以贴近产品、甚至部分交叠，但产品正面标签区绝对不能被遮挡。上方留白不少于画面五分之一。' },
+        { name: '试管阵列', tag: '试管',
+          props: '产品直接立在纯白背景中，没有可见台面，产品与背景之间只有极淡的接触阴影，像悬浮在空白里。产品四周环绕十余支透明玻璃试管，前后左右穿插：左侧三支向后倾斜约 30 度，右侧两支向前倾斜，产品正后方还有几支竖直站立，其中一两支在画面最前景完全虚化，只留下模糊的玻璃轮廓。所有试管中约三分之一盛着{C}色的水，其余保持空透明；装水的试管里至少两三支落在清晰可辨的位置，水的{C}色要一眼看得出。试管都细长透明，可以高过产品、可以从产品两侧穿过，视觉重量极轻，但不得遮挡产品正面标签。每支试管边缘有锐利的细高光，液面有一道反光。背景纯白，上方大面积留白。' },
+        { name: '培养皿环绕', tag: '培养皿',
+          props: '产品立在纯白哑光台面上，台面只占画面下方三分之一，产品下方有一片柔和自然的浅投影。产品左前方一个透明玻璃培养皿平放着，直径约为产品宽度的两倍，盘内盛着浅浅一层{C}色的水，水面有极轻的波纹与两颗小气泡；右后方另一个培养皿同样平放，盘内放着两三颗透明玻璃珠。产品右侧还叠放着两个空培养皿，一上一下错开，边缘有清晰的同心圆高光。培养皿都是低矮的圆盘，高度远低于产品，但直径可以很大，形成横向的节奏。所有培养皿轻微虚化，但盘内{C}色的水必须清晰可辨，不能被虚化成白色。培养皿可以贴近产品，但不遮挡产品正面标签。上方留白。' },
+        { name: '亚克力台座', tag: '亚克力台座',
+          props: '产品立在透明亚克力厚块之上，厚块分两层叠放，下层比上层略大，两块之间有一道清晰的分层线，产品因此被抬离桌面，产生展示台的效果。亚克力厚块的切割面有一条锐利的导光亮边，能看见板材的厚度和内部的轻微折射。产品正后方立一片{C}色的竖条纹亚克力板，占画面右后方三分之一，板面有细密的竖向条纹肌理，条纹随透视产生疏密变化，板材的{C}色必须清晰可辨，只有边缘轻微柔化，不能虚化成白色。厚块边缘有一道极细的高光。背景为浅灰到白的垂直渐变，上方留白。亚克力可以高过产品、可以贴近，但不遮挡产品正面标签。' },
+        { name: '分子结构', tag: '分子结构',
+          props: '产品直接立在纯白背景中，没有可见台面，只有极淡的接触阴影。产品左后方有一组{C}色的半透明分子球棍模型，由透明小球和细杆连接而成，尺寸可以超过产品，但因为是通透的半透明结构且部分虚化，视觉重量远轻于产品；球体表面有清晰的高光和折射。右后方立一片弧形{C}亚克力薄板，板材厚度可见，切割面有一条导光亮边，板面虚化，边缘把视线引向产品。模型和薄板都不能遮挡产品正面标签。背景干净，上方大片留白。' },
+        { name: '长虹玻璃', tag: '长虹玻璃',
+          props: '产品立在浅色镜面台面上，台面只占画面下方三分之一，产品倒影垂直向下延伸并逐渐虚化。产品正后方是一面长虹玻璃，占画面右后方三分之一，透出{C}色的竖向条纹折射，玻璃轻微虚化，但{C}色的条纹必须清晰可辨，不能被虚化成白色。产品左前方躺着一支空的圆底烧瓶，瓶身虚化，只作为前景的体积，瓶口与瓶底各有一道反光。长虹玻璃可以高过产品，但因为是虚化的条纹光影，视觉重量极轻。空气中有极轻薄的水汽，只在水面附近若隐若现，不能弥漫成雾。产品正面标签不得被遮挡。上方留白。' },
+        { name: '亚克力台+玻璃器皿', tag: '亚克力+玻璃',
+          props: '产品立在透明亚克力方形厚块上，厚块边缘有一条锐利的导光亮边，能看见板材厚度，产品因此被抬离台面。产品左侧一支三角烧瓶，瓶里盛着半瓶{C}色的水；右侧一支带刻度的玻璃烧杯，杯里盛着约三分之一高度的{C}色水。两件玻璃器皿与产品立在同一个亚克力厚块上，处于同一水平面，形成横向的排列节奏，玻璃边缘有锐利的细高光，口沿与液面各有一道反光。产品正后方立一片{C}色半透明亚克力薄板，板厚可见，切割面有导光亮边，板面虚化。器皿可以贴近产品，但不遮挡产品正面标签。背景为浅灰到白的垂直渐变，上方留白。' },
+        { name: '铁架台悬吊', tag: '铁架台',
+          props: '浅灰色背景，没有可见台面，产品悬在空中。一根拉丝不锈钢立杆从画面右侧垂直穿过，杆上伸出两根水平横臂；上方横臂末端是一个金属夹爪，夹爪的夹口清晰可辨，螺丝与旋钮细节可见，夹爪的两个爪瓣必须实际咬住产品瓶身的上部，爪瓣与瓶身紧密接触、中间不能有缝隙，产品是被夹爪吊住的，不能凭空悬空；夹爪的金属压块压在瓶身上，接触点清晰可见。产品左侧立着一支竖直的玻璃冷凝管，管内是螺旋状的内管，玻璃边缘有锐利的细高光，冷凝管底部接一段明显的{C}色液体，液体高度约占冷凝管长度的五分之一。下方横臂末端伸出一个{C}色透明亚克力夹爪，形状规整、切面有导光亮边，它虚化在画面前景，只作为层次。所有金属件是磨砂银或拉丝不锈钢，机械结构清晰，螺丝、旋钮、夹口都要能看清，不能糊成一坨。产品正面标签必须完整可读，除夹爪外不得被任何物体遮挡。上方留白。' },
+        { name: '冷凝管+放大镜', tag: '放大镜',
+          props: '产品立在一条透明的玻璃层板上，层板只占画面下方三分之一，板面有清晰的厚度和一条亮边。产品左侧立着一支竖直的蛇形冷凝管，管内的螺旋结构清晰可见，冷凝管底部有一大段明显的{C}色液体，液体高度约占冷凝管长度的五分之一；右上方悬着一个球形分液漏斗，漏斗里盛着透明液体，下方的活塞与旋钮结构清晰可辨。前景横着一个金属边框的放大镜，圆环正好落在产品前面，镜片把产品的标签局部放大，放大镜的金属手柄与转轴结构清晰可见。放大镜镜片是透明的，不遮挡产品标签的完整可读。所有玻璃件边缘有锐利的细高光，金属件是拉丝或磨砂银。背景为浅灰到白的垂直渐变，上方留白。' },
+        { name: '亚克力夹爪悬吊', tag: '亚克力夹爪',
+          props: '浅灰色背景，产品悬在画面中央偏右，没有可见台面。一根拉丝不锈钢立杆从画面右侧垂直穿过，横臂末端是一个{C}色的透明亚克力夹爪，夹爪有清晰的机械造型：三个爪瓣、中间的转轴，爪瓣的切面都有一条锐利的导光亮边，板材厚度可见，{C}色饱满通透、一眼可辨。夹爪的三个爪瓣必须实际咬住产品瓶盖下方，爪瓣与瓶身紧密接触、中间不能有缝隙，产品是被夹爪吊住的，不能凭空悬空。画面左侧立着一个产品的包装盒，盒子竖直放置，与悬吊的瓶子形成一高一低的呼应。产品右后方立着一支竖直的玻璃冷凝管，管内螺旋结构清晰，底部接一小段{C}色液体。所有结构必须清晰可辨，螺丝、旋钮、转轴、夹口都不能糊成一坨。产品正面标签必须完整可读。上方留白。' },
+        { name: '立体水造型', tag: '水造型',
+          props: '产品立在浅色镜面台面上，台面只占画面下方三分之一，产品倒影垂直向下延伸并逐渐虚化。一条巨大的液态水带从产品右后方升起，绕过产品左侧，形成一个不闭合的立体水环；水带有清晰的厚度和体积，内部有几颗悬浮的气泡，边缘有一圈明亮的表面张力亮线，水带上能看见背景的折射。产品右侧还悬浮着两颗球形水珠，一大一小，水珠是立体的、透明的，内部有折射和一处高光点，下方没有任何支撑。水珠和水带都不得遮挡产品正面标签。背景为浅{C}色到白的柔和渐变，上方留白。' },
+        { name: '不锈钢+玻璃罩', tag: '玻璃罩',
+          props: '产品立在拉丝不锈钢台面正中，台面只占画面下方三分之一，表面有细腻的拉丝纹理和一道柔和高光。产品右侧放置一个透明玻璃罩，罩体高度与产品相当、直径略大于产品，罩体在焦外轻微虚化，边缘有锐利的细高光；罩内立着一小支玻璃试管，管内盛着{C}色的水，作为色彩呼应。玻璃罩与产品之间可以贴近，但不重叠、不遮挡产品正面标签。上方留白。' }
+    ]
+};
+
+let productSrc = null, productCroppedSrc = null, busy = false;
+let sceneProduct = '', sceneTone = '', sceneAccent = '';
+let curPack = SCENE_PACK, curRatio = '1:1', curSize = 'medium';
+let lastRefImage = null, lastItems = [];
+
+/* 成本估算：火山方舟官方单价
+   doubao-seedream-4-0 输出图 0.20 元/张（输入图免费）
+   doubao-seed-2-1-pro 视觉分析 输入 3 元/百万token、输出 15 元/百万token */
+const COST_IMG = 0.20;
+const COST_TXT_IN = 3.0 / 1000000;
+const COST_TXT_OUT = 15.0 / 1000000;
+let runImgs = 0, runCost = 0, allImgs = 0, allCost = 0;
+
+function loadCostStat() {
+    try {
+        const d = JSON.parse(localStorage.getItem('nj_cost') || '{}');
+        allImgs = d.imgs || 0; allCost = d.cost || 0;
+    } catch (e) { allImgs = 0; allCost = 0; }
+    renderCostStat();
+}
+function resetRunCost() { runImgs = 0; runCost = 0; renderCostStat(); }
+function addCost(imgN, yuan) {
+    runImgs += imgN; runCost += yuan;
+    allImgs += imgN; allCost += yuan;
+    try { localStorage.setItem('nj_cost', JSON.stringify({ imgs: allImgs, cost: allCost })); } catch (e) {}
+    renderCostStat();
+}
+function renderCostStat() {
+    const el = $('costTag');
+    if (!el) return;
+    if (runImgs === 0 && runCost === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = '本次 ' + runImgs + ' 张 · 约 <b>¥' + runCost.toFixed(2) + '</b>' +
+        '　｜　累计 ' + allImgs + ' 张 · 约 <b>¥' + allCost.toFixed(2) + '</b>';
+}
+
+const $ = id => document.getElementById(id);
+
+function dOver(e, el) { e.preventDefault(); el.style.borderColor = '#999'; }
+function dLeave(e, el) { if (!el.classList.contains('has')) el.style.borderColor = ''; }
+function dDrop(e, el, type) { e.preventDefault(); e.stopPropagation(); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) loadPd(f); }
+function pdSel(e) { const f = e.target.files[0]; if (f) loadPd(f); }
+
+function loadPd(file) {
+    const reader = new FileReader();
+    reader.onload = e => { productSrc = e.target.result; autoCrop(productSrc).then(c => { productCroppedSrc = c; showPreview(c); updateGenBtn(); }); };
+    reader.readAsDataURL(file);
+}
+function showPreview(src) {
+    $('pdArea').classList.add('has');
+    $('pdContent').innerHTML = '<img src="' + src + '" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();clearPd()">×</button>';
+}
+function clearPd() { productSrc = null; productCroppedSrc = null; $('pdFile').value = ''; $('pdArea').classList.remove('has'); $('pdArea').style.borderColor = ''; $('pdContent').innerHTML = '<div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div>'; updateGenBtn(); }
+/* 授权激活：付款后发激活码，输入后解锁「填自己的 Key」入口 */
+const LICENSE_SALT = 'naji-ark-2026';
+function licHash(x) {
+    let h = 0;
+    for (let i = 0; i < x.length; i++) { h = (h * 31 + x.charCodeAt(i)) >>> 0; }
+    return h.toString(36).toUpperCase().padStart(4, '0').slice(0, 4);
+}
+function licValid(code) {
+    const c = (code || '').trim().toUpperCase().replace(/[\s-]/g, '');
+    const m = c.match(/^NJ([A-Z0-9]{8})([A-Z0-9]{4})$/);
+    if (!m) return false;
+    return licHash(m[1] + LICENSE_SALT) === m[2];
+}
+function isLicensed() {
+    try { return localStorage.getItem('nj_lic') === '1'; } catch (e) { return false; }
+}
+
+/* 免费体验额度：内置 Key 期间每人 3 次，客户填了自己的 Key 则不限制 */
+const FREE_LIMIT = 3;
+const WECHAT_ID = 'najia9864';
+function getFreeUsed() {
+    try { return parseInt(localStorage.getItem('nj_free_used') || '0', 10) || 0; } catch (e) { return 0; }
+}
+function setFreeUsed(n) {
+    try { localStorage.setItem('nj_free_used', String(n)); } catch (e) {}
+}
+function isDev() {
+    /* 已废弃：不再支持永久开发者标记，任何人（含站长）都按 3 次限制走。
+       顺手清掉历史遗留的 nj_dev，避免旧标记继续生效。 */
+    try { localStorage.removeItem('nj_dev'); } catch (e) {}
+    return false;
+}
+function freeLeft() { return Math.max(0, FREE_LIMIT - getFreeUsed()); }
+function renderQuota() {
+    const el = $('quotaTag');
+    if (!el) return;
+    if (isLicensed()) {
+        el.className = 'quota-tag';
+        el.innerHTML = '已解锁 · 不限次';
+        return;
+    }
+    if (true) { el.className = 'quota-tag'; el.innerHTML = '内部测试 · 不限次'; return; }
+    const left = freeLeft();
+    el.className = 'quota-tag' + (left === 0 ? ' used' : '');
+    el.innerHTML = left > 0 ? '免费体验剩 <b>' + left + '</b> 次' : '免费体验已用完';
+}
+function openBuyDlg() { $('buyMask').style.display = 'flex'; }
+function closeBuyDlg() { $('buyMask').style.display = 'none'; }
+function toggleLic() {
+    const row = $('licRow');
+    const mini = $('licMini');
+    if (!row) return;
+    const show = row.style.display === 'none';
+    row.style.display = show ? 'flex' : 'none';
+    if (mini) mini.style.display = show ? 'none' : 'block';
+    if (show) {
+        const inp = $('licInput');
+        if (inp) setTimeout(() => inp.focus(), 60);
+    }
+}
+
+function copyWx() {
+    const el = $('qrId');
+    if (!el) return;
+    const ok = () => {
+        el.classList.add('copied');
+        el.textContent = '已复制 ' + WECHAT_ID;
+        setTimeout(() => { el.classList.remove('copied'); el.textContent = WECHAT_ID; }, 1600);
+    };
+    const fallback = () => {
+        const ta = document.createElement('textarea');
+        ta.value = WECHAT_ID;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); ok(); } catch (e) {}
+        document.body.removeChild(ta);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(WECHAT_ID).then(ok).catch(fallback);
+    } else {
+        fallback();
+    }
+}
+
+function updateGenBtn() { $('genBtn').disabled = !productCroppedSrc; }
+
+function activateLicense() {
+    const v = ($('licInput').value || '').trim();
+    if (!v) { $('licErr').textContent = '请先填激活码'; return; }
+    if (!licValid(v)) { $('licErr').textContent = '激活码不对，检查一下有没有输错'; return; }
+    try { localStorage.setItem('nj_lic', '1'); } catch (e) {}
+    closeBuyDlg();
+    renderQuota();
+    updateGenBtn();
+}
+
+function openKeyDlg() { /* 已不需要客户填 Key，全部走中转 */ }
+function closeKeyDlg() {}
+function saveKey() {}
+function clearKey() {}
+
+function pickSize(v) {
+    curSize = v;
+    document.querySelectorAll('#sizeRow .ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.s === v));
+}
+function pickRatio(r) {
+    curRatio = r;
+    document.querySelectorAll('.ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.r === r));
+}
+
+function autoCrop(imgSrc) {
+    return new Promise(resolve => {
+        const img = new Image(); img.onload = () => {
+            const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+            const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0);
+            const id = ctx.getImageData(0, 0, c.width, c.height), d = id.data, w = c.width, h = c.height, t = CROP_THRESHOLD;
+            let top = 0, bottom = h - 1, left = 0, right = w - 1;
+            for (let y = 0; y < h; y++) { let f = false; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if (d[i] < t || d[i + 1] < t || d[i + 2] < t) { top = y; f = true; break; } } if (f) break; }
+            for (let y = h - 1; y >= 0; y--) { let f = false; for (let x = 0; x < w; x++) { const i = (y * w + x) * 4; if (d[i] < t || d[i + 1] < t || d[i + 2] < t) { bottom = y; f = true; break; } } if (f) break; }
+            for (let x = 0; x < w; x++) { let f = false; for (let y = top; y <= bottom; y++) { const i = (y * w + x) * 4; if (d[i] < t || d[i + 1] < t || d[i + 2] < t) { left = x; f = true; break; } } if (f) break; }
+            for (let x = w - 1; x >= 0; x--) { let f = false; for (let y = top; y <= bottom; y++) { const i = (y * w + x) * 4; if (d[i] < t || d[i + 1] < t || d[i + 2] < t) { right = x; f = true; break; } } if (f) break; }
+            const cw = right - left + 1, ch = bottom - top + 1, pad = CROP_PADDING;
+            const cc = document.createElement('canvas'); cc.width = cw + pad * 2; cc.height = ch + pad * 2;
+            const cctx = cc.getContext('2d'); cctx.fillStyle = '#FFFFFF'; cctx.fillRect(0, 0, cc.width, cc.height);
+            cctx.drawImage(img, left, top, cw, ch, pad, pad, cw, ch);
+            resolve(cc.toDataURL('image/png'));
+        }; img.src = imgSrc;
+    });
+}
+
+function resizeForAPI(dataUri, maxDim) {
+    maxDim = maxDim || 1024;
+    return new Promise(resolve => {
+        const img = new Image(); img.onload = () => {
+            if (img.width <= maxDim && img.height <= maxDim) { resolve(dataUri); return; }
+            const s = maxDim / Math.max(img.width, img.height);
+            const c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+            c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+            resolve(c.toDataURL('image/jpeg', 0.85));
+        }; img.src = dataUri;
+    });
+}
+
+// 关键：传给出图模型的参考图，本身就是「产品只占约 1/3、四周大量留白」的构图
+// 模型会照抄参考图的占比感，比任何文字描述都管用
+// 产品大小三档：ref 是参考图里产品占画布高度的比例，text 是写进提示词的区间
+const SIZE_LEVELS = {
+    small:  { ref: 0.30, text: '30%~36%' },
+    medium: { ref: 0.40, text: '40%~46%' },
+    large:  { ref: 0.50, text: '50%~56%' }
+};
+function prepareRefImage(dataUri, maxDim) {
+    maxDim = maxDim || 1536;
+    return new Promise(resolve => {
+        const img = new Image(); img.onload = () => {
+            const parts = (RATIOS[curRatio].size || '1728x2304').split('x');
+            const rw = Number(parts[0]) || 3, rh = Number(parts[1]) || 4;
+            const ch = maxDim;
+            const cw = Math.round(ch * rw / rh);
+            const prodH = Math.round(ch * (SIZE_LEVELS[curSize] ? SIZE_LEVELS[curSize].ref : 0.40));
+            const scale = prodH / img.height;
+            const prodW = Math.max(1, Math.round(img.width * scale));
+            const c = document.createElement('canvas');
+            c.width = cw; c.height = ch;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, cw, ch);
+            ctx.drawImage(img, Math.round((cw - prodW) / 2), Math.round((ch - prodH) / 2), prodW, prodH);
+            resolve(c.toDataURL('image/jpeg', 0.92));
+        }; img.src = dataUri;
+    });
+}
+
+/* 把「产品外观 + 色调 + 风格道具 + 尺寸硬约束」拼成单张生图提示词
+   产品尺寸和位置在这里写死：占画面高度约 1/3，正中央 */
+function buildScenePrompt(productDesc, toneDesc, accent, pack, set) {
+    const accentFull = accent || '产品标签上的主色';
+    const accentName = accentFull.replace(/#[0-9A-Fa-f]{3,8}/g, '').trim() || accentFull;
+    const hasAccent = !!accentName && accentName !== '无彩色' && accentName !== '无色';
+    const propsText = set.props.replace(/\{C\}/g, hasAccent ? accentName : '透明无色');
+    return '专业商业产品摄影，单张成品图。\n\n' +
+        '【主体锁定】' + productDesc + '\n' +
+        '产品必须完整呈现，外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与标签文字完全保持原样，禁止替换、美化或重新设计产品本身的任何特征。\n\n' +
+        '【尺寸与位置】产品高度约占画面总高度的 ' + (SIZE_LEVELS[curSize] ? SIZE_LEVELS[curSize].text : '40%~46%') + '，不要更大也不要更小。产品必须位于画面正中央：水平居中，左右留白相等；垂直居中，产品中心与画面中心重合。产品必须完整出现在画面内，任何部位都不得被画面边缘裁切、不得贴边、不得被道具遮挡。\n\n' +
+        '【机位】标准商业产品摄影机位：正面或微侧，左右偏转不超过 15 度；镜头略高于产品中心，向下俯 5 到 10 度。产品必须直立。禁止仰视、禁止大幅俯视、禁止正上方顶视、禁止大角度侧视、禁止倾斜构图、禁止鱼眼或广角畸变。产品的标签必须正对镜头、完整可读、字迹清晰，标签平面与镜头基本平行；不允许因俯仰角导致标签被压扁、变形或看不清。\n\n' +
+        '【构图】产品是画面唯一的视觉焦点，视觉重量必须明显压过所有道具。判断标准是视觉重量而不是物理高度：道具可以高过产品，但必须是细长或透明的形态；道具可以贴近产品、甚至部分交叠，但产品正面标签区绝对不能被任何物体遮挡。画面必须有三层结构：前景、中景、背景——只有产品所在的中景是实焦，前景和背景都必须虚化、低对比。道具的排列要形成一条从画面边缘指向产品的视线引导，不能是平铺或等距陈列。产品上方留白不少于画面高度的五分之一。禁止道具平铺排列、禁止等距对称摆放、禁止体积大且实焦的道具、禁止道具比产品更清晰、禁止任何物体遮挡产品正面标签。\n\n' +
+        '【场景道具】' + propsText + '\n' +
+        '道具只能作为背景层次存在。所有玻璃器皿必须画出真实的玻璃质感：边缘有锐利的细高光，口沿、液面、瓶底各有一道反光，透光处能看见背景的轻微折射；禁止塑料感、禁止磨砂不透明的假玻璃。器皿里盛的水必须与产品主色一致。画面第一视觉焦点必须是产品本身。\n\n' +
+        '【光影】' + pack.light + '\n\n' +
+        '【色调】' + toneDesc + '\n' +
+        (hasAccent ?
+        '点睛色：' + accentFull + '。这个颜色就是产品自身的颜色，是画面里唯一允许出现的彩色，必须真实、明显地出现在画面里，由场景描述中指定的亚克力板、玻璃器皿里的水、分子模型、水造型等实体道具承载，不要落在背景渐变上。禁止出现产品之外的第二种彩色。\n' +
+        '色彩分量：这个颜色在画面中的可见面积不得少于画面总面积的十分之一，并且必须同时出现在至少两处不同的道具上，其中至少一处落在清晰可辨的实体上，不能只出现在虚化或焦外的道具里。画面绝不能退化成几乎全白的单色调。\n'
+        : '色彩：本产品通体无彩色，画面只用白、浅灰与透明，不引入任何彩色。\n') +
+        '环境底色：白与浅灰只作环境底色和留白，不能占据画面全部色彩。\n' +
+        '风格基调：' + pack.tone + '。必须与同套其他图片保持完全相同的色调、光向、背景色和明暗关系。\n\n' +
+        '【画质】真实的产品摄影质感，光线柔和自然，细节清晰，色彩还原准确，边缘干净，轻微景深。不要CG感，不要过度渲染，不要塑料感，不要锐化过度。\n\n' +
+        '【禁止】禁止画面中出现任何摄影棚设备（补光灯、柔光箱、反光伞、灯架、反光板、黑色方框灯具），所有光源必须是自然光或环境光效果，不可见光源本体。禁止道具成为画面主体或与产品争夺视觉焦点。禁止产品过大、过小、被裁切、贴边、偏离画面中心。禁止夸张光效、禁止烟雾水雾弥漫、禁止强对比硬光、禁止暗角、禁止高光过曝、禁止HDR感、禁止游戏CG质感。禁止玻璃器皿呈现塑料质感或磨砂不透明质感。禁止任何物体遮挡产品正面标签。禁止道具体积大且实焦。禁止石材、水泥、石膏、大理石、砖墙、裸露混凝土、粗糙肌理台面等一切建筑材质；所有台面只能是镜面、光滑亚克力、玻璃、纯白或拉丝金属。禁止杂乱背景、无关元素、文字、水印、logo。禁止色调偏差、光影不均。';
+}
+
+async function analyzeImages() {
+    const product = await resizeForAPI(productSrc, 2048);
+
+    const systemPrompt = '你是专业产品摄影视觉分析师。用户会给你一张产品白底图。\n\n' +
+        '你的任务只有两项，不要输出任何其他内容。\n\n' +
+        '【任务一：产品外观描述】\n' +
+        '仔细观察产品白底图，写一段能让生图模型精准还原该产品外观的描述。必须包含：产品类型、外形轮廓（圆/方/异形，瓶身与瓶盖的比例关系）、材质类型、精确颜色（用具体色名，不用"深色""浅色"）、表面质感（哑光/光面/磨砂/拉丝/半透明）、反光特性（强反光/微反光/不反光/半透光）、标签位置与标签上的文字内容、瓶盖或泵头等结构细节。\n' +
+        '不写具体尺寸数字，不写场景、道具、背景。\n' +
+        '这段必须以"以参考图中的产品为唯一主体，严格保持其外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与文字完全不变"开头。\n\n' +
+        '【任务二：色调方案】\n' +
+        '第一原则：整套图的彩色只能来自产品本身，不参考任何外部图片。\n' +
+        '- 观察产品白底图，找出产品身上最鲜明的那一个彩色。这是【产品主色】，也是整套图唯一的彩色来源。\n' +
+        '  · 产品瓶身或液体本身有明显颜色 → 取那个颜色。\n' +
+        '  · 产品是透明、白色或浅色 → 取 logo、标签、瓶盖或包装上最鲜明的那一小块点缀色。哪怕只是一小块红色图案，也是产品主色。\n' +
+        '  · 产品通体确实没有任何彩色 → 场景用纯中性色：白、浅灰、透明，不引入任何彩色。\n' +
+        '必须写清：\n' +
+        '  产品主色——产品身上最鲜明的那个彩色，精确色名；产品通体无彩色时写"无彩色"。\n' +
+        '  场景主色——必须与产品主色完全一致，精确色名。不允许把白、灰、米白写成场景主色。\n' +
+        '  环境色——白、浅灰、米白，明确说明只用于背景和留白。\n' +
+        '  明暗倾向（明亮/中性/偏暗）、饱和度倾向（高/中/低）、整体氛围（如清爽通透、温润高级、科技冷感）。\n' +
+        '  明暗倾向必须按产品自身判断：产品是白色、透明、浅色、带水光感 → 明亮通透；产品是中等明度或哑光 → 中性；产品是黑色、深棕、金属重色 → 偏暗。饱和度跟随产品主色的真实浓度，不要凭空拉高或压低。\n' +
+        '全部用具体色名，禁止"深色""浅色""高级色"这类模糊词。\n\n' +
+        '【任务三：强调色】\n' +
+        '输出【产品主色】。这是画面里唯一允许出现的彩色，来源只能是产品本身。\n' +
+        '- 产品有彩色 → 输出该颜色的色名与色值。\n' +
+        '- 产品通体无彩色 → 只输出"无彩色"三个字，不要编造一个色值。\n' +
+        '格式为"色名 色值"，例如"珊瑚红 #E8654F"。\n' +
+        '这个颜色会直接被写进画面道具的描述里，所以必须是能一眼看出来的颜色，不能是白、灰、米白这类环境色。\n\n' +
+        '【输出格式，严格照此输出】\n' +
+        '产品外观：\n（这里写产品外观描述）\n\n' +
+        '色调方案：\n（这里写色调方案）\n\n' +
+        '强调色：\n（这里只写一个色名和一个色值）';
+
+    const userPrompt = '请分析图片，严格按格式输出"产品外观"和"色调方案"两段。\n\n' +
+        '本次只给产品白底图。整套图的彩色只能来自产品本身，明暗倾向也按产品自身判断。\n\n' +
+        '要求：\n' +
+        '1. 产品外观段必须以"以参考图中的产品为唯一主体，严格保持其外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与文字完全不变"开头\n' +
+        '2. 颜色必须用精确色名，例如"冷调银白""雾面米白""香槟金""灰蓝""浅青瓷白"，不要写"深色""浅色"\n' +
+        '3. 标签上的文字要如实写出，这是产品识别度的关键\n' +
+        '4. 强调色只能来自产品本身，格式"色名 色值"，禁止白、灰、米白这类环境色\n' +
+        '5. 只输出这三段，不要输出解释、不要输出道具和场景描述';
+
+    const parts = [{ type: 'image_url', image_url: { url: product } }];
+    parts.push({ type: 'text', text: userPrompt });
+
+    const reqBody = {
+        messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: parts }
+        ],
+        thinking: { type: 'disabled' },
+        temperature: 0.5, max_tokens: 1600
+    };
+
+    let data = null, lastErr = '';
+    for (const vm of VISION_MODELS) {
+        try {
+            const resp = await callApi('chat', Object.assign({ model: vm }, reqBody));
+            if (!resp.ok) {
+                const ed = resp.data || {};
+                lastErr = (ed.error && ed.error.message) || String(resp.status);
+                continue;
+            }
+            data = resp.data;
+            break;
+        } catch (e) {
+            lastErr = e.message || String(e);
+        }
+    }
+    if (!data) throw new Error('风格分析失败: ' + (lastErr || '所有视觉模型均不可用'));
+
+    const content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+    const pm = content.match(/产品外观[：:]\s*([\s\S]+?)(?=\n\s*色调方案|$)/);
+    const tm = content.match(/色调方案[：:]\s*([\s\S]+?)(?=\n\s*强调色|$)/);
+    const am = content.match(/强调色[：:]\s*([\s\S]+)$/);
+    const uu = data.usage || {};
+    addCost(0, (uu.prompt_tokens || 0) * COST_TXT_IN + (uu.completion_tokens || 0) * COST_TXT_OUT);
+    sceneProduct = pm ? pm[1].trim() : '';
+    sceneTone = tm ? tm[1].trim() : '';
+    sceneAccent = am ? am[1].trim().split('\n')[0].trim() : '';
+    if (!sceneProduct) sceneProduct = content.trim();
+    if (!sceneTone) sceneTone = '保持产品自身固有色，低饱和，背景干净通透';
+    if (!sceneAccent) sceneAccent = '产品标签上的主色';
+    return { product: sceneProduct, tone: sceneTone, accent: sceneAccent };
+}
+
+async function generateSceneImage(prompt, refImage) {
+    const baseBody = {
+        prompt: prompt,
+        size: RATIOS[curRatio].size,
+        stream: false,
+        response_format: 'b64_json',
+        watermark: false
+    };
+    // 关键：把产品原图作为参考图传入，让模型照着原图画，而不是凭文字重新发明产品
+    if (refImage) baseBody.image = Array.isArray(refImage) ? refImage : [refImage];
+    let data = null, lastErr = '';
+    for (const im of IMAGE_MODELS) {
+        try {
+            const resp = await callApi('image', Object.assign({ model: im }, baseBody));
+            if (!resp.ok) {
+                const ed = resp.data || {};
+                lastErr = (ed.error && ed.error.message) || String(resp.status);
+                continue;
+            }
+            data = resp.data;
+            break;
+        } catch (e) {
+            lastErr = e.message || String(e);
+        }
+    }
+    if (!data) throw new Error('场景图生成失败: ' + (lastErr || '所有图像模型均不可用'));
+    const first = data.data && data.data[0];
+    if (first && (first.b64_json || first.url)) addCost(1, COST_IMG);
+    if (first && first.b64_json) return 'data:image/png;base64,' + first.b64_json;
+    if (first && first.url) return first.url;
+    if (first && first.error) throw new Error('图片生成错误: ' + first.error.message);
+    throw new Error('未获取到图片结果');
+}
+
+function setStep(n) {
+    for (let i = 1; i <= 2; i++) {
+        const el = $('step' + i);
+        if (!el) continue;
+        const ico = el.querySelector('.step-ico');
+        if (!ico) continue;
+        ico.className = 'step-ico ' + (i < n ? 'done' : i === n ? 'active' : 'wait');
+    }
+}
+
+// 抽 N 套不重复的道具
+function pickSets() {
+    const pool = curPack.sets.slice();
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+    return pool.slice(0, Math.min(SHOTS_PER_RUN, pool.length));
+}
+
+// 把微调指令接到提示词末尾：放最后、权重最高，用来覆盖前面的相关描述
+function withTune(prompt, tune) {
+    const t = (tune || '').trim();
+    if (!t) return prompt;
+    return prompt + '\n\n【额外调整 · 优先级最高，覆盖前面所有与之相关的描述】\n' + t;
+}
+
+// 微调用的「局部修改模式」：把上一张成品图当基准，锁死构图道具，只改一处
+function withTuneLocked(prompt, tune) {
+    const t = (tune || '').trim();
+    if (!t) return prompt;
+    const head =
+        '【局部修改模式 · 本条优先级最高】\n' +
+        '这不是重新创作，而是对一张已有成品图做局部修改。\n' +
+        '本次给了两张参考图：参考图 1 是产品原图，只用来保证产品外观绝对不变；参考图 2 是上一轮的成品图，是本次修改的唯一基准。\n' +
+        '必须严格保持参考图 2 的以下内容完全不变：画幅与构图、机位与透视角度、产品的大小与画面位置、每一件道具的形状/数量/位置/朝向、光影方向与强度、背景层次与渐变、整体色调与饱和度。\n' +
+        '只修改下面指定的那一项，其余一切照旧。修改完成后，整张图除了这一项之外，必须与参考图 2 几乎一模一样，看不出是重画的。\n' +
+        '禁止新增道具、禁止移动道具、禁止改变产品大小或位置、禁止改变机位角度、禁止整体重排画面。\n' +
+        '本次修改只允许调整颜色、明暗、虚化程度、饱和度这类属性；道具的数量与摆放不在此次修改范围内，必须与参考图 2 完全一致。\n' +
+        '万一指令里提到增删道具：只用原区域的背景、台面和光影自然补齐，画面其余部分必须原封不动，绝不能因此改变打光方式、明暗对比、背景渐变或色温。\n' +
+        '如果修改涉及颜色、明暗或虚化程度，必须对画面中所有同类对象统一执行，不能只改其中一部分。\n' +
+        '整张图的曝光、白平衡、背景明度必须与参考图 2 保持一致，允许的差异不超过肉眼几乎察觉不到的程度。禁止把亮调画面改成暗调，禁止加聚光灯、光斑、暗角或戏剧化打光，禁止改变背景的渐变方向。\n' +
+        '产品的正面标签区必须始终完整可见，任何道具都不得移动到标签前方。\n' +
+        '【本次唯一要修改的】\n' + t + '\n\n';
+    const locked = prompt.replace('【场景道具】',
+        '【场景道具 · 以下描述只用于识别参考图 2 里已经存在的道具，不得据此重新摆放、增删或替换】');
+    return head + locked;
+}
+
+// 把上一张成品图压成小尺寸参考图，用来锁定构图（体积小、上传快）
+function toSceneRef(src) {
+    return new Promise(resolve => {
+        if (!src) { resolve(null); return; }
+        const img = new Image();
+        if (!/^data:/.test(src)) img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            try {
+                const maxDim = 1280;
+                const sc = Math.min(1, maxDim / Math.max(img.width, img.height));
+                const c = document.createElement('canvas');
+                c.width = Math.round(img.width * sc);
+                c.height = Math.round(img.height * sc);
+                c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                resolve(c.toDataURL('image/jpeg', 0.85));
+            } catch (e) { resolve(src); }
+        };
+        img.onerror = () => resolve(src);
+        img.src = src;
+    });
+}
+
+// 按某个 view 组装最终提示词
+function promptForView(item, view) {
+    return withTune(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, item.set), view.tune);
+}
+
+// 只跑出图，不重新分析（换一批道具用这个，省掉分析的钱和时间）
+async function runShots() {
+    if (!sceneProduct || !lastRefImage) return;
+    busy = true; $('genBtn').disabled = true;
+    try {
+        showView('l');
+        // 每次按当前画幅重做参考图，保证传进去的构图占比正确
+        lastRefImage = await prepareRefImage(productCroppedSrc);
+        const picked = pickSets();
+        setStep(2);
+        $('ldgTxt').textContent = '正在生成 ' + picked.length + ' 张场景图...';
+        $('ldgSub').textContent = curPack.name + ' · ' + RATIOS[curRatio].label + ' · 大约需要 40-70 秒';
+
+        const settled = await Promise.allSettled(
+            picked.map(set => generateSceneImage(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, set), lastRefImage))
+        );
+
+        const items = [];
+        settled.forEach((r, i) => {
+            if (r.status === 'fulfilled' && r.value) {
+                items.push({
+                    name: picked[i].name,
+                    set: picked[i],
+                    active: 0,
+                    views: [{ angle: '主图', src: r.value, refImage: lastRefImage, tune: '' }]
+                });
+            }
+        });
+        if (!items.length) {
+            const firstErr = settled.find(r => r.status === 'rejected');
+            throw new Error((firstErr && firstErr.reason && firstErr.reason.message) ? firstErr.reason.message : '全部生成失败，请重试');
+        }
+
+        lastItems = items;
+        showResults();
+    } catch (err) {
+        console.error(err); showView('x'); $('errTxt').textContent = err.message || '请稍后重试';
+    } finally { busy = false; updateGenBtn(); }
+}
+
+// 换一批道具：跳过分析，直接重抽 N 套
+async function regenerateProps() {
+    if (busy) return;
+    await runShots();
+}
+
+// 重出某一张（当前角度，原样再画一次）
+async function regenerateOne(idx) {
+    if (busy) return;
+    const it = lastItems[idx];
+    if (!it) return;
+    const v = it.views[it.active];
+    if (!v) return;
+    busy = true;
+    const card = document.querySelector('[data-idx="' + idx + '"]');
+    if (card) card.style.opacity = '.35';
+    try {
+        const src = await generateSceneImage(promptForView(it, v), v.refImage);
+        v.src = src;
+        showResults();
+    } catch (e) {
+        alert('重出失败：' + (e.message || '请稍后重试'));
+        if (card) card.style.opacity = '1';
+    } finally { busy = false; }
+}
+
+// 提交微调指令：把框里的话拼进这张图的提示词，只重出这一张
+async function submitTune(idx) {
+    if (busy) return;
+    const it = lastItems[idx];
+    if (!it) return;
+    const v = it.views[it.active];
+    const box = document.querySelector('[data-tune="' + idx + '"]');
+    if (!v || !box) return;
+    const t = box.value.trim();
+    if (!t) { alert('先写一句想改什么，比如「不要分子结构」或「红色改成浅蓝」'); return; }
+    v.tune = t;
+    busy = true;
+    const card = document.querySelector('[data-idx="' + idx + '"]');
+    if (card) card.style.opacity = '.35';
+    try {
+        const sceneRef = await toSceneRef(v.src);
+        const prodRef = await resizeForAPI(productCroppedSrc, 1024);
+        const tuned = withTuneLocked(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, it.set), v.tune);
+        const src = await generateSceneImage(tuned, [prodRef, sceneRef]);
+        v.src = src;
+        showResults();
+    } catch (e) {
+        alert('微调失败：' + (e.message || '请稍后重试'));
+        if (card) card.style.opacity = '1';
+    } finally { busy = false; }
+}
+
+async function generate() {
+    if (busy || !productCroppedSrc) return;
+    /* 内部测试版：不限制次数 */
+    busy = true; $('genBtn').disabled = true;
+    try {
+        showView('l');
+        resetRunCost();
+        setStep(1); $('ldgTxt').textContent = '正在分析产品与色调...'; $('ldgSub').textContent = '大约需要 5-10 秒';
+        await analyzeImages();
+        lastRefImage = await prepareRefImage(productCroppedSrc);
+    } catch (err) {
+        console.error(err); busy = false; updateGenBtn(); showView('x'); $('errTxt').textContent = err.message || '请稍后重试';
+        return;
+    }
+    busy = false;
+    await runShots();
+    if (!isLicensed() && lastItems && lastItems.length > 0) {
+        setFreeUsed(getFreeUsed() + 1);
+        renderQuota();
+    }
+}
+
+function showResults() {
+    showView('r');
+    const container = $('resContent');
+    container.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'res-grid';
+    lastItems.forEach((it, idx) => {
+        const v = it.views[it.active] || it.views[0];
+        const card = document.createElement('div');
+        card.className = 'res-card';
+        card.setAttribute('data-idx', idx);
+
+        card.innerHTML =
+            '<div class="res-card-img"><img src="' + v.src + '" alt="场景图' + (idx + 1) + '"></div>' +
+            '<div class="res-card-body">' +
+            '<div class="set-name">' + it.name + '</div>' +
+            '<div class="tune-row">' +
+            '<textarea class="tune-box" data-tune="' + idx + '" placeholder="调颜色、明暗、虚化。比如：水的颜色加深 / 整体亮一点 / 背景再虚一点">' + (v.tune || '') + '</textarea>' +
+            '<button class="tune-btn" onclick="submitTune(' + idx + ')">提交</button>' +
+            '</div>' +
+            '<div class="tune-hint">微调只改颜色 / 明暗 / 虚化；想换道具和摆放，点「重出这张」重新抽</div>' +
+            '<div class="res-links">' +
+            '<a href="' + v.src + '" download="scene-' + (idx + 1) + '.jpg">下载</a>' +
+            '<a onclick="regenerateOne(' + idx + ')">重出这张</a>' +
+            '</div>' +
+            '</div>';
+        grid.appendChild(card);
+    });
+    container.appendChild(grid);
+}
+
+function showView(v) {
+    $('vEmpty').style.display = v === 'e' ? 'flex' : 'none';
+    $('vLoad').style.display = v === 'l' ? 'flex' : 'none';
+    $('vRes').style.display = v === 'r' ? 'block' : 'none';
+    $('vErr').style.display = v === 'x' ? 'block' : 'none';
+}
+
+function resetAll() {
+    clearPd();
+    sceneProduct = ''; sceneTone = ''; sceneAccent = '';
+    lastRefImage = null; lastItems = [];
+    showView('e');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    showView('e'); pickRatio('1:1'); pickSize('medium'); loadCostStat(); updateGenBtn(); renderQuota();
+});
+
+
+</script>
+
+
+<div class="dlg-mask" id="buyMask" style="display:none">
+    <div class="dlg dlg-buy">
+        <button class="dlg-x2" onclick="closeBuyDlg()">×</button>
+        <div class="dlg-b">
+            <div class="dlg-t1">免费体验已用完</div>
+            <div class="dlg-t2">扫码后沟通，订阅或买断报价</div>
+            <div class="qr-wrap">
+                <div class="qr-box">
+                    <img src="img/qr-weixin.png" alt="微信二维码">
+                    <div class="qr-tip">请使用微信扫码</div>
+                </div>
+            </div>
+            <div class="qr-or">或手动添加我的微信</div>
+            <div class="qr-id" id="qrId" onclick="copyWx()" title="点击复制微信号">najia9864</div>
+            <div class="lic-mini" id="licMini" onclick="toggleLic()">已购买？点此激活</div>
+            <div class="lic-row" id="licRow" style="display:none">
+                <input type="text" class="dlg-in" id="licInput" placeholder="NJ-XXXXXXXX-XXXX" autocomplete="off">
+                <button class="lic-btn" onclick="activateLicense()">解锁</button>
+            </div>
+            <div class="dlg-err" id="licErr"></div>
+        </div>
+        <div class="dlg-f" style="padding:14px 26px 26px">
+            <button class="dlg-btn" style="flex:1;padding:13px;font-size:15px;font-weight:600" onclick="closeBuyDlg()">我已添加，完成</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -451,16 +451,15 @@ function setFreeUsed(n) {
     try { localStorage.setItem('nj_free_used', String(n)); } catch (e) {}
 }
 function isDev() {
-    try {
-        if (/[?&]dev=1/.test(location.search)) localStorage.setItem('nj_dev', '1');
-        return localStorage.getItem('nj_dev') === '1';
-    } catch (e) { return false; }
+    /* 已废弃：不再支持永久开发者标记，任何人（含站长）都按 3 次限制走。
+       顺手清掉历史遗留的 nj_dev，避免旧标记继续生效。 */
+    try { localStorage.removeItem('nj_dev'); } catch (e) {}
+    return false;
 }
 function freeLeft() { return Math.max(0, FREE_LIMIT - getFreeUsed()); }
 function renderQuota() {
     const el = $('quotaTag');
     if (!el) return;
-    if (isDev()) { el.className = 'quota-tag'; el.innerHTML = '开发者模式 · 不限次'; return; }
     if (isLicensed()) {
         el.className = 'quota-tag';
         el.innerHTML = '已解锁 · 不限次';
@@ -913,7 +912,7 @@ async function submitTune(idx) {
 
 async function generate() {
     if (busy || !productCroppedSrc) return;
-    if (!isDev() && !isLicensed() && freeLeft() <= 0) { openBuyDlg(); return; }
+    if (!isLicensed() && freeLeft() <= 0) { openBuyDlg(); return; }
     busy = true; $('genBtn').disabled = true;
     try {
         showView('l');
