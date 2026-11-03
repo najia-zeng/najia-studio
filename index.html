@@ -247,6 +247,37 @@
   .tool-more .plus{width:38px;height:38px;border-radius:50%;background:#efeaff;
     color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:19px;line-height:1;}
 
+  /* ===== 主推风格包大卡 ===== */
+  .tool-hero{display:grid;grid-template-columns:1fr .9fr;background:#fff;border:1px solid var(--line);
+    text-decoration:none;color:inherit;
+    border-radius:18px;overflow:hidden;margin-bottom:16px;box-shadow:0 10px 34px rgba(107,92,231,.10);
+    transition:box-shadow .2s;}
+  .tool-hero:hover{box-shadow:0 14px 42px rgba(107,92,231,.16);}
+  .th-copy{padding:32px 34px;display:flex;flex-direction:column;justify-content:center;}
+  .th-badge{align-self:flex-start;display:inline-flex;align-items:center;gap:6px;font-size:12px;
+    font-weight:600;color:#6b5ce7;background:rgba(107,92,231,.09);border-radius:999px;
+    padding:5px 13px;margin-bottom:15px;}
+  .th-name{font-size:25px;font-weight:700;letter-spacing:-.4px;color:var(--ink);
+    line-height:1.24;margin-bottom:11px;}
+  .th-desc{font-size:14px;color:#4a4660;line-height:1.68;margin-bottom:22px;max-width:410px;}
+  .th-acts{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+  .th-btn{font-size:14px;font-weight:600;color:#fff;background:linear-gradient(135deg,#6b5ce7,#4a7cf7);
+    border-radius:10px;padding:11px 23px;text-decoration:none;box-shadow:0 6px 18px rgba(107,92,231,.26);
+    transition:box-shadow .2s,transform .2s;}
+  .th-btn:hover{box-shadow:0 9px 24px rgba(107,92,231,.36);transform:translateY(-1px);}
+  .th-more{font-size:13px;color:var(--muted);text-decoration:none;}
+  .th-more:hover{color:var(--blue);}
+  .th-shots{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#f3f1ff;min-height:250px;}
+  .th-shots img{width:100%;height:100%;object-fit:cover;display:block;}
+  .tools-sub{font-size:13px;color:var(--muted);margin:26px 0 13px;display:flex;align-items:center;gap:9px;}
+  .tools-sub::after{content:"";flex:1;height:1px;background:var(--line);}
+  @media(max-width:820px){
+    .tool-hero{grid-template-columns:1fr;}
+    .th-copy{padding:24px 22px;}
+    .th-name{font-size:21px;}
+    .th-shots{min-height:190px;}
+  }
+
 </style>
 </head>
 <body>
@@ -273,10 +304,10 @@
 
       <div class="nav-sep"></div>
       <div class="nav-title">智 能 体 工 具</div>
+      <a class="nav-item" href="https://www.najiastudio.com/scene-gen.html" target="_blank">
+        <span class="ico">🎬</span><span class="txt">科研医美风生图</span><span class="ext">↗</span></a>
       <a class="nav-item" href="https://www.najiastudio.com/kuociq.html" target="_blank">
         <span class="ico">✍️</span><span class="txt">提示词生成器</span><span class="ext">↗</span></a>
-      <a class="nav-item" href="https://www.najiastudio.com/scene-gen.html" target="_blank">
-        <span class="ico">🎬</span><span class="txt">AI创意生图</span><span class="ext">↗</span></a>
       <a class="nav-item" href="https://www.najiastudio.com/fusion-pro.html" target="_blank">
         <span class="ico">🧩</span><span class="txt">实拍融合AI</span><span class="ext">↗</span></a>
     </div>
@@ -304,6 +335,24 @@
         </div>
       </div>
 
+      <a class="tool-hero" href="https://www.najiastudio.com/scene-gen.html" target="_blank">
+        <div class="th-copy">
+          <div class="th-badge">● 风格包 · 一键出成品</div>
+          <div class="th-name">科研医美风 · 场景生图</div>
+          <div class="th-desc">上传产品白底图，一次出 4 张同风格场景图。同一套色调和光影，道具各不相同，配色跟随产品本身。</div>
+          <div class="th-acts">
+            <span class="th-btn">免费试 3 次 →</span>
+            <span class="th-more">看看出图效果 ›</span>
+          </div>
+        </div>
+        <div class="th-shots">
+          <img src="img/out_01.jpg" alt="科研医美风场景图">
+          <img src="img/out_03.jpg" alt="科研医美风场景图">
+        </div>
+      </a>
+
+      <div class="tools-sub">配套工具 · 单点能力，可单独使用</div>
+
       <div class="tools">
         <div class="tool">
           <div class="t-head">
@@ -316,19 +365,6 @@
           </div>
           <div class="t-desc">上传产品图片，生成专业 AI 摄影提示词。</div>
           <div class="t-acts"><a class="btn-use" href="https://www.najiastudio.com/kuociq.html" target="_blank">限时免费</a><a class="btn-more" href="#cases">查看详情 ›</a></div>
-        </div>
-
-        <div class="tool">
-          <div class="t-head">
-            <div class="t-ico">🎬</div>
-            <div class="t-title">
-              <div class="t-name">AI 创意生图</div>
-              <div class="t-tags"><span class="c1">场景生图</span></div>
-            </div>
-            <span class="t-star">☆</span>
-          </div>
-          <div class="t-desc">上传产品加参考图，AI 一步生成场景图。</div>
-          <div class="t-acts"><a class="btn-use" href="https://www.najiastudio.com/scene-gen.html" target="_blank">限时免费</a><a class="btn-more" href="#cases">查看详情 ›</a></div>
         </div>
 
         <div class="tool">
