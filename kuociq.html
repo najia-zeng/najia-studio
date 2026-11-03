@@ -308,11 +308,13 @@
 #ns-topbar .bt b{display:block;font-size:17.5px;font-weight:650;color:#1a1a2e;line-height:1.2;}
 #ns-topbar .bt span{font-size:14px;letter-spacing:.5px;color:#9a94b8;margin-top:3px;display:block;}
 #ns-topbar .topnav{margin-left:auto;display:flex;align-items:center;gap:12px;}
-#ns-topbar .tbtn{font-size:14px;font-weight:600;color:#fff;background:#6b5ce7;
-  border:1px solid #6b5ce7;border-radius:999px;padding:10px 26px;
-  text-decoration:none;line-height:1.2;white-space:nowrap;
-  box-shadow:0 2px 8px rgba(107,92,231,.22);transition:filter .15s;cursor:pointer;}
-#ns-topbar .tbtn:hover{filter:brightness(1.08);}
+#ns-topbar .tbtn{font-size:14px;font-weight:600;color:#6b5ce7;background:#fff;
+  border:1px solid #e2ddfb;border-radius:999px;padding:10px 26px;
+  text-decoration:none;line-height:1.2;white-space:nowrap;transition:all .15s;cursor:pointer;}
+#ns-topbar .tbtn:hover{border-color:#c9c1f5;color:#5a4be0;}
+#ns-topbar .tbtn.on{color:#fff;background:#6b5ce7;border-color:#6b5ce7;
+  box-shadow:0 2px 8px rgba(107,92,231,.22);}
+#ns-topbar .tbtn.on:hover{filter:brightness(1.08);}
 @media(max-width:768px){
   #ns-topbar{height:auto;padding:10px 14px;gap:10px;flex-wrap:wrap;}
   #ns-topbar .topnav{margin-left:0;width:100%;gap:8px;}

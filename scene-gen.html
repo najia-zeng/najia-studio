@@ -196,11 +196,13 @@
 #ns-topbar .bt b{display:block;font-size:17px;font-weight:650;color:#1a1a2e;line-height:1.2;}
 #ns-topbar .bt span{font-size:12px;letter-spacing:.8px;color:#9a94b8;margin-top:3px;display:block;}
 #ns-topbar .topnav{margin-left:auto;display:flex;align-items:center;gap:10px;}
-#ns-topbar .tbtn{font-size:15px;font-weight:600;color:#fff;background:#6b5ce7;
-  border:1px solid #6b5ce7;border-radius:10px;padding:10px 22px;
-  text-decoration:none;line-height:1.2;white-space:nowrap;
-  box-shadow:0 3px 10px rgba(107,92,231,.26);transition:filter .15s;}
-#ns-topbar .tbtn:hover{filter:brightness(1.08);}
+#ns-topbar .tbtn{font-size:15px;font-weight:600;color:#6b5ce7;background:#fff;
+  border:1px solid #e2ddfb;border-radius:10px;padding:10px 22px;
+  text-decoration:none;line-height:1.2;white-space:nowrap;transition:all .15s;}
+#ns-topbar .tbtn:hover{border-color:#c9c1f5;color:#5a4be0;}
+#ns-topbar .tbtn.on{color:#fff;background:#6b5ce7;border-color:#6b5ce7;
+  box-shadow:0 3px 10px rgba(107,92,231,.26);}
+#ns-topbar .tbtn.on:hover{filter:brightness(1.08);}
 @media(max-width:768px){
   #ns-topbar{height:auto;padding:10px 14px;gap:10px;flex-wrap:wrap;}
   #ns-topbar .topnav{margin-left:0;width:100%;gap:8px;}
