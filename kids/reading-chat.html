@@ -161,8 +161,29 @@ html, body {
 </div>
 <script>
 var BOT_ID = '7659326952666726409';
-var PAT = 'pat_Ij3tQZyg7s8g2QwZxqkyo9dTUQgxxKgcbJjHbxVjN2FYxR4iUpM1m9fynC0XNPz2';
-var API_URL = 'https://api.coze.cn/v3/chat';
+/* 所有 AI 请求走自有中转，Coze 令牌只存在服务端，前端拿不到 */
+var API_BASE = 'https://najia-api-vsusfefxze.cn-hangzhou.fcapp.run';
+async function callApi(type, payload) {
+  var r = await fetch(API_BASE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+    body: JSON.stringify({ type: type, payload: payload })
+  });
+  var txt = await r.text();
+  var data;
+  try { data = JSON.parse(txt); } catch (e) { data = { error: { message: txt || ('HTTP ' + r.status) } }; }
+  return { ok: r.ok, status: r.status, data: data };
+}
+async function fetchAnswer(convId, chatId) {
+  var r = await callApi('coze', { action: 'messages', chat_id: chatId, conversation_id: convId });
+  var d = r.data || {};
+  if (d.code !== 0) throw new Error('获取结果失败: ' + d.msg);
+  var arr = d.data || [];
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i].role === 'assistant' && arr[i].type === 'answer') return arr[i].content;
+  }
+  throw new Error('未获取到有效回复');
+}
 var chatArea = document.getElementById('chatArea');
 var inputEl = document.getElementById('input');
 var sendBtn = document.getElementById('sendBtn');
@@ -227,13 +248,11 @@ async function sendMessage() {
   addUserMsg(text);
   var bubble = createBotBubble();
   statusEl.textContent = '思考中...';
-  var answerText = '';
-  var gotAnswer = false;
   try {
     var body = {
       bot_id: BOT_ID,
       user_id: userId,
-      stream: true,
+      stream: false,
       auto_save_history: true,
       additional_messages: [{
         role: 'user',
@@ -244,65 +263,30 @@ async function sendMessage() {
     if (conversationId) {
       body.conversation_id = conversationId;
     }
-    var resp = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + PAT,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-    if (!resp.ok) {
-      throw new Error('网络错误: ' + resp.status);
+    var cr = await callApi('coze', { action: 'chat', body: body });
+    var cd = cr.data || {};
+    if (cd.code !== 0) throw new Error('对话失败: ' + (cd.msg || JSON.stringify(cd)));
+
+    var chatId = cd.data.id;
+    var convId = cd.data.conversation_id;
+    if (!conversationId) {
+      conversationId = convId;
+      newChatBtn.style.display = 'block';
     }
-    var reader = resp.body.getReader();
-    var decoder = new TextDecoder();
-    var buffer = '';
-    while (true) {
-      var chunk = await reader.read();
-      if (chunk.done) break;
-      buffer += decoder.decode(chunk.value, { stream: true });
-      var lines = buffer.split('\n');
-      buffer = lines.pop();
-      var currentEvent = '';
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i].trim();
-        if (line === '') continue;
-        if (line.indexOf('event:') === 0) {
-          currentEvent = line.substring(6);
-        } else if (line.indexOf('data:') === 0) {
-          var dataStr = line.substring(5);
-          if (!conversationId && dataStr) {
-            try {
-              var metaData = JSON.parse(dataStr);
-              if (metaData.conversation_id) {
-                conversationId = metaData.conversation_id;
-                newChatBtn.style.display = 'block';
-              }
-            } catch(e) {}
-          }
-          if (currentEvent === 'conversation.message.delta') {
-            try {
-              var d = JSON.parse(dataStr);
-              if (d.type === 'answer' && d.content && d.content.length > 0) {
-                if (!gotAnswer) {
-                  gotAnswer = true;
-                  bubble.textContent = '';
-                  statusEl.textContent = '回复中...';
-                }
-                answerText += d.content;
-                bubble.textContent = answerText;
-                scrollBottom();
-              }
-            } catch(e) {}
-          }
-          currentEvent = '';
-        }
-      }
+
+    var answer = null;
+    for (var pi = 0; pi < 90; pi++) {
+      await new Promise(function (rr) { setTimeout(rr, 2000); });
+      statusEl.textContent = '思考中... (' + ((pi + 1) * 2) + 's)';
+      var sr = await callApi('coze', { action: 'retrieve', chat_id: chatId, conversation_id: convId });
+      var sd = sr.data || {};
+      if (sd.code !== 0) throw new Error('状态查询失败: ' + sd.msg);
+      if (sd.data.status === 'completed') { answer = await fetchAnswer(convId, chatId); break; }
+      if (sd.data.status === 'failed') throw new Error('生成失败，请重试');
     }
-    if (!gotAnswer || answerText.length === 0) {
-      bubble.textContent = '未收到回复，请重试';
-    }
+    if (answer === null) throw new Error('生成超时，请重试');
+    bubble.textContent = answer;
+    scrollBottom();
     statusEl.textContent = '';
   } catch(e) {
     bubble.textContent = '出了点问题：' + e.message;
