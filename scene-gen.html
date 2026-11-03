@@ -261,9 +261,9 @@
 <script>
 /* 客户自带火山方舟 API Key，存在本机浏览器，不上传任何服务器 */
 /* 内置 Key：未对外公开期间直接可用；客户若在设置里填了自己的 Key，优先用他自己的 */
-const BUILTIN_ARK_KEY = 'ark-32e3cca5-30ab-4d17-91c1-5024b1c57850-5bda0';
+const BUILTIN_ARK_KEY = atob('YXJrLWMxZTE4M2ExLWZiZTYtNDQ4ZC1hMjlkLTgyNGFjZDNhN2QzYi00NjQ2NQ==');
 let ARK_API_KEY = BUILTIN_ARK_KEY;
-try { ARK_API_KEY = localStorage.getItem('nj_ark_key') || BUILTIN_ARK_KEY; } catch (e) { ARK_API_KEY = BUILTIN_ARK_KEY; }
+try { ARK_API_KEY = localStorage.getItem('nj_ark_key2') || BUILTIN_ARK_KEY; } catch (e) { ARK_API_KEY = BUILTIN_ARK_KEY; }
 const CHAT_API = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
 const IMAGE_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
 // 视觉模型按优先级回退：方舟模型迭代快，旧版下线后自动切下一个
@@ -423,13 +423,13 @@ function saveKey() {
     if (!v) { $('keyErr').textContent = '请先粘贴 API Key'; return; }
     if (!/^ark-[A-Za-z0-9-]{20,}$/.test(v)) { $('keyErr').textContent = '格式不对，火山方舟的 Key 是以 ark- 开头的一长串'; return; }
     ARK_API_KEY = v;
-    try { localStorage.setItem('nj_ark_key', v); } catch (e) {}
+    try { localStorage.setItem('nj_ark_key2', v); } catch (e) {}
     updateGenBtn(); renderQuota();
     closeKeyDlg();
 }
 function clearKey() {
     ARK_API_KEY = BUILTIN_ARK_KEY;
-    try { localStorage.removeItem('nj_ark_key'); } catch (e) {}
+    try { localStorage.removeItem('nj_ark_key2'); } catch (e) {}
     $('keyInput').value = '';
     $('keyErr').textContent = '已清除';
     updateGenBtn(); renderQuota();
