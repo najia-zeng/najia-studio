@@ -74,10 +74,14 @@
         .dlg-x:hover { color: #666; }
         .dlg-b { padding: 18px 22px; }
         .dlg-p { font-size: 13px; color: var(--text-sec); line-height: 1.7; margin: 0 0 14px; }
-        .dlg-steps { background: #fafafa; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
-        .dlg-steps .st { font-size: 12.5px; color: var(--text-sec); line-height: 1.6; padding: 4px 0; display: flex; gap: 8px; }
-        .dlg-steps .st b { color: #999; font-weight: 500; flex: 0 0 auto; }
-        .dlg-steps a { color: #4a7cf7; text-decoration: none; }
+        .dlg-steps { background: #fafafa; border-radius: 10px; padding: 13px 16px; margin-bottom: 14px; }
+        .dlg-steps .st { font-size: 12.5px; color: var(--text-sec); line-height: 1.7; padding: 6px 0 6px 27px; position: relative; }
+        .dlg-steps .st b { position: absolute; left: 0; top: 6px; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 1px solid var(--border); color: #999; font-weight: 500; font-size: 11px; line-height: 16px; text-align: center; box-sizing: border-box; }
+        .dlg-steps .mn { color: #555; font-weight: 500; }
+        .dlg-steps a { color: #4a7cf7; text-decoration: none; border-bottom: 1px solid rgba(74,124,247,.35); }
+        .dlg-steps a:hover { border-bottom-color: #4a7cf7; }
+        .dlg-note { font-size: 11.5px; color: #a8a8a8; line-height: 1.65; margin: 0 0 14px; }
+        .dlg-note a { color: #7a9ef9; text-decoration: none; }
         .dlg-in { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; color: var(--text); }
         .dlg-in:focus { outline: none; border-color: #999; }
         .dlg-err { font-size: 12px; color: #d9534f; min-height: 18px; padding-top: 6px; }
@@ -854,17 +858,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <div class="dlg-mask" id="keyMask" style="display:none">
     <div class="dlg">
-        <div class="dlg-h">火山方舟 API Key<span class="dlg-x" onclick="closeKeyDlg()">×</span></div>
+        <div class="dlg-h">先填一个火山方舟 API Key<span class="dlg-x" onclick="closeKeyDlg()">×</span></div>
         <div class="dlg-b">
-            <p class="dlg-p">这个工具不提供算力，出图的费用由你自己的火山方舟账号支付（约 <b>0.20 元/张</b>，一次 4 张约 <b>0.82 元</b>）。Key 只保存在你这台电脑的浏览器里，不会上传。</p>
+            <p class="dlg-p">这个工具不出算力，出图费用走你自己的火山方舟账号，约 <b>0.20 元/张</b>。Key 只存在你这台电脑的浏览器里，不会上传。配一次，以后打开直接能用。</p>
             <div class="dlg-steps">
-                <div class="st"><b>1</b>打开 <a href="https://console.volcengine.com/ark" target="_blank">console.volcengine.com/ark</a>，注册并登录火山引擎</div>
-                <div class="st"><b>2</b>左侧「开通管理」，开通 <b>doubao-seedream-4-0</b> 和 <b>doubao-seed-2-1-pro</b> 两个模型</div>
-                <div class="st"><b>3</b>左侧「API Key 管理」→ 创建 API Key，复制</div>
-                <div class="st"><b>4</b>「费用中心」充值（按量付费，充多少用多少）</div>
-                <div class="st"><b>5</b>把 Key 粘贴到下面</div>
+                <div class="st"><b>1</b>开通模型：<a href="https://console.volcengine.com/ark/region:ark+cn-beijing/openManagement" target="_blank">点这里开通</a> <span class="mn">doubao-seedream-4-0</span> 和 <span class="mn">doubao-seed-2-1-pro</span></div>
+                <div class="st"><b>2</b>创建 Key：<a href="https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey" target="_blank">点这里创建</a>，把那一长串复制下来</div>
+                <div class="st"><b>3</b>粘到下面，点保存</div>
             </div>
-            <input type="text" class="dlg-in" id="keyInput" placeholder="ark-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx-xxxxx" autocomplete="off">
+            <p class="dlg-note">第一次用需要先注册火山引擎并完成实名认证。余额不足时出图会失败，去 <a href="https://console.volcengine.com/finance/" target="_blank">费用中心</a> 充值即可。</p>
+            <input type="text" class="dlg-in" id="keyInput" placeholder="ark-..." autocomplete="off">
             <div class="dlg-err" id="keyErr"></div>
         </div>
         <div class="dlg-f">
