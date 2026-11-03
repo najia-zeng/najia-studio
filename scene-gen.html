@@ -67,6 +67,25 @@
         .res-wrap { max-width: 1100px; margin: 0 auto; width: 100%; }
         .res-top { width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
         .res-top h2 { font-size: 17px; font-weight: 500; }
+        .dlg-mask { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 20px; }
+        .dlg { background: #fff; border-radius: 14px; width: 100%; max-width: 520px; max-height: 88vh; overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.18); }
+        .dlg-h { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--border); font-size: 15px; font-weight: 500; }
+        .dlg-x { cursor: pointer; color: #bbb; font-size: 20px; line-height: 1; }
+        .dlg-x:hover { color: #666; }
+        .dlg-b { padding: 18px 22px; }
+        .dlg-p { font-size: 13px; color: var(--text-sec); line-height: 1.7; margin: 0 0 14px; }
+        .dlg-steps { background: #fafafa; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
+        .dlg-steps .st { font-size: 12.5px; color: var(--text-sec); line-height: 1.6; padding: 4px 0; display: flex; gap: 8px; }
+        .dlg-steps .st b { color: #999; font-weight: 500; flex: 0 0 auto; }
+        .dlg-steps a { color: #4a7cf7; text-decoration: none; }
+        .dlg-in { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; color: var(--text); }
+        .dlg-in:focus { outline: none; border-color: #999; }
+        .dlg-err { font-size: 12px; color: #d9534f; min-height: 18px; padding-top: 6px; }
+        .dlg-f { display: flex; gap: 10px; justify-content: flex-end; padding: 14px 22px 20px; }
+        .dlg-btn { padding: 9px 20px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #fff; font-size: 13px; cursor: pointer; font-family: inherit; }
+        .dlg-btn:hover { background: var(--accent-h); }
+        .dlg-btn.ghost { background: #fff; color: var(--text-sec); border-color: var(--border); }
+        .dlg-btn.ghost:hover { background: #f5f5f5; }
         .cost-tag { font-size: 12px; font-weight: 400; color: #999; margin-left: 14px; letter-spacing: 0; }
         .cost-tag b { font-weight: 500; color: #666; }
         .res-actions-top { display: flex; gap: 10px; }
@@ -152,6 +171,7 @@
     <div class="bt"><b>NaStudio</b><span>娜家视觉</span></div>
   </a>
   <div class="topnav">
+    <a class="tbtn" onclick="openKeyDlg()">API Key 设置</a>
     <a class="tbtn" href="https://www.najiastudio.com/product.html">娜家拍摄台系列产品</a>
   </div>
 </header>
@@ -226,7 +246,9 @@
 </div>
 
 <script>
-const ARK_API_KEY = 'ark-32e3cca5-30ab-4d17-91c1-5024b1c57850-5bda0';
+/* 客户自带火山方舟 API Key，存在本机浏览器，不上传任何服务器 */
+let ARK_API_KEY = '';
+try { ARK_API_KEY = localStorage.getItem('nj_ark_key') || ''; } catch (e) { ARK_API_KEY = ''; }
 const CHAT_API = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
 const IMAGE_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
 // 视觉模型按优先级回退：方舟模型迭代快，旧版下线后自动切下一个
@@ -343,7 +365,31 @@ function showPreview(src) {
     $('pdContent').innerHTML = '<img src="' + src + '" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();clearPd()">×</button>';
 }
 function clearPd() { productSrc = null; productCroppedSrc = null; $('pdFile').value = ''; $('pdArea').classList.remove('has'); $('pdArea').style.borderColor = ''; $('pdContent').innerHTML = '<div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div>'; updateGenBtn(); }
-function updateGenBtn() { $('genBtn').disabled = !productCroppedSrc; }
+function updateGenBtn() { $('genBtn').disabled = !productCroppedSrc || !ARK_API_KEY; }
+
+function openKeyDlg() {
+    $('keyInput').value = ARK_API_KEY || '';
+    $('keyErr').textContent = '';
+    $('keyMask').style.display = 'flex';
+    setTimeout(() => $('keyInput').focus(), 50);
+}
+function closeKeyDlg() { $('keyMask').style.display = 'none'; }
+function saveKey() {
+    const v = ($('keyInput').value || '').trim();
+    if (!v) { $('keyErr').textContent = '请先粘贴 API Key'; return; }
+    if (!/^ark-[A-Za-z0-9-]{20,}$/.test(v)) { $('keyErr').textContent = '格式不对，火山方舟的 Key 是以 ark- 开头的一长串'; return; }
+    ARK_API_KEY = v;
+    try { localStorage.setItem('nj_ark_key', v); } catch (e) {}
+    updateGenBtn();
+    closeKeyDlg();
+}
+function clearKey() {
+    ARK_API_KEY = '';
+    try { localStorage.removeItem('nj_ark_key'); } catch (e) {}
+    $('keyInput').value = '';
+    $('keyErr').textContent = '已清除';
+    updateGenBtn();
+}
 
 function pickSize(v) {
     curSize = v;
@@ -736,6 +782,7 @@ async function submitTune(idx) {
 
 async function generate() {
     if (busy || !productCroppedSrc) return;
+    if (!ARK_API_KEY) { openKeyDlg(); return; }
     busy = true; $('genBtn').disabled = true;
     try {
         showView('l');
@@ -796,11 +843,35 @@ function resetAll() {
     showView('e');
 }
 
-document.addEventListener('DOMContentLoaded', () => { showView('e'); pickRatio('1:1'); pickSize('medium'); loadCostStat(); });
+document.addEventListener('DOMContentLoaded', () => {
+    showView('e'); pickRatio('1:1'); pickSize('medium'); loadCostStat(); updateGenBtn();
+    if (!ARK_API_KEY) setTimeout(openKeyDlg, 400);
+});
 
 
 </script>
 
 
+<div class="dlg-mask" id="keyMask" style="display:none">
+    <div class="dlg">
+        <div class="dlg-h">火山方舟 API Key<span class="dlg-x" onclick="closeKeyDlg()">×</span></div>
+        <div class="dlg-b">
+            <p class="dlg-p">这个工具不提供算力，出图的费用由你自己的火山方舟账号支付（约 <b>0.20 元/张</b>，一次 4 张约 <b>0.82 元</b>）。Key 只保存在你这台电脑的浏览器里，不会上传。</p>
+            <div class="dlg-steps">
+                <div class="st"><b>1</b>打开 <a href="https://console.volcengine.com/ark" target="_blank">console.volcengine.com/ark</a>，注册并登录火山引擎</div>
+                <div class="st"><b>2</b>左侧「开通管理」，开通 <b>doubao-seedream-4-0</b> 和 <b>doubao-seed-2-1-pro</b> 两个模型</div>
+                <div class="st"><b>3</b>左侧「API Key 管理」→ 创建 API Key，复制</div>
+                <div class="st"><b>4</b>「费用中心」充值（按量付费，充多少用多少）</div>
+                <div class="st"><b>5</b>把 Key 粘贴到下面</div>
+            </div>
+            <input type="text" class="dlg-in" id="keyInput" placeholder="ark-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx-xxxxx" autocomplete="off">
+            <div class="dlg-err" id="keyErr"></div>
+        </div>
+        <div class="dlg-f">
+            <button class="dlg-btn ghost" onclick="clearKey()">清除</button>
+            <button class="dlg-btn" onclick="saveKey()">保存</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
