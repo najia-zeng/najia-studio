@@ -82,6 +82,14 @@
         .dlg-steps a:hover { border-bottom-color: #4a7cf7; }
         .dlg-note { font-size: 11.5px; color: #a8a8a8; line-height: 1.65; margin: 0 0 14px; }
         .dlg-note a { color: #7a9ef9; text-decoration: none; }
+        .quota-tag { font-size: 12px; color: #999; margin-right: 14px; white-space: nowrap; }
+        .quota-tag b { font-weight: 500; color: #555; }
+        .quota-tag.used { color: #d9534f; }
+        .dlg-opt { border: 1px solid var(--border); border-radius: 10px; padding: 13px 15px; margin-bottom: 10px; }
+        .dlg-opt .opt-h { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 5px; }
+        .dlg-opt .opt-p { font-size: 12.5px; color: var(--text-sec); line-height: 1.7; }
+        .dlg-opt .opt-p a { color: #4a7cf7; cursor: pointer; text-decoration: none; border-bottom: 1px solid rgba(74,124,247,.35); }
+        .dlg-opt .opt-p b { font-weight: 500; color: #444; }
         .dlg-in { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; color: var(--text); }
         .dlg-in:focus { outline: none; border-color: #999; }
         .dlg-err { font-size: 12px; color: #d9534f; min-height: 18px; padding-top: 6px; }
@@ -175,6 +183,7 @@
     <div class="bt"><b>NaStudio</b><span>娜家视觉</span></div>
   </a>
   <div class="topnav">
+    <span class="quota-tag" id="quotaTag"></span>
     <a class="tbtn" onclick="openKeyDlg()">API Key 设置</a>
     <a class="tbtn" href="https://www.najiastudio.com/product.html">娜家拍摄台系列产品</a>
   </div>
@@ -371,6 +380,28 @@ function showPreview(src) {
     $('pdContent').innerHTML = '<img src="' + src + '" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();clearPd()">×</button>';
 }
 function clearPd() { productSrc = null; productCroppedSrc = null; $('pdFile').value = ''; $('pdArea').classList.remove('has'); $('pdArea').style.borderColor = ''; $('pdContent').innerHTML = '<div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div>'; updateGenBtn(); }
+/* 免费体验额度：内置 Key 期间每人 3 次，客户填了自己的 Key 则不限制 */
+const FREE_LIMIT = 3;
+const WECHAT_ID = 'najia888';
+function getFreeUsed() {
+    try { return parseInt(localStorage.getItem('nj_free_used') || '0', 10) || 0; } catch (e) { return 0; }
+}
+function setFreeUsed(n) {
+    try { localStorage.setItem('nj_free_used', String(n)); } catch (e) {}
+}
+function isOwnKey() { return !!ARK_API_KEY && ARK_API_KEY !== BUILTIN_ARK_KEY; }
+function freeLeft() { return Math.max(0, FREE_LIMIT - getFreeUsed()); }
+function renderQuota() {
+    const el = $('quotaTag');
+    if (!el) return;
+    if (isOwnKey()) { el.className = 'quota-tag'; el.innerHTML = '用自己的 Key · 不限次'; return; }
+    const left = freeLeft();
+    el.className = 'quota-tag' + (left === 0 ? ' used' : '');
+    el.innerHTML = left > 0 ? '免费体验剩 <b>' + left + '</b> 次' : '免费体验已用完';
+}
+function openBuyDlg() { $('buyMask').style.display = 'flex'; }
+function closeBuyDlg() { $('buyMask').style.display = 'none'; }
+
 function updateGenBtn() { $('genBtn').disabled = !productCroppedSrc || !ARK_API_KEY; }
 
 function openKeyDlg() {
@@ -386,7 +417,7 @@ function saveKey() {
     if (!/^ark-[A-Za-z0-9-]{20,}$/.test(v)) { $('keyErr').textContent = '格式不对，火山方舟的 Key 是以 ark- 开头的一长串'; return; }
     ARK_API_KEY = v;
     try { localStorage.setItem('nj_ark_key', v); } catch (e) {}
-    updateGenBtn();
+    updateGenBtn(); renderQuota();
     closeKeyDlg();
 }
 function clearKey() {
@@ -394,7 +425,7 @@ function clearKey() {
     try { localStorage.removeItem('nj_ark_key'); } catch (e) {}
     $('keyInput').value = '';
     $('keyErr').textContent = '已清除';
-    updateGenBtn();
+    updateGenBtn(); renderQuota();
 }
 
 function pickSize(v) {
@@ -789,6 +820,7 @@ async function submitTune(idx) {
 async function generate() {
     if (busy || !productCroppedSrc) return;
     if (!ARK_API_KEY) { openKeyDlg(); return; }
+    if (!isOwnKey() && freeLeft() <= 0) { openBuyDlg(); return; }
     busy = true; $('genBtn').disabled = true;
     try {
         showView('l');
@@ -802,6 +834,10 @@ async function generate() {
     }
     busy = false;
     await runShots();
+    if (!isOwnKey() && lastItems && lastItems.length > 0) {
+        setFreeUsed(getFreeUsed() + 1);
+        renderQuota();
+    }
 }
 
 function showResults() {
@@ -850,7 +886,7 @@ function resetAll() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    showView('e'); pickRatio('1:1'); pickSize('medium'); loadCostStat(); updateGenBtn();
+    showView('e'); pickRatio('1:1'); pickSize('medium'); loadCostStat(); updateGenBtn(); renderQuota();
 });
 
 
@@ -874,6 +910,26 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="dlg-f">
             <button class="dlg-btn ghost" onclick="clearKey()">清除</button>
             <button class="dlg-btn" onclick="saveKey()">保存</button>
+        </div>
+    </div>
+</div>
+
+<div class="dlg-mask" id="buyMask" style="display:none">
+    <div class="dlg">
+        <div class="dlg-h">免费体验已用完<span class="dlg-x" onclick="closeBuyDlg()">×</span></div>
+        <div class="dlg-b">
+            <p class="dlg-p">3 次免费体验已经用完了。想继续用，两个办法：</p>
+            <div class="dlg-opt">
+                <div class="opt-h">① 买次数包</div>
+                <div class="opt-p">加微信 <b>najia888</b>，告诉我要多少张，转账后马上给你开通。<br>次数用完随时再买，不用重新配置。</div>
+            </div>
+            <div class="dlg-opt">
+                <div class="opt-h">② 用自己的火山账号（不限次）</div>
+                <div class="opt-p">适合用量大的人。自己去火山方舟开个 Key，出图费用走你自己的账号，约 0.20 元/张，以后不再限次。<a onclick="closeBuyDlg();openKeyDlg()">点这里配置</a></div>
+            </div>
+        </div>
+        <div class="dlg-f">
+            <button class="dlg-btn ghost" onclick="closeBuyDlg()">知道了</button>
         </div>
     </div>
 </div>
