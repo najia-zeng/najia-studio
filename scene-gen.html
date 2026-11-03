@@ -18,7 +18,7 @@
         }
         body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--text); height: 100vh; overflow: hidden;
             background: radial-gradient(1100px 480px at 50% -90px, #EDE9FF 0%, rgba(237,233,255,0) 62%), #f6f6fb; }
-        .page { max-width: 1400px; margin: 0 auto; height: calc(100vh - 70px); }
+        .page { max-width: 1400px; margin: 0 auto; height: calc(100vh - 66px); }
 
         .hdr { height: 92px; background: linear-gradient(100deg, #ffffff 0%, #fbfaff 42%, #f2efff 100%); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; position: relative; flex-shrink: 0; }
         .hdr::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--grad); opacity: .5; }
@@ -163,23 +163,23 @@
     </style>
 <style>
 /* ===== NaStudio 统一顶栏（与主页一致） ===== */
-#ns-topbar{position:sticky;top:0;z-index:9999;height:70px;flex-shrink:0;
-  display:flex;align-items:center;gap:20px;padding:0 46px;box-sizing:border-box;
+#ns-topbar{position:sticky;top:0;z-index:9999;height:66px;flex-shrink:0;
+  display:flex;align-items:center;gap:16px;padding:0 28px;box-sizing:border-box;
   background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
   border-bottom:1px solid #e8e8ed;
   font-family:"Space Grotesk","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;}
 #ns-topbar *{box-sizing:border-box;}
-#ns-topbar .brand{display:flex;align-items:center;gap:12px;padding:0;text-decoration:none;}
-#ns-topbar .logo{width:42px;height:42px;border-radius:13px;flex-shrink:0;overflow:hidden;background:#0a0a0a;box-shadow:0 3px 10px rgba(37,54,73,.20);}
+#ns-topbar .brand{display:flex;align-items:center;gap:11px;padding:0;text-decoration:none;}
+#ns-topbar .logo{width:38px;height:38px;border-radius:12px;flex-shrink:0;overflow:hidden;background:#0a0a0a;box-shadow:0 3px 9px rgba(37,54,73,.18);}
 #ns-topbar .logo img{width:100%;height:100%;object-fit:cover;display:block;}
 #ns-topbar .bt{line-height:1.35;}
-#ns-topbar .bt b{display:block;font-size:17.5px;font-weight:650;color:#1a1a2e;line-height:1.2;}
-#ns-topbar .bt span{font-size:14px;letter-spacing:.5px;color:#9a94b8;margin-top:3px;display:block;}
-#ns-topbar .topnav{margin-left:auto;display:flex;align-items:center;gap:12px;}
-#ns-topbar .tbtn{font-size:14px;font-weight:600;color:#fff;background:#6b5ce7;
-  border:1px solid #6b5ce7;border-radius:999px;padding:10px 26px;
+#ns-topbar .bt b{display:block;font-size:17px;font-weight:650;color:#1a1a2e;line-height:1.2;}
+#ns-topbar .bt span{font-size:12px;letter-spacing:.8px;color:#9a94b8;margin-top:3px;display:block;}
+#ns-topbar .topnav{margin-left:auto;display:flex;align-items:center;gap:10px;}
+#ns-topbar .tbtn{font-size:15px;font-weight:600;color:#fff;background:#6b5ce7;
+  border:1px solid #6b5ce7;border-radius:10px;padding:10px 22px;
   text-decoration:none;line-height:1.2;white-space:nowrap;
-  box-shadow:0 2px 8px rgba(107,92,231,.22);transition:filter .15s;cursor:pointer;}
+  box-shadow:0 3px 10px rgba(107,92,231,.26);transition:filter .15s;}
 #ns-topbar .tbtn:hover{filter:brightness(1.08);}
 @media(max-width:768px){
   #ns-topbar{height:auto;padding:10px 14px;gap:10px;flex-wrap:wrap;}
@@ -196,8 +196,6 @@
   </a>
   <div class="topnav">
     <span class="quota-tag" id="quotaTag"></span>
-    <a class="tbtn" id="keyBtn" onclick="openKeyDlg()" style="display:none">API Key 设置</a>
-    <a class="tbtn" href="https://www.najiastudio.com/member.html">实拍+AI实操手册</a>
     <a class="tbtn" href="https://www.najiastudio.com/product.html">娜家拍摄台系列产品</a>
   </div>
 </header>
@@ -275,13 +273,19 @@
 </div>
 
 <script>
-/* 客户自带火山方舟 API Key，存在本机浏览器，不上传任何服务器 */
-/* 内置 Key：未对外公开期间直接可用；客户若在设置里填了自己的 Key，优先用他自己的 */
-const BUILTIN_ARK_KEY = atob('YXJrLWMxZTE4M2ExLWZiZTYtNDQ4ZC1hMjlkLTgyNGFjZDNhN2QzYi00NjQ2NQ==');
-let ARK_API_KEY = BUILTIN_ARK_KEY;
-try { ARK_API_KEY = localStorage.getItem('nj_ark_key2') || BUILTIN_ARK_KEY; } catch (e) { ARK_API_KEY = BUILTIN_ARK_KEY; }
-const CHAT_API = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
-const IMAGE_API = 'https://ark.cn-beijing.volces.com/api/v3/images/generations';
+/* 所有 AI 请求走自有中转，火山方舟的 Key 只存在服务端，前端完全拿不到 */
+const API_BASE = 'https://najia-api-vsusfefxze.cn-hangzhou.fcapp.run';
+async function callApi(type, payload) {
+    const r = await fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify({ type: type, payload: payload })
+    });
+    const txt = await r.text();
+    let data;
+    try { data = JSON.parse(txt); } catch (e) { data = { error: { message: txt || ('HTTP ' + r.status) } }; }
+    return { ok: r.ok, status: r.status, data: data };
+}
 // 视觉模型按优先级回退：方舟模型迭代快，旧版下线后自动切下一个
 const VISION_MODELS = ['doubao-seed-2-1-pro-260915', 'doubao-seed-2-0-lite-260428', 'doubao-seed-2-0-mini-260428'];
 // 图像模型按优先级回退：seedream-4-0-250828 已列入下线计划，备用 20260415 版本
@@ -428,7 +432,6 @@ function isDev() {
         return localStorage.getItem('nj_dev') === '1';
     } catch (e) { return false; }
 }
-function isOwnKey() { return isDev() || (!!ARK_API_KEY && ARK_API_KEY !== BUILTIN_ARK_KEY); }
 function freeLeft() { return Math.max(0, FREE_LIMIT - getFreeUsed()); }
 function renderQuota() {
     const el = $('quotaTag');
@@ -436,10 +439,9 @@ function renderQuota() {
     if (isDev()) { el.className = 'quota-tag'; el.innerHTML = '开发者模式 · 不限次'; return; }
     if (isLicensed()) {
         el.className = 'quota-tag';
-        el.innerHTML = isOwnKey() ? '已解锁 · 用你自己的 Key' : '已解锁 · 请先填 Key';
+        el.innerHTML = '已解锁 · 不限次';
         return;
     }
-    if (isOwnKey()) { el.className = 'quota-tag'; el.innerHTML = '用自己的 Key · 不限次'; return; }
     const left = freeLeft();
     el.className = 'quota-tag' + (left === 0 ? ' used' : '');
     el.innerHTML = left > 0 ? '免费体验剩 <b>' + left + '</b> 次' : '免费体验已用完';
@@ -454,40 +456,15 @@ function activateLicense() {
     if (!v) { $('licErr').textContent = '请先填激活码'; return; }
     if (!licValid(v)) { $('licErr').textContent = '激活码不对，检查一下有没有输错'; return; }
     try { localStorage.setItem('nj_lic', '1'); } catch (e) {}
-    /* 解锁后清掉内置 Key，强制客户填自己的，避免继续走内置额度 */
-    ARK_API_KEY = '';
-    try { localStorage.removeItem('nj_ark_key2'); } catch (e) {}
-    $('keyBtn').style.display = '';
     closeBuyDlg();
     renderQuota();
     updateGenBtn();
-    setTimeout(() => { openKeyDlg(); }, 250);
 }
 
-function openKeyDlg() {
-    if (!isDev() && !isLicensed()) { openBuyDlg(); return; }
-    $('keyInput').value = ARK_API_KEY || '';
-    $('keyErr').textContent = '';
-    $('keyMask').style.display = 'flex';
-    setTimeout(() => $('keyInput').focus(), 50);
-}
-function closeKeyDlg() { $('keyMask').style.display = 'none'; }
-function saveKey() {
-    const v = ($('keyInput').value || '').trim();
-    if (!v) { $('keyErr').textContent = '请先粘贴 API Key'; return; }
-    if (!/^ark-[A-Za-z0-9-]{20,}$/.test(v)) { $('keyErr').textContent = '格式不对，火山方舟的 Key 是以 ark- 开头的一长串'; return; }
-    ARK_API_KEY = v;
-    try { localStorage.setItem('nj_ark_key2', v); } catch (e) {}
-    updateGenBtn(); renderQuota();
-    closeKeyDlg();
-}
-function clearKey() {
-    ARK_API_KEY = BUILTIN_ARK_KEY;
-    try { localStorage.removeItem('nj_ark_key2'); } catch (e) {}
-    $('keyInput').value = '';
-    $('keyErr').textContent = '已清除';
-    updateGenBtn(); renderQuota();
-}
+function openKeyDlg() { /* 已不需要客户填 Key，全部走中转 */ }
+function closeKeyDlg() {}
+function saveKey() {}
+function clearKey() {}
 
 function pickSize(v) {
     curSize = v;
@@ -644,17 +621,13 @@ async function analyzeImages() {
     let data = null, lastErr = '';
     for (const vm of VISION_MODELS) {
         try {
-            const response = await fetch(CHAT_API, {
-                method: 'POST',
-                headers: { 'Authorization': 'Bearer ' + ARK_API_KEY, 'Content-Type': 'application/json' },
-                body: JSON.stringify(Object.assign({ model: vm }, reqBody))
-            });
-            if (!response.ok) {
-                const ed = await response.json().catch(() => ({}));
-                lastErr = (ed.error && ed.error.message) || String(response.status);
+            const resp = await callApi('chat', Object.assign({ model: vm }, reqBody));
+            if (!resp.ok) {
+                const ed = resp.data || {};
+                lastErr = (ed.error && ed.error.message) || String(resp.status);
                 continue;
             }
-            data = await response.json();
+            data = resp.data;
             break;
         } catch (e) {
             lastErr = e.message || String(e);
@@ -690,14 +663,13 @@ async function generateSceneImage(prompt, refImage) {
     let data = null, lastErr = '';
     for (const im of IMAGE_MODELS) {
         try {
-            const r = await fetch(IMAGE_API, { method: 'POST', headers: { 'Authorization': 'Bearer ' + ARK_API_KEY, 'Content-Type': 'application/json' },
-                body: JSON.stringify(Object.assign({ model: im }, baseBody)) });
-            if (!r.ok) {
-                const ed = await r.json().catch(() => ({}));
-                lastErr = (ed.error && ed.error.message) || String(r.status);
+            const resp = await callApi('image', Object.assign({ model: im }, baseBody));
+            if (!resp.ok) {
+                const ed = resp.data || {};
+                lastErr = (ed.error && ed.error.message) || String(resp.status);
                 continue;
             }
-            data = await r.json();
+            data = resp.data;
             break;
         } catch (e) {
             lastErr = e.message || String(e);
@@ -881,7 +853,6 @@ async function submitTune(idx) {
 async function generate() {
     if (busy || !productCroppedSrc) return;
     if (!isDev() && !isLicensed() && freeLeft() <= 0) { openBuyDlg(); return; }
-    if (!ARK_API_KEY) { openKeyDlg(); return; }
     busy = true; $('genBtn').disabled = true;
     try {
         showView('l');
@@ -895,7 +866,7 @@ async function generate() {
     }
     busy = false;
     await runShots();
-    if (!isOwnKey() && lastItems && lastItems.length > 0) {
+    if (!isLicensed() && lastItems && lastItems.length > 0) {
         setFreeUsed(getFreeUsed() + 1);
         renderQuota();
     }
@@ -948,33 +919,11 @@ function resetAll() {
 
 document.addEventListener('DOMContentLoaded', () => {
     showView('e'); pickRatio('1:1'); pickSize('medium'); loadCostStat(); updateGenBtn(); renderQuota();
-    if (isDev() || isLicensed()) $('keyBtn').style.display = '';
 });
 
 
 </script>
 
-
-<div class="dlg-mask" id="keyMask" style="display:none">
-    <div class="dlg">
-        <div class="dlg-h">先填一个火山方舟 API Key<span class="dlg-x" onclick="closeKeyDlg()">×</span></div>
-        <div class="dlg-b">
-            <p class="dlg-p">这个工具不出算力，出图费用走你自己的火山方舟账号，约 <b>0.20 元/张</b>。Key 只存在你这台电脑的浏览器里，不会上传。配一次，以后打开直接能用。</p>
-            <div class="dlg-steps">
-                <div class="st"><b>1</b>开通模型：<a href="https://console.volcengine.com/ark/region:ark+cn-beijing/openManagement" target="_blank">点这里开通</a> <span class="mn">doubao-seedream-4-0</span> 和 <span class="mn">doubao-seed-2-1-pro</span></div>
-                <div class="st"><b>2</b>创建 Key：<a href="https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey" target="_blank">点这里创建</a>，把那一长串复制下来</div>
-                <div class="st"><b>3</b>粘到下面，点保存</div>
-            </div>
-            <p class="dlg-note">第一次用需要先注册火山引擎并完成实名认证。余额不足时出图会失败，去 <a href="https://console.volcengine.com/finance/" target="_blank">费用中心</a> 充值即可。</p>
-            <input type="text" class="dlg-in" id="keyInput" placeholder="ark-..." autocomplete="off">
-            <div class="dlg-err" id="keyErr"></div>
-        </div>
-        <div class="dlg-f">
-            <button class="dlg-btn ghost" onclick="clearKey()">清除</button>
-            <button class="dlg-btn" onclick="saveKey()">保存</button>
-        </div>
-    </div>
-</div>
 
 <div class="dlg-mask" id="buyMask" style="display:none">
     <div class="dlg">
@@ -984,7 +933,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="dlg-steps">
                 <div class="st"><b>1</b>加微信 <span class="mn">najia9864</span>，说明要买</div>
                 <div class="st"><b>2</b>转账后，你会收到一个激活码</div>
-                <div class="st"><b>3</b>把激活码填到下面解锁，之后配一次自己的火山 Key 就能一直用</div>
+                <div class="st"><b>3</b>把激活码填到下面，解锁后就能一直用，不用再配任何东西</div>
             </div>
             <input type="text" class="dlg-in" id="licInput" placeholder="NJ-XXXXXXXX-XXXX" autocomplete="off">
             <div class="dlg-err" id="licErr"></div>
