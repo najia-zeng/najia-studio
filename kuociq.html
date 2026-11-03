@@ -419,8 +419,31 @@
 
 <script>
 const BOT_ID = '7648485634986115106';
-const API = 'https://api.coze.cn';
-const PAT = 'pat_PhEDXpXbc1Zlcilk3HT4z18ZbhxhKmPAF6g5aatGxTB2xfVlS6tg6nrZrH2WP2Cy';
+/* 所有 AI 请求走自有中转，Coze 令牌只存在服务端，前端拿不到 */
+const API_BASE = 'https://najia-api-vsusfefxze.cn-hangzhou.fcapp.run';
+async function callApi(type, payload) {
+    const r = await fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify({ type: type, payload: payload })
+    });
+    const txt = await r.text();
+    let data;
+    try { data = JSON.parse(txt); } catch (e) { data = { error: { message: txt || ('HTTP ' + r.status) } }; }
+    return { ok: r.ok, status: r.status, data: data };
+}
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const rd = new FileReader();
+        rd.onload = () => {
+            const str = String(rd.result || '');
+            const i = str.indexOf(',');
+            resolve(i >= 0 ? str.slice(i + 1) : str);
+        };
+        rd.onerror = reject;
+        rd.readAsDataURL(file);
+    });
+}
 
 let pFile = null, rFile = null, busy = false;
 let uid = 'u_' + Math.random().toString(36).slice(2, 11);
@@ -496,14 +519,14 @@ async function generate() {
 }
 
 async function uploadFile(file) {
-    const fd = new FormData();
-    fd.append('file', file);
-    const r = await fetch(`${API}/v1/files/upload`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${PAT}` },
-        body: fd
+    const b64 = await fileToBase64(file);
+    const resp = await callApi('coze', {
+        action: 'upload',
+        filename: file.name || 'upload.jpg',
+        mime: file.type || 'image/jpeg',
+        data: b64
     });
-    const d = await r.json();
+    const d = resp.data || {};
     if (d.code !== 0) throw new Error(`上传失败: ${d.msg || JSON.stringify(d)}`);
     return d.data.id;
 }
@@ -527,13 +550,9 @@ async function doChat(pId, rId) {
         parts.push({ type: 'image', file_id: pId });
     }
 
-    const cr = await fetch(`${API}/v3/chat`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${PAT}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+    const cr = await callApi('coze', {
+        action: 'chat',
+        body: {
             bot_id: BOT_ID,
             user_id: uid,
             stream: false,
@@ -543,9 +562,9 @@ async function doChat(pId, rId) {
                 content: JSON.stringify(parts),
                 content_type: 'object_string'
             }]
-        })
+        }
     });
-    const cd = await cr.json();
+    const cd = cr.data || {};
     if (cd.code !== 0) throw new Error(`对话失败: ${cd.msg || JSON.stringify(cd)}`);
 
     const chatId = cd.data.id;
@@ -554,10 +573,8 @@ async function doChat(pId, rId) {
     for (let i = 0; i < 90; i++) {
         await sleep(2000);
         $('ldgTxt').textContent = `正在生成... (${(i + 1) * 2}s)`;
-        const sr = await fetch(`${API}/v3/chat/retrieve?chat_id=${chatId}&conversation_id=${convId}`, {
-            headers: { 'Authorization': `Bearer ${PAT}` }
-        });
-        const sd = await sr.json();
+        const sr = await callApi('coze', { action: 'retrieve', chat_id: chatId, conversation_id: convId });
+        const sd = sr.data || {};
         if (sd.code !== 0) throw new Error(`状态查询失败: ${sd.msg}`);
         if (sd.data.status === 'completed') return await getMsgs(convId, chatId);
         if (sd.data.status === 'failed') throw new Error('生成失败，请重试');
@@ -566,10 +583,8 @@ async function doChat(pId, rId) {
 }
 
 async function getMsgs(convId, chatId) {
-    const r = await fetch(`${API}/v3/chat/message/list?chat_id=${chatId}&conversation_id=${convId}`, {
-        headers: { 'Authorization': `Bearer ${PAT}` }
-    });
-    const d = await r.json();
+    const r = await callApi('coze', { action: 'messages', chat_id: chatId, conversation_id: convId });
+    const d = r.data || {};
     if (d.code !== 0) throw new Error(`获取结果失败: ${d.msg}`);
     for (const m of (d.data || [])) {
         if (m.role === 'assistant' && m.type === 'answer') return m.content;
