@@ -41,18 +41,49 @@
 
         /* ===== Header ===== */
         .hdr {
-            padding: 28px 0 20px;
+            height: 92px;
+            background: linear-gradient(100deg, #ffffff 0%, #fbfaff 42%, #f2efff 100%);
             border-bottom: 1px solid var(--border);
+            position: relative;
+            display: flex;
+            align-items: center;
         }
-        .hdr-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-        .hdr-sub { font-size: 13px; color: var(--text-sec); margin-top: 4px; font-weight: 400; }
+        .hdr::after {
+            content: '';
+            position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+            background: var(--grad); opacity: .5;
+        }
+        .hdr-in {
+            width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 48px;
+            display: flex; align-items: center; justify-content: space-between; gap: 20px;
+        }
+        .hdr-l { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+        .hdr-title {
+            font-size: 27px; font-weight: 750; letter-spacing: -.6px; line-height: 1.12;
+            background: var(--grad);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .hdr-sub { font-size: 13px; color: var(--text-sec); letter-spacing: .2px; font-weight: 400; }
+        .hdr-tag {
+            flex-shrink: 0; display: flex; align-items: center; gap: 7px;
+            font-size: 12.5px; color: #6b5ce7; background: rgba(107,92,231,.08);
+            border: 1px solid rgba(107,92,231,.18); border-radius: 999px;
+            padding: 7px 15px; font-weight: 500;
+        }
+        .hdr-tag i { width: 6px; height: 6px; border-radius: 50%; background: var(--grad); display: block; }
+        @media (max-width: 720px) {
+            .hdr { height: auto; padding: 14px 0; }
+            .hdr-in { padding: 0 18px; }
+            .hdr-title { font-size: 21px; }
+            .hdr-tag { display: none; }
+        }
 
         /* ===== Layout ===== */
         .wrap {
             display: flex;
             gap: 40px;
             padding: 32px 0 48px;
-            min-height: calc(100vh - 176px);
+            min-height: calc(100vh - 158px);
         }
 
         /* ===== Left ===== */
@@ -179,7 +210,8 @@
         /* Empty state */
         .empty {
             flex: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            align-items: center; justify-content: flex-start;
+            padding-top: 15vh;
             text-align: center; color: var(--text-tri);
         }
         .empty-ico { font-size: 48px; margin-bottom: 16px; opacity: .5; }
@@ -300,12 +332,17 @@
 </header>
 
 
-<div class="outer">
-    <div class="hdr">
-        <div class="hdr-title">提示词生成</div>
-        <div class="hdr-sub">上传产品图片，生成专业AI摄影提示词</div>
+<div class="hdr">
+    <div class="hdr-in">
+        <div class="hdr-l">
+            <div class="hdr-title">提示词生成</div>
+            <div class="hdr-sub">上传产品图片，生成专业 AI 摄影提示词</div>
+        </div>
+        <div class="hdr-tag"><i></i>生图第一步</div>
     </div>
+</div>
 
+<div class="outer">
     <div class="wrap">
         <!-- Left -->
         <div class="left">
@@ -358,7 +395,7 @@
                     <div class="empty" id="vEmpty">
                         <div class="empty-ico">◇</div>
                         <div class="empty-t">准备开始</div>
-                        <div class="empty-d">上传产品图片，生成可直接使用的AI摄影提示词</div>
+                        <div class="empty-d">上传产品图，生成可直接用的提示词</div>
                     </div>
                     <div class="ldg" id="vLoad" style="display:none">
                         <div class="spin"></div>

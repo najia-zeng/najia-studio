@@ -35,26 +35,47 @@
         .page {
             max-width: 1400px;
             margin: 0 auto;
-            height: calc(100vh - 66px);
+            height: calc(100vh - 158px);
         }
 
         /* ===== Header ===== */
         .hdr {
-            height: 56px;
-            background: var(--card);
+            height: 92px;
+            background: linear-gradient(100deg, #ffffff 0%, #fbfaff 42%, #f2efff 100%);
             border-bottom: 1px solid var(--border);
+            position: relative;
             display: flex;
             align-items: center;
-            padding: 0 24px;
-            gap: 12px;
         }
-        .hdr-logo {
-            width: 34px; height: 34px;
-            border-radius: 9px;
-            object-fit: cover;
+        .hdr::after {
+            content: '';
+            position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+            background: var(--grad); opacity: .5;
         }
-        .hdr-title { font-weight: 600; font-size: 18px; }
-        .hdr-sub { font-size: 13px; color: var(--text-sec); margin-left: 4px; }
+        .hdr-in {
+            width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 24px;
+            display: flex; align-items: center; justify-content: space-between; gap: 20px;
+        }
+        .hdr-l { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+        .hdr-title {
+            font-size: 27px; font-weight: 750; letter-spacing: -.6px; line-height: 1.12;
+            background: var(--grad);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        .hdr-sub { font-size: 13px; color: var(--text-sec); letter-spacing: .2px; font-weight: 400; }
+        .hdr-tag {
+            flex-shrink: 0; display: flex; align-items: center; gap: 7px;
+            font-size: 12.5px; color: #6b5ce7; background: rgba(107,92,231,.08);
+            border: 1px solid rgba(107,92,231,.18); border-radius: 999px;
+            padding: 7px 15px; font-weight: 500;
+        }
+        .hdr-tag i { width: 6px; height: 6px; border-radius: 50%; background: var(--grad); display: block; }
+        @media (max-width: 720px) {
+            .hdr { height: auto; padding: 14px 0; }
+            .hdr-in { padding: 0 18px; }
+            .hdr-title { font-size: 21px; }
+            .hdr-tag { display: none; }
+        }
 
         /* ===== Layout ===== */
         .wrap { display: flex; height: calc(100vh - 122px); }
@@ -143,7 +164,9 @@
         /* Empty */
         .empty {
             flex: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; text-align: center;
+            align-items: center; justify-content: flex-start;
+            padding-top: 13vh;
+            text-align: center;
         }
         .empty-ico {
             width: 72px; height: 72px;
@@ -294,12 +317,17 @@
 </header>
 
 
-<div class="page">
-<!-- Header -->
 <div class="hdr">
-    <span class="hdr-title">实拍融合AI</span>
-    <span class="hdr-sub">无需PS，拖拽即合</span>
+    <div class="hdr-in">
+        <div class="hdr-l">
+            <div class="hdr-title">实拍融合 AI</div>
+            <div class="hdr-sub">无需 PS，拖拽即合</div>
+        </div>
+        <div class="hdr-tag"><i></i>生图最后一步</div>
+    </div>
 </div>
+
+<div class="page">
 
 <!-- Main -->
 <div class="wrap">
@@ -338,7 +366,7 @@
         <div class="empty" id="vEmpty">
             <div class="empty-ico"><span>◇</span></div>
             <div class="empty-t">准备开始</div>
-            <div class="empty-d">上传背景图和产品白底图，拖动产品到合适位置，AI帮你自然融合</div>
+            <div class="empty-d">上传背景图和产品白底图，拖动定位，AI 自动融合</div>
         </div>
 
         <!-- Canvas State -->
