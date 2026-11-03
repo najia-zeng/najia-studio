@@ -184,20 +184,13 @@
                 <button class="ratio-btn" data-s="large" onclick="pickSize('large')">大</button>
             </div>
         </div>
-        <div>
-            <div class="sec-label">参考色调图<span class="opt-tag">选填 · 只影响明暗，不参与配色</span></div>
-            <div class="up-area" id="refArea" onclick="$('refFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'ref')">
-                <input type="file" id="refFile" accept="image/*" style="display:none" onchange="refSel(event)">
-                <div id="refContent"><div class="up-ico">🎨</div><div class="up-txt">上传参考图，只借明暗<br><span style="font-size:12px;color:#bbb;">不传则完全按产品自身颜色</span></div></div>
-            </div>
-        </div>
         <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成 4 张场景图</button>
     </div>
     <div class="right" id="right">
         <div class="empty" id="vEmpty">
             <div class="empty-ico"><span>◇</span></div>
             <div class="empty-t">准备开始</div>
-            <div class="empty-d">上传产品白底图，AI 照着你的产品原样画，一次出 4 张科研医美风场景图。同一套色调和光影，道具各不相同。参考图选填，只用来定色调。</div>
+            <div class="empty-d">上传产品白底图，AI 照着你的产品原样画，一次出 4 张科研医美风场景图。同一套色调和光影，道具各不相同。配色跟随产品自身颜色，明暗由系统按产品自动判断。</div>
         </div>
         <div class="ldg" id="vLoad" style="display:none">
             <div class="spin"></div>
@@ -265,7 +258,7 @@ const RATIOS = {
    ============================================================ */
 const SCENE_PACK = {
     name: '科研医美风',
-    tone: '色彩以参考图和产品自身颜色为准，白与浅灰只作环境底色，低饱和，干净通透，克制的专业感',
+    tone: '色彩以产品自身颜色为唯一来源，白与浅灰只作环境底色，低饱和，干净通透，克制的专业感',
     light: '柔和均匀的顶部柔光作为主光，左侧补一道极轻的轮廓光，浅景深，产品下方是自然柔和的浅投影，背景为干净的柔和渐变，产品表面有一道自然的竖向高光。整体光比柔和，不要戏剧化打光',
     sets: [
         { name: '实验器皿', tag: '实验器皿',
@@ -295,7 +288,7 @@ const SCENE_PACK = {
     ]
 };
 
-let productSrc = null, productCroppedSrc = null, refSrc = null, busy = false;
+let productSrc = null, productCroppedSrc = null, busy = false;
 let sceneProduct = '', sceneTone = '', sceneAccent = '';
 let curPack = SCENE_PACK, curRatio = '1:1', curSize = 'medium';
 let lastRefImage = null, lastItems = [];
@@ -304,29 +297,19 @@ const $ = id => document.getElementById(id);
 
 function dOver(e, el) { e.preventDefault(); el.style.borderColor = '#999'; }
 function dLeave(e, el) { if (!el.classList.contains('has')) el.style.borderColor = ''; }
-function dDrop(e, el, type) { e.preventDefault(); e.stopPropagation(); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) { if (type === 'pd') loadPd(f); else loadRef(f); } }
+function dDrop(e, el, type) { e.preventDefault(); e.stopPropagation(); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) loadPd(f); }
 function pdSel(e) { const f = e.target.files[0]; if (f) loadPd(f); }
-function refSel(e) { const f = e.target.files[0]; if (f) loadRef(f); }
 
 function loadPd(file) {
     const reader = new FileReader();
-    reader.onload = e => { productSrc = e.target.result; autoCrop(productSrc).then(c => { productCroppedSrc = c; showPreview('pd', c); updateGenBtn(); }); };
+    reader.onload = e => { productSrc = e.target.result; autoCrop(productSrc).then(c => { productCroppedSrc = c; showPreview(c); updateGenBtn(); }); };
     reader.readAsDataURL(file);
 }
-function loadRef(file) {
-    const reader = new FileReader();
-    reader.onload = e => { refSrc = e.target.result; showPreview('ref', refSrc); };
-    reader.readAsDataURL(file);
-}
-function showPreview(type, src) {
-    const areaId = type === 'pd' ? 'pdArea' : 'refArea';
-    const contentId = type === 'pd' ? 'pdContent' : 'refContent';
-    const clearFn = type === 'pd' ? 'clearPd' : 'clearRef';
-    $(areaId).classList.add('has');
-    $(contentId).innerHTML = '<img src="' + src + '" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();' + clearFn + '()">×</button>';
+function showPreview(src) {
+    $('pdArea').classList.add('has');
+    $('pdContent').innerHTML = '<img src="' + src + '" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();clearPd()">×</button>';
 }
 function clearPd() { productSrc = null; productCroppedSrc = null; $('pdFile').value = ''; $('pdArea').classList.remove('has'); $('pdArea').style.borderColor = ''; $('pdContent').innerHTML = '<div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div>'; updateGenBtn(); }
-function clearRef() { refSrc = null; $('refFile').value = ''; $('refArea').classList.remove('has'); $('refArea').style.borderColor = ''; $('refContent').innerHTML = '<div class="up-ico">🎨</div><div class="up-txt">上传参考图，只借明暗<br><span style="font-size:12px;color:#bbb;">不传则完全按产品自身颜色</span></div>'; }
 function updateGenBtn() { $('genBtn').disabled = !productCroppedSrc; }
 
 function pickSize(v) {
@@ -429,29 +412,28 @@ function buildScenePrompt(productDesc, toneDesc, accent, pack, set) {
 
 async function analyzeImages() {
     const product = await resizeForAPI(productSrc, 2048);
-    const ref = refSrc ? await resizeForAPI(refSrc, 2048) : null;
 
-    const systemPrompt = '你是专业产品摄影视觉分析师。用户会给你一张产品白底图，可能还会给一张参考风格图（也可能没有）。\n\n' +
+    const systemPrompt = '你是专业产品摄影视觉分析师。用户会给你一张产品白底图。\n\n' +
         '你的任务只有两项，不要输出任何其他内容。\n\n' +
         '【任务一：产品外观描述】\n' +
         '仔细观察产品白底图，写一段能让生图模型精准还原该产品外观的描述。必须包含：产品类型、外形轮廓（圆/方/异形，瓶身与瓶盖的比例关系）、材质类型、精确颜色（用具体色名，不用"深色""浅色"）、表面质感（哑光/光面/磨砂/拉丝/半透明）、反光特性（强反光/微反光/不反光/半透光）、标签位置与标签上的文字内容、瓶盖或泵头等结构细节。\n' +
         '不写具体尺寸数字，不写场景、道具、背景。\n' +
         '这段必须以"以参考图中的产品为唯一主体，严格保持其外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与文字完全不变"开头。\n\n' +
         '【任务二：色调方案】\n' +
-        '第一原则：整套图的彩色只能来自产品本身。参考图不参与任何色相决策，不管它是红、绿、蓝还是紫，都一律不用。\n' +
+        '第一原则：整套图的彩色只能来自产品本身，不参考任何外部图片。\n' +
         '- 观察产品白底图，找出产品身上最鲜明的那一个彩色。这是【产品主色】，也是整套图唯一的彩色来源。\n' +
         '  · 产品瓶身或液体本身有明显颜色 → 取那个颜色。\n' +
         '  · 产品是透明、白色或浅色 → 取 logo、标签、瓶盖或包装上最鲜明的那一小块点缀色。哪怕只是一小块红色图案，也是产品主色。\n' +
         '  · 产品通体确实没有任何彩色 → 场景用纯中性色：白、浅灰、透明，不引入任何彩色。\n' +
-        '- 如果给了参考风格图：只从它身上读取三样非颜色信息——明暗倾向（明亮/中性/偏暗）、饱和度高低、整体干净度。它的色相一律忽略。\n' +
         '必须写清：\n' +
         '  产品主色——产品身上最鲜明的那个彩色，精确色名；产品通体无彩色时写"无彩色"。\n' +
         '  场景主色——必须与产品主色完全一致，精确色名。不允许把白、灰、米白写成场景主色。\n' +
         '  环境色——白、浅灰、米白，明确说明只用于背景和留白。\n' +
         '  明暗倾向（明亮/中性/偏暗）、饱和度倾向（高/中/低）、整体氛围（如清爽通透、温润高级、科技冷感）。\n' +
+        '  明暗倾向必须按产品自身判断：产品是白色、透明、浅色、带水光感 → 明亮通透；产品是中等明度或哑光 → 中性；产品是黑色、深棕、金属重色 → 偏暗。饱和度跟随产品主色的真实浓度，不要凭空拉高或压低。\n' +
         '全部用具体色名，禁止"深色""浅色""高级色"这类模糊词。\n\n' +
         '【任务三：强调色】\n' +
-        '输出【产品主色】。这是画面里唯一允许出现的彩色，来源只能是产品本身，绝不能来自参考图。\n' +
+        '输出【产品主色】。这是画面里唯一允许出现的彩色，来源只能是产品本身。\n' +
         '- 产品有彩色 → 输出该颜色的色名与色值。\n' +
         '- 产品通体无彩色 → 只输出"无彩色"三个字，不要编造一个色值。\n' +
         '格式为"色名 色值"，例如"珊瑚红 #E8654F"。\n' +
@@ -462,16 +444,15 @@ async function analyzeImages() {
         '强调色：\n（这里只写一个色名和一个色值）';
 
     const userPrompt = '请分析图片，严格按格式输出"产品外观"和"色调方案"两段。\n\n' +
-        (ref ? '本次给了参考风格图。但它完全不参与配色：只读它的明暗、饱和度和干净度，色相一律忽略。整套图的彩色只能来自产品本身。' : '本次没有给参考风格图，色调方案完全根据产品本身的颜色来确定。') + '\n\n' +
+        '本次只给产品白底图。整套图的彩色只能来自产品本身，明暗倾向也按产品自身判断。\n\n' +
         '要求：\n' +
         '1. 产品外观段必须以"以参考图中的产品为唯一主体，严格保持其外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与文字完全不变"开头\n' +
         '2. 颜色必须用精确色名，例如"冷调银白""雾面米白""香槟金""灰蓝""浅青瓷白"，不要写"深色""浅色"\n' +
         '3. 标签上的文字要如实写出，这是产品识别度的关键\n' +
-        '4. 强调色只能来自产品本身，格式"色名 色值"，禁止白、灰、米白这类环境色；参考图的颜色一律不得出现在色调方案里\n' +
+        '4. 强调色只能来自产品本身，格式"色名 色值"，禁止白、灰、米白这类环境色\n' +
         '5. 只输出这三段，不要输出解释、不要输出道具和场景描述';
 
     const parts = [{ type: 'image_url', image_url: { url: product } }];
-    if (ref) parts.push({ type: 'image_url', image_url: { url: ref } });
     parts.push({ type: 'text', text: userPrompt });
 
     const reqBody = {
@@ -767,7 +748,7 @@ function showView(v) {
 }
 
 function resetAll() {
-    clearPd(); clearRef();
+    clearPd();
     sceneProduct = ''; sceneTone = ''; sceneAccent = '';
     lastRefImage = null; lastItems = [];
     showView('e');
