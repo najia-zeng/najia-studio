@@ -110,18 +110,25 @@
         .dlg-btn:hover { box-shadow: 0 6px 16px rgba(107,92,231,.32); }
         .dlg-btn.ghost { background: #fff; color: var(--text-sec); border-color: var(--border); }
         .dlg-btn.ghost:hover { background: #f5f5f5; }
-        .dlg-buy { max-width: 430px; }
-        .qr-wrap { text-align: center; margin-bottom: 12px; }
-        .qr-box { display: inline-block; padding: 13px; border: 1px dashed #dcdce8; border-radius: 14px; background: #fafafd; }
-        .qr-box img { display: block; width: 186px; height: 186px; object-fit: contain; border-radius: 8px; background: #fff; }
-        .qr-tip { font-size: 12px; color: #a8a8b8; margin-top: 10px; }
-        .qr-or { text-align: center; font-size: 12px; color: #a8a8b8; margin: 2px 0 8px; }
-        .qr-id { text-align: center; font-size: 17px; font-weight: 600; letter-spacing: .6px; color: var(--accent); background: #f4f2fd; border-radius: 9px; padding: 10px; cursor: pointer; user-select: all; transition: background .15s, color .15s; }
+        .dlg-buy { max-width: 430px; position: relative; }
+        .dlg-x2 { position: absolute; right: 15px; top: 11px; color: #c9c9d6; font-size: 22px; line-height: 1; cursor: pointer; z-index: 3; background: none; border: none; font-family: inherit; padding: 4px; }
+        .dlg-x2:hover { color: #888; }
+        .dlg-buy .dlg-b { padding: 34px 26px 4px; }
+        .dlg-t1 { font-size: 24px; font-weight: 700; color: var(--text); text-align: center; letter-spacing: 1.5px; }
+        .dlg-t2 { font-size: 13px; color: var(--text-sec); text-align: center; margin: 11px 0 22px; line-height: 1.65; }
+        .qr-wrap { margin-bottom: 0; }
+        .qr-box { display: block; border: 1px dashed #d9d9e6; border-radius: 16px; background: #fafafd; padding: 22px 18px 15px; }
+        .qr-box img { display: block; width: 190px; height: 190px; object-fit: contain; border-radius: 10px; background: #fff; margin: 0 auto; }
+        .qr-tip { font-size: 13px; color: #9c9cb2; text-align: center; margin-top: 13px; }
+        .qr-or { font-size: 13px; color: #8d8da3; text-align: center; margin: 20px 0 11px; }
+        .qr-id { text-align: center; font-size: 19px; font-weight: 700; letter-spacing: 1.2px; color: var(--accent); background: #f4f2fd; border-radius: 10px; padding: 11px; cursor: pointer; user-select: all; transition: background .15s, color .15s; }
         .qr-id:hover { background: #ebe7fb; }
         .qr-id.copied { background: #e9f8ee; color: #2f9e57; }
-        .dlg-lead { font-size: 19px; font-weight: 600; color: var(--text); line-height: 1.55; text-align: center; margin: 2px 0 18px; }
-        .dlg-lead span { font-size: 13px; font-weight: 400; color: var(--text-sec); }
-        .lic-h { font-size: 12px; color: #b0b0c0; text-align: center; margin: 20px 0 8px; }
+        .lic-h { font-size: 12px; color: #b3b3c4; text-align: center; margin: 22px 0 9px; }
+        .lic-row { display: flex; gap: 8px; }
+        .lic-row .dlg-in { flex: 1; min-width: 0; }
+        .lic-btn { padding: 0 17px; border-radius: 8px; border: 1px solid var(--accent); background: #fff; color: var(--accent); font-size: 13px; cursor: pointer; font-family: inherit; white-space: nowrap; }
+        .lic-btn:hover { background: #f4f2fd; }
         .cost-tag { font-size: 12px; font-weight: 400; color: #999; margin-left: 14px; letter-spacing: 0; }
         .cost-tag b { font-weight: 500; color: #666; }
         .res-actions-top { display: flex; gap: 10px; }
@@ -963,21 +970,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <div class="dlg-mask" id="buyMask" style="display:none">
     <div class="dlg dlg-buy">
-        <div class="dlg-h">免费体验已用完<span class="dlg-x" onclick="closeBuyDlg()">×</span></div>
+        <button class="dlg-x2" onclick="closeBuyDlg()">×</button>
         <div class="dlg-b">
-            <p class="dlg-lead">扫码添加微信<br><span>买断 / 订阅 均可咨询</span></p>
+            <div class="dlg-t1">免费体验已用完</div>
+            <div class="dlg-t2">扫码后沟通交付方式，订阅或买断报价</div>
             <div class="qr-wrap">
-                <div class="qr-box"><img src="img/qr-weixin.png" alt="微信二维码"></div>
+                <div class="qr-box">
+                    <img src="img/qr-weixin.png" alt="微信二维码">
+                    <div class="qr-tip">请使用微信扫码</div>
+                </div>
             </div>
-            <div class="qr-or">微信号</div>
+            <div class="qr-or">或手动添加我的微信</div>
             <div class="qr-id" id="qrId" onclick="copyWx()" title="点击复制微信号">najia9864</div>
             <div class="lic-h">已有激活码</div>
-            <input type="text" class="dlg-in" id="licInput" placeholder="NJ-XXXXXXXX-XXXX" autocomplete="off">
+            <div class="lic-row">
+                <input type="text" class="dlg-in" id="licInput" placeholder="NJ-XXXXXXXX-XXXX" autocomplete="off">
+                <button class="lic-btn" onclick="activateLicense()">解锁</button>
+            </div>
             <div class="dlg-err" id="licErr"></div>
         </div>
-        <div class="dlg-f">
-            <button class="dlg-btn ghost" onclick="closeBuyDlg()">稍后</button>
-            <button class="dlg-btn" onclick="activateLicense()">解锁</button>
+        <div class="dlg-f" style="padding:14px 26px 26px">
+            <button class="dlg-btn" style="flex:1;padding:13px;font-size:15px;font-weight:600" onclick="closeBuyDlg()">我已添加，完成</button>
         </div>
     </div>
 </div>
