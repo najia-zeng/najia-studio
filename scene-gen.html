@@ -184,7 +184,7 @@
   </a>
   <div class="topnav">
     <span class="quota-tag" id="quotaTag"></span>
-    <a class="tbtn" onclick="openKeyDlg()">API Key 设置</a>
+    <a class="tbtn" id="keyBtn" onclick="openKeyDlg()" style="display:none">API Key 设置</a>
     <a class="tbtn" href="https://www.najiastudio.com/product.html">娜家拍摄台系列产品</a>
   </div>
 </header>
@@ -380,6 +380,23 @@ function showPreview(src) {
     $('pdContent').innerHTML = '<img src="' + src + '" class="up-prev"><button class="up-rm" onclick="event.stopPropagation();clearPd()">×</button>';
 }
 function clearPd() { productSrc = null; productCroppedSrc = null; $('pdFile').value = ''; $('pdArea').classList.remove('has'); $('pdArea').style.borderColor = ''; $('pdContent').innerHTML = '<div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div>'; updateGenBtn(); }
+/* 授权激活：付款后发激活码，输入后解锁「填自己的 Key」入口 */
+const LICENSE_SALT = 'naji-ark-2026';
+function licHash(x) {
+    let h = 0;
+    for (let i = 0; i < x.length; i++) { h = (h * 31 + x.charCodeAt(i)) >>> 0; }
+    return h.toString(36).toUpperCase().padStart(4, '0').slice(0, 4);
+}
+function licValid(code) {
+    const c = (code || '').trim().toUpperCase().replace(/[\s-]/g, '');
+    const m = c.match(/^NJ([A-Z0-9]{8})([A-Z0-9]{4})$/);
+    if (!m) return false;
+    return licHash(m[1] + LICENSE_SALT) === m[2];
+}
+function isLicensed() {
+    try { return localStorage.getItem('nj_lic') === '1'; } catch (e) { return false; }
+}
+
 /* 免费体验额度：内置 Key 期间每人 3 次，客户填了自己的 Key 则不限制 */
 const FREE_LIMIT = 3;
 const WECHAT_ID = 'najia9864';
@@ -401,6 +418,11 @@ function renderQuota() {
     const el = $('quotaTag');
     if (!el) return;
     if (isDev()) { el.className = 'quota-tag'; el.innerHTML = '开发者模式 · 不限次'; return; }
+    if (isLicensed()) {
+        el.className = 'quota-tag';
+        el.innerHTML = isOwnKey() ? '已解锁 · 用你自己的 Key' : '已解锁 · 请先填 Key';
+        return;
+    }
     if (isOwnKey()) { el.className = 'quota-tag'; el.innerHTML = '用自己的 Key · 不限次'; return; }
     const left = freeLeft();
     el.className = 'quota-tag' + (left === 0 ? ' used' : '');
@@ -409,9 +431,25 @@ function renderQuota() {
 function openBuyDlg() { $('buyMask').style.display = 'flex'; }
 function closeBuyDlg() { $('buyMask').style.display = 'none'; }
 
-function updateGenBtn() { $('genBtn').disabled = !productCroppedSrc || !ARK_API_KEY; }
+function updateGenBtn() { $('genBtn').disabled = !productCroppedSrc; }
+
+function activateLicense() {
+    const v = ($('licInput').value || '').trim();
+    if (!v) { $('licErr').textContent = '请先填激活码'; return; }
+    if (!licValid(v)) { $('licErr').textContent = '激活码不对，检查一下有没有输错'; return; }
+    try { localStorage.setItem('nj_lic', '1'); } catch (e) {}
+    /* 解锁后清掉内置 Key，强制客户填自己的，避免继续走内置额度 */
+    ARK_API_KEY = '';
+    try { localStorage.removeItem('nj_ark_key2'); } catch (e) {}
+    $('keyBtn').style.display = '';
+    closeBuyDlg();
+    renderQuota();
+    updateGenBtn();
+    setTimeout(() => { openKeyDlg(); }, 250);
+}
 
 function openKeyDlg() {
+    if (!isDev() && !isLicensed()) { openBuyDlg(); return; }
     $('keyInput').value = ARK_API_KEY || '';
     $('keyErr').textContent = '';
     $('keyMask').style.display = 'flex';
@@ -826,8 +864,8 @@ async function submitTune(idx) {
 
 async function generate() {
     if (busy || !productCroppedSrc) return;
+    if (!isDev() && !isLicensed() && freeLeft() <= 0) { openBuyDlg(); return; }
     if (!ARK_API_KEY) { openKeyDlg(); return; }
-    if (!isOwnKey() && freeLeft() <= 0) { openBuyDlg(); return; }
     busy = true; $('genBtn').disabled = true;
     try {
         showView('l');
@@ -894,6 +932,7 @@ function resetAll() {
 
 document.addEventListener('DOMContentLoaded', () => {
     showView('e'); pickRatio('1:1'); pickSize('medium'); loadCostStat(); updateGenBtn(); renderQuota();
+    if (isDev() || isLicensed()) $('keyBtn').style.display = '';
 });
 
 
@@ -925,18 +964,18 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="dlg">
         <div class="dlg-h">免费体验已用完<span class="dlg-x" onclick="closeBuyDlg()">×</span></div>
         <div class="dlg-b">
-            <p class="dlg-p">3 次免费体验已经用完了。想继续用，两个办法：</p>
-            <div class="dlg-opt">
-                <div class="opt-h">① 买次数包</div>
-                <div class="opt-p">加微信 <b>najia9864</b>，告诉我要多少张，转账后马上给你开通。<br>次数用完随时再买，不用重新配置。</div>
+            <p class="dlg-p">3 次免费体验已经用完了。想继续用，加微信 <b>najia9864</b>，转账后马上给你激活码。</p>
+            <div class="dlg-steps">
+                <div class="st"><b>1</b>加微信 <span class="mn">najia9864</span>，说明要买</div>
+                <div class="st"><b>2</b>转账后，你会收到一个激活码</div>
+                <div class="st"><b>3</b>把激活码填到下面解锁，之后配一次自己的火山 Key 就能一直用</div>
             </div>
-            <div class="dlg-opt">
-                <div class="opt-h">② 用自己的火山账号（不限次）</div>
-                <div class="opt-p">适合用量大的人。自己去火山方舟开个 Key，出图费用走你自己的账号，约 0.20 元/张，以后不再限次。<a onclick="closeBuyDlg();openKeyDlg()">点这里配置</a></div>
-            </div>
+            <input type="text" class="dlg-in" id="licInput" placeholder="NJ-XXXXXXXX-XXXX" autocomplete="off">
+            <div class="dlg-err" id="licErr"></div>
         </div>
         <div class="dlg-f">
-            <button class="dlg-btn ghost" onclick="closeBuyDlg()">知道了</button>
+            <button class="dlg-btn ghost" onclick="closeBuyDlg()">稍后</button>
+            <button class="dlg-btn" onclick="activateLicense()">解锁</button>
         </div>
     </div>
 </div>
