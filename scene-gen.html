@@ -67,6 +67,8 @@
         .res-wrap { max-width: 1100px; margin: 0 auto; width: 100%; }
         .res-top { width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
         .res-top h2 { font-size: 17px; font-weight: 500; }
+        .cost-tag { font-size: 12px; font-weight: 400; color: #999; margin-left: 14px; letter-spacing: 0; }
+        .cost-tag b { font-weight: 500; color: #666; }
         .res-actions-top { display: flex; gap: 10px; }
         .new-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-s); font-size: 13px; cursor: pointer; font-family: inherit; transition: all .15s; color: var(--text-sec); }
         .new-btn:hover { border-color: #999; color: var(--text); }
@@ -204,7 +206,7 @@
         </div>
         <div class="res-wrap" id="vRes" style="display:none">
             <div class="res-top">
-                <h2>成套场景图</h2>
+                <h2>成套场景图<span class="cost-tag" id="costTag"></span></h2>
                 <div class="res-actions-top">
                     <button class="new-btn" onclick="regenerateProps()">换一批道具</button>
                     <button class="new-btn" onclick="generate()">重新分析</button>
@@ -293,6 +295,36 @@ let productSrc = null, productCroppedSrc = null, busy = false;
 let sceneProduct = '', sceneTone = '', sceneAccent = '';
 let curPack = SCENE_PACK, curRatio = '1:1', curSize = 'medium';
 let lastRefImage = null, lastItems = [];
+
+/* 成本估算：火山方舟官方单价
+   doubao-seedream-4-0 输出图 0.20 元/张（输入图免费）
+   doubao-seed-2-1-pro 视觉分析 输入 3 元/百万token、输出 15 元/百万token */
+const COST_IMG = 0.20;
+const COST_TXT_IN = 3.0 / 1000000;
+const COST_TXT_OUT = 15.0 / 1000000;
+let runImgs = 0, runCost = 0, allImgs = 0, allCost = 0;
+
+function loadCostStat() {
+    try {
+        const d = JSON.parse(localStorage.getItem('nj_cost') || '{}');
+        allImgs = d.imgs || 0; allCost = d.cost || 0;
+    } catch (e) { allImgs = 0; allCost = 0; }
+    renderCostStat();
+}
+function resetRunCost() { runImgs = 0; runCost = 0; renderCostStat(); }
+function addCost(imgN, yuan) {
+    runImgs += imgN; runCost += yuan;
+    allImgs += imgN; allCost += yuan;
+    try { localStorage.setItem('nj_cost', JSON.stringify({ imgs: allImgs, cost: allCost })); } catch (e) {}
+    renderCostStat();
+}
+function renderCostStat() {
+    const el = $('costTag');
+    if (!el) return;
+    if (runImgs === 0 && runCost === 0) { el.innerHTML = ''; return; }
+    el.innerHTML = '本次 ' + runImgs + ' 张 · 约 <b>¥' + runCost.toFixed(2) + '</b>' +
+        '　｜　累计 ' + allImgs + ' 张 · 约 <b>¥' + allCost.toFixed(2) + '</b>';
+}
 
 const $ = id => document.getElementById(id);
 
@@ -490,6 +522,8 @@ async function analyzeImages() {
     const pm = content.match(/产品外观[：:]\s*([\s\S]+?)(?=\n\s*色调方案|$)/);
     const tm = content.match(/色调方案[：:]\s*([\s\S]+?)(?=\n\s*强调色|$)/);
     const am = content.match(/强调色[：:]\s*([\s\S]+)$/);
+    const uu = data.usage || {};
+    addCost(0, (uu.prompt_tokens || 0) * COST_TXT_IN + (uu.completion_tokens || 0) * COST_TXT_OUT);
     sceneProduct = pm ? pm[1].trim() : '';
     sceneTone = tm ? tm[1].trim() : '';
     sceneAccent = am ? am[1].trim().split('\n')[0].trim() : '';
@@ -527,6 +561,7 @@ async function generateSceneImage(prompt, refImage) {
     }
     if (!data) throw new Error('场景图生成失败: ' + (lastErr || '所有图像模型均不可用'));
     const first = data.data && data.data[0];
+    if (first && (first.b64_json || first.url)) addCost(1, COST_IMG);
     if (first && first.b64_json) return 'data:image/png;base64,' + first.b64_json;
     if (first && first.url) return first.url;
     if (first && first.error) throw new Error('图片生成错误: ' + first.error.message);
@@ -704,6 +739,7 @@ async function generate() {
     busy = true; $('genBtn').disabled = true;
     try {
         showView('l');
+        resetRunCost();
         setStep(1); $('ldgTxt').textContent = '正在分析产品与色调...'; $('ldgSub').textContent = '大约需要 5-10 秒';
         await analyzeImages();
         lastRefImage = await prepareRefImage(productCroppedSrc);
@@ -760,7 +796,7 @@ function resetAll() {
     showView('e');
 }
 
-document.addEventListener('DOMContentLoaded', () => { showView('e'); pickRatio('1:1'); pickSize('medium'); });
+document.addEventListener('DOMContentLoaded', () => { showView('e'); pickRatio('1:1'); pickSize('medium'); loadCostStat(); });
 
 
 </script>
