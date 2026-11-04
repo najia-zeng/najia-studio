@@ -106,8 +106,14 @@
   .stage .st-desc{font-size:13.5px;color:#56526e;line-height:1.75;margin:0 0 16px;}
   .stage .st-quote{font-size:13px;color:var(--ink);background:#faf9ff;border-left:3px solid #d8d0fb;
     border-radius:0 8px 8px 0;padding:9px 12px;line-height:1.7;margin:0 0 16px;font-weight:600;}
-  .stage .st-link{margin-top:auto;font-size:13.5px;font-weight:650;color:var(--blue);text-decoration:none;}
-  .stage .st-link:hover{text-decoration:underline;}
+  .stage .st-link{margin-top:auto;display:inline-block;align-self:flex-start;
+    font-size:13.5px;font-weight:650;text-decoration:none;color:#fff;
+    padding:9px 20px;border-radius:999px;border:1.5px solid transparent;
+    transition:filter .15s;}
+  .stage .st-link:hover{filter:brightness(1.12);}
+  .stage.st-photo .st-link{background:#2f6fed;border-color:#2f6fed;}
+  .stage.st-ai .st-link{background:#0d9a72;border-color:#0d9a72;}
+  .stage.st-manual .st-link{background:#e07a2f;border-color:#e07a2f;}
   .stage .st-note{font-size:12px;color:#a5a1bb;margin-top:8px;line-height:1.5;}
   .stage.hl{border-color:#d8d0fb;box-shadow:0 8px 24px rgba(107,92,231,.10);}
   /* 三段三种颜色：拍摄台=蓝 / AI=绿 / 手册=橙 */
@@ -234,7 +240,7 @@
     <div class="sec-badge"><svg viewBox="0 0 24 24"><path d="M3 7h6v6H3z"/><path d="M15 11h6v6h-6z"/><path d="M9 10h6"/><path d="M12 4v3"/></svg></div>
     <div class="sec-copy">
       <h2>一条生产线，三段</h2>
-      <p>就是上面那三件事，从拍到修一条线走完。三段分开卖，各买各的</p>
+      <p>从实拍打底，到 AI 出背景，再到修复，一条路走完</p>
     </div>
   </div>
 
@@ -257,7 +263,7 @@
       <p class="st-desc">上传产品图，选一个行业风格包，出成套的场景图。提示词、光影逻辑已经写进工具里，不用自己研究。</p>
       <div class="st-quote">工具里装的是行业审美，<br>不是一堆参数。</div>
       <p class="st-desc" style="margin-bottom:12px;">出图之后，哪张能用、哪里不对，还是要你来判断——这段在后面。</p>
-      <a class="st-link" href="https://www.najiastudio.com/scene-gen.html" target="_blank">免费试 3 次 →</a>
+      <a class="st-link" href="scene-gen.html">免费试 3 次 →</a>
       <div class="st-note">3 次之后单独收费，不含在手册里</div>
     </div>
 
