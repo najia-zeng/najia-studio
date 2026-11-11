@@ -72,7 +72,8 @@
         .up-rm { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; background: rgba(0,0,0,.4); color: #fff; border: none; border-radius: 50%; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: background .15s; z-index: 2; }
         .up-rm:hover { background: rgba(0,0,0,.7); }
 
-        .gen-btn { width: 100%; padding: 15px; background: var(--grad); color: #fff; border: none; border-radius: var(--radius-s); font-size: 16px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .22s; box-shadow: 0 6px 18px rgba(107,92,231,.28); }
+        .gen-btn { width: 100%; padding: 15px; background: var(--grad); color: #fff; border: none; border-radius: var(--radius-s); font-size: 16px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .22s; box-shadow: 0 6px 18px rgba(107,92,231,.28); position: sticky; bottom: 0; z-index: 6; }
+        .gen-btn::before { content: ''; position: absolute; left: -20px; right: -20px; top: -22px; height: 22px; background: linear-gradient(180deg, rgba(255,255,255,0), #fff); pointer-events: none; }
         .gen-btn:hover { box-shadow: 0 9px 26px rgba(107,92,231,.4); transform: translateY(-1px); }
         .gen-btn:disabled { opacity: .35; cursor: not-allowed; }
 
