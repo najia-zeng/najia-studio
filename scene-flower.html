@@ -556,7 +556,7 @@ const FLOWER_TPL = [
              '# 画质参数\n' +
              '8K超写实，专业商业香水创意摄影，电影级光影，细节清晰锐利，花瓣与瓶身质感细腻，无噪点、无模糊。\n\n' +
              '# 负面避坑\n' +
-             '禁止变形、禁止模糊、禁止过曝、禁止死黑、禁止杂色、禁止多余道具、禁止背景杂乱、禁止液体变色、禁止标签文字错误。'
+             '禁止变形、禁止模糊、禁止过曝、禁止死黑、禁止杂色、禁止多余道具、禁止背景杂乱、禁止液体变色、禁止标签文字错误；禁止出现任何水印、账号名、平台 logo、点赞收藏图标、按钮、播放条、贴纸、字幕和界面元素，画面里除了产品标签不能有其他文字。'
     },
     {
         id: 'float',
@@ -572,7 +572,7 @@ const FLOWER_TPL = [
              '# 画质参数\n' +
              '8K超写实，专业商业香水创意摄影，背景柔焦虚化，产品焦点清晰，质感细腻，无噪点、无模糊。\n\n' +
              '# 负面避坑\n' +
-             '禁止变形、禁止模糊、禁止过曝、禁止死黑、禁止杂色、禁止多余道具、禁止背景杂乱、禁止液体变色、禁止标签文字错误。'
+             '禁止变形、禁止模糊、禁止过曝、禁止死黑、禁止杂色、禁止多余道具、禁止背景杂乱、禁止液体变色、禁止标签文字错误；禁止出现任何水印、账号名、平台 logo、点赞收藏图标、按钮、播放条、贴纸、字幕和界面元素，画面里除了产品标签不能有其他文字。'
     },
     {
         id: 'mirror',
@@ -588,7 +588,7 @@ const FLOWER_TPL = [
              '# 画质参数\n' +
              '8K超写实，专业商业香水创意摄影，背景柔焦虚化，产品焦点清晰，质感细腻，带有电影级炫光光斑效果，无噪点、无模糊。\n\n' +
              '# 负面避坑\n' +
-             '禁止变形、禁止模糊、禁止过曝、禁止死黑、禁止杂色、禁止多余道具、禁止背景杂乱、禁止液体变色、禁止标签文字错误。'
+             '禁止变形、禁止模糊、禁止过曝、禁止死黑、禁止杂色、禁止多余道具、禁止背景杂乱、禁止液体变色、禁止标签文字错误；禁止出现任何水印、账号名、平台 logo、点赞收藏图标、按钮、播放条、贴纸、字幕和界面元素，画面里除了产品标签不能有其他文字。'
     },
     {
         id: 'window',
@@ -604,7 +604,7 @@ const FLOWER_TPL = [
              '# 画质参数\n' +
              '8K超写实，专业商业美妆摄影，细节清晰锐利，瓶身与花瓣质感细腻，光影层次丰富，无噪点、无模糊。\n\n' +
              '# 负面避坑\n' +
-             '禁止变形、禁止模糊、禁止过曝、禁止死黑、禁止杂色、禁止多余道具、禁止背景杂乱、禁止液体变色、禁止标签文字错误。'
+             '禁止变形、禁止模糊、禁止过曝、禁止死黑、禁止杂色、禁止多余道具、禁止背景杂乱、禁止液体变色、禁止标签文字错误；禁止出现任何水印、账号名、平台 logo、点赞收藏图标、按钮、播放条、贴纸、字幕和界面元素，画面里除了产品标签不能有其他文字。'
     },
     {
         id: 'lift',
@@ -620,7 +620,7 @@ const FLOWER_TPL = [
              '# 画质参数\n' +
              '8K超写实，专业商业美妆摄影，细节清晰锐利，花瓣与瓶身质感细腻，背景朦胧虚化，无噪点、无模糊。\n\n' +
              '# 负面避坑\n' +
-             '禁止变形、禁止模糊、禁止过曝、禁止死黑、禁止杂色、禁止多余道具、禁止背景杂乱、禁止液体变色、禁止标签文字错误。'
+             '禁止变形、禁止模糊、禁止过曝、禁止死黑、禁止杂色、禁止多余道具、禁止背景杂乱、禁止液体变色、禁止标签文字错误；禁止出现任何水印、账号名、平台 logo、点赞收藏图标、按钮、播放条、贴纸、字幕和界面元素，画面里除了产品标签不能有其他文字。'
     }
 ];
 
@@ -982,6 +982,30 @@ function resizeForAPI(dataUri, maxDim) {
     });
 }
 
+/* 参考图多半是从小红书、网页上截的，图上压着平台的 UI：底部一整条点赞收藏分享、
+   左上角账号名、右下角「Save for Later」。整张喂给生图模型，它会连 UI 一起照抄进画面，
+   四张图里就有两三张底部莫名多出一条互动条。所以传之前先把四周裁一圈，把 UI 切掉。 */
+function cropMoodRef(dataUri) {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+            const cutT = Math.round(img.height * 0.08);   // 顶部：账号名和平台 logo
+            const cutB = Math.round(img.height * 0.12);   // 底部：点赞收藏分享整条 UI
+            const cutL = Math.round(img.width * 0.02);
+            const cutR = Math.round(img.width * 0.02);
+            const w = img.width - cutL - cutR;
+            const h = img.height - cutT - cutB;
+            if (w < 40 || h < 40) { resolve(dataUri); return; }
+            const c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            c.getContext('2d').drawImage(img, cutL, cutT, w, h, 0, 0, w, h);
+            resolve(c.toDataURL('image/jpeg', 0.92));
+        };
+        img.onerror = () => resolve(dataUri);
+        img.src = dataUri;
+    });
+}
+
 // 关键：传给出图模型的参考图，本身就是「产品占固定比例、四周大量留白」的构图
 // 模型会照抄参考图的占比感，比任何文字描述都管用
 // 产品大小三档：ref 是参考图里产品占画布高度的比例，text 是写进提示词的区间
@@ -1017,7 +1041,7 @@ function prepareRefImage(dataUri, maxDim) {
    所以：有氛围图就只传氛围图，没有氛围图才退回产品图保产品。 */
 async function buildGenRefImage() {
     if (typeof refMoodSrc !== 'undefined' && refMoodSrc) {
-        return await resizeForAPI(refMoodSrc, 1536);
+        return await resizeForAPI(await cropMoodRef(refMoodSrc), 1536);
     }
     return await prepareRefImage(productCroppedSrc);
 }
@@ -1187,7 +1211,7 @@ function buildScenePrompt(productDesc, toneDesc, accent, pack, set) {
                 + '。这套构图需要道具时优先用这些，不需要就不要硬加，绝不出现这份清单以外的道具。';
         }
         const refNote = (typeof refMoodSrc !== 'undefined' && refMoodSrc)
-            ? '参考图是氛围参考：只取它的色调、光线方向和画面气质，不要照搬它里面的物体、场景和构图。\n\n'
+            ? '参考图是氛围参考：只取它的色调、光线方向和画面气质，不要照搬它里面的物体、场景和构图；参考图上的水印、账号名、界面图标和按钮更不能出现在画面里。\n\n'
             : '';
         return refNote + body + tail;
     }
@@ -1308,7 +1332,7 @@ async function analyzeImages(pack) {
 
     const parts = [{ type: 'image_url', image_url: { url: product } }];
     if (refMoodSrc) {
-        const moodImg = await resizeForAPI(refMoodSrc, 1024);
+        const moodImg = await resizeForAPI(await cropMoodRef(refMoodSrc), 1024);
         parts.push({ type: 'image_url', image_url: { url: moodImg } });
     }
     parts.push({ type: 'text', text: userPrompt });
