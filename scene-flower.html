@@ -41,16 +41,10 @@
         .fl-chip.is-main { background: var(--grad); color: #fff; border-color: transparent; box-shadow: 0 3px 10px rgba(107,92,231,.22); }
         .fl-idx { display: inline-block; margin-left: 5px; width: 13px; height: 13px; line-height: 13px; border-radius: 50%; background: rgba(255,255,255,.34); font-size: 9px; font-style: normal; text-align: center; vertical-align: 1px; }
         .sec-opt { font-size: 10px; font-weight: 400; color: #9a97a8; margin-left: 6px; letter-spacing: 0; }
-        .mood-up { display: flex; align-items: center; gap: 10px; padding: 10px 11px; border: 1px dashed #d8d5e0; border-radius: 10px; cursor: pointer; transition: all .15s; background: #fcfcfd; }
-        .mood-up:hover { border-color: #c9c1f5; background: #faf8ff; }
-        .mood-txt { font-size: 11.5px; color: var(--text-sec); line-height: 1.45; }
-        .mood-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; flex-shrink: 0; display: block; }
-        .mood-row { display: flex; align-items: center; gap: 10px; width: 100%; }
-        .mood-info { flex: 1; min-width: 0; }
-        .mood-name { font-size: 11.5px; color: var(--text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .mood-sub { font-size: 10.5px; color: var(--text-sec); margin-top: 3px; line-height: 1.4; }
-        .mood-x { width: 20px; height: 20px; border-radius: 50%; border: none; background: #eee; color: #666; font-size: 12px; line-height: 1; cursor: pointer; flex-shrink: 0; }
-        .mood-x:hover { background: #e2e2e8; }
+        .mood-up { border: 1px dashed var(--border); border-radius: var(--radius-s); padding: 24px 14px; text-align: center; cursor: pointer; transition: all .2s; position: relative; background: #fafafa; min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .mood-up:hover { border-color: #b9b0ff; background: #fbfaff; }
+        .mood-up.has { border-style: solid; border-color: var(--accent); padding: 8px; background: #fff; }
+        .mood-prev { max-width: 100%; max-height: 140px; border-radius: 6px; object-fit: contain; display: block; }
                 @media (max-width: 720px) {
             .hdr { height: auto; padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
             .hdr-title { font-size: 21px; }
@@ -257,8 +251,19 @@
                 <div id="pdContent"><div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div></div>
             </div>
         </div>
+        <div id="moodBox">
+            <div class="sec-label">② 氛围参考图 <span class="sec-opt">可选</span></div>
+            <input type="file" id="moodFile" accept="image/*" style="display:none" onchange="moodSel(event)">
+            <div class="mood-up" id="moodUp" onclick="$('moodFile').click()">
+                <div id="moodInner">
+                    <div class="up-ico">🎨</div>
+                    <div class="up-txt">传一张氛围参考图</div>
+                </div>
+            </div>
+            <div class="fl-state" id="moodState">只取它的配色，不照搬画面内容；不传就按产品颜色自己生成渐变底色</div>
+        </div>
         <div>
-            <div class="sec-label">② 画幅</div>
+            <div class="sec-label">③ 画幅</div>
             <div class="ratio-row" id="ratioRow">
                 <button class="ratio-btn active" data-r="1:1" onclick="pickRatio('1:1')">1:1 主图</button>
                 <button class="ratio-btn" data-r="3:4" onclick="pickRatio('3:4')">3:4 竖版</button>
@@ -266,7 +271,7 @@
             </div>
         </div>
         <div>
-            <div class="sec-label">③ 产品大小</div>
+            <div class="sec-label">④ 产品大小</div>
             <div class="ratio-row" id="sizeRow">
                 <button class="ratio-btn" data-s="small" onclick="pickSize('small')">小</button>
                 <button class="ratio-btn active" data-s="medium" onclick="pickSize('medium')">中</button>
@@ -274,7 +279,7 @@
             </div>
         </div>
         <div id="flowerBox">
-            <div class="sec-label">④ 花材 <span class="sec-opt">最多 4 种，第一个是主花</span></div>
+            <div class="sec-label">⑤ 花材 <span class="sec-opt">最多 4 种，第一个是主花</span></div>
             <div class="fl-chips">
                 <button class="fl-auto active" id="flowerAutoBtn" onclick="setFlowerAuto()">自动判断</button>
                 <button class="fl-chip" data-f="玫瑰" onclick="toggleFlower('玫瑰')">玫瑰</button>
@@ -295,16 +300,6 @@
             </div>
             <input class="fl-input" id="flowerInput" placeholder="也可直接输入，多种用顿号隔开：苹果花、雪柳、橄榄枝" onkeydown="if(event.key==='Enter'){event.preventDefault();onFlowerInput()}" onblur="onFlowerInput()">
             <div class="fl-state" id="flowerState">自动判断：出图前按产品香调决定花材组合</div>
-        </div>
-        <div id="moodBox">
-            <div class="sec-label">⑤ 氛围参考图 <span class="sec-opt">可选</span></div>
-            <input type="file" id="moodFile" accept="image/*" style="display:none" onchange="moodSel(event)">
-            <div class="mood-up" id="moodUp" onclick="$('moodFile').click()">
-                <div id="moodInner">
-                    <div class="mood-txt">传一张你喜欢的图，只取它的配色，不照搬画面内容</div>
-                </div>
-            </div>
-            <div class="fl-state" id="moodState">不传就按产品颜色自己生成渐变底色</div>
         </div>
         <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成 4 张场景图</button>
     </div>
@@ -712,23 +707,20 @@ function clearMood() {
 
 function renderMoodState() {
     const inner = document.getElementById('moodInner');
+    const box = document.getElementById('moodUp');
     const st = document.getElementById('moodState');
     if (!inner) return;
     if (refMoodSrc) {
-        const sub = moodTone
+        if (box) box.classList.add('has');
+        inner.innerHTML = '<img class="mood-prev" src="' + refMoodSrc + '" alt="参考图">' +
+            '<button class="up-rm" onclick="event.stopPropagation();clearMood()" title="移除">×</button>';
+        if (st) st.textContent = moodTone
             ? ('底色：' + moodTone.c1 + ' → ' + moodTone.c2 + (moodTone.dir ? ' · ' + moodTone.dir + '调' : ''))
             : '出图前先提取这张图的配色';
-        inner.innerHTML = '<div class="mood-row">' +
-            '<img class="mood-thumb" src="' + refMoodSrc + '" alt="参考图">' +
-            '<div class="mood-info"><div class="mood-name">已选参考图</div><div class="mood-sub">' + sub + '</div></div>' +
-            '<button class="mood-x" onclick="event.stopPropagation();clearMood()" title="移除">×</button>' +
-            '</div>';
-        if (st) st.textContent = moodTone
-            ? ('整张图的底色：' + moodTone.c1 + ' → ' + moodTone.c2 + ' 渐变')
-            : '只取这张图的配色，不照搬它的画面内容';
     } else {
-        inner.innerHTML = '<div class="mood-txt">传一张你喜欢的图，只取它的配色，不照搬画面内容</div>';
-        if (st) st.textContent = '不传就按产品颜色自己生成渐变底色';
+        if (box) box.classList.remove('has');
+        inner.innerHTML = '<div class="up-ico">🎨</div><div class="up-txt">传一张氛围参考图</div>';
+        if (st) st.textContent = '只取它的配色，不照搬画面内容；不传就按产品颜色自己生成渐变底色';
     }
 }
 /* 手输框：回车或输入后按顿号/逗号/空格拆分，一次可加多个花材 */
