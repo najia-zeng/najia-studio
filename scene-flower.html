@@ -316,7 +316,7 @@
         </div>
         <div class="res-wrap" id="vRes" style="display:none">
             <div class="res-top">
-                <h2>成套场景图<span class="cost-tag" id="costTag"></span></h2>
+                <h2>成套场景图</h2>
                 <div class="res-actions-top">
                     <button class="new-btn" onclick="regenerateProps()">换一批道具</button>
                     <button class="new-btn" onclick="generate()">重新分析</button>
@@ -664,11 +664,10 @@ function addCost(imgN, yuan) {
     renderCostStat();
 }
 function renderCostStat() {
+    /* 界面上不再显示本次/累计成本：这些数字对客户是噪音，也容易让人盯着单价算。
+       统计逻辑和 localStorage 累加都保留，内部对账时手动打印 runCost / allCost 即可。 */
     const el = $('costTag');
-    if (!el) return;
-    if (runImgs === 0 && runCost === 0) { el.innerHTML = ''; return; }
-    el.innerHTML = '本次 ' + runImgs + ' 张 · 约 <b>¥' + runCost.toFixed(2) + '</b>' +
-        '　｜　累计 ' + allImgs + ' 张 · 约 <b>¥' + allCost.toFixed(2) + '</b>';
+    if (el) el.textContent = '';
 }
 
 const $ = id => document.getElementById(id);
