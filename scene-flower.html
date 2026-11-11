@@ -515,6 +515,9 @@ function isLicensed() {
     try { return localStorage.getItem('nj_lic') === '1'; } catch (e) { return false; }
 }
 
+/* 测试期开关：true 时不限次数、不弹付费框、不消耗额度。正式上线改回 false。 */
+const UNLIMITED = true;
+
 /* 免费体验额度：内置 Key 期间每人 3 次，客户填了自己的 Key 则不限制 */
 const FREE_LIMIT = 3;
 const WECHAT_ID = 'najia9864';
@@ -534,6 +537,11 @@ function freeLeft() { return Math.max(0, FREE_LIMIT - getFreeUsed()); }
 function renderQuota() {
     const el = $('quotaTag');
     if (!el) return;
+    if (UNLIMITED) {
+        el.className = 'quota-tag';
+        el.innerHTML = '测试期 · 不限次数';
+        return;
+    }
     if (isLicensed()) {
         el.className = 'quota-tag';
         el.innerHTML = '已解锁 · 不限次';
@@ -1095,7 +1103,7 @@ async function submitTune(idx) {
 
 async function generate() {
     if (busy || !productCroppedSrc) return;
-    if (!isLicensed() && freeLeft() <= 0) { openBuyDlg(); return; }
+    if (!UNLIMITED && !isLicensed() && freeLeft() <= 0) { openBuyDlg(); return; }
     busy = true; $('genBtn').disabled = true;
     try {
         showView('l');
@@ -1111,7 +1119,7 @@ async function generate() {
     }
     busy = false;
     await runShots();
-    if (!isLicensed() && lastItems && lastItems.length > 0) {
+    if (!UNLIMITED && !isLicensed() && lastItems && lastItems.length > 0) {
         setFreeUsed(getFreeUsed() + 1);
         renderQuota();
     }
