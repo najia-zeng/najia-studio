@@ -1008,6 +1008,17 @@ function prepareRefImage(dataUri, maxDim) {
     });
 }
 
+/* 出图时到底传哪张参考图——这是氛围好坏的分水岭。
+   传产品白底图，模型会照着画「白底 + 居中 + 产品占七成」，提示词里再怎么写「被玫瑰包裹」也压不住；
+   传氛围参考图，模型照的是色调、光线和画面气质，产品靠文字描述锁，跟即梦那边一个路子。
+   所以：有氛围图就只传氛围图，没有氛围图才退回产品图保产品。 */
+async function buildGenRefImage() {
+    if (typeof refMoodSrc !== 'undefined' && refMoodSrc) {
+        return await resizeForAPI(refMoodSrc, 1536);
+    }
+    return await prepareRefImage(productCroppedSrc);
+}
+
 /* 把 AI 返回的花名归一化到花种库的 key：
    "粉色玫瑰"→"玫瑰"、"粉玫瑰"→"玫瑰"；库里没有的原样保留（最多 8 字） */
 function normFlowerName(raw) {
@@ -1113,7 +1124,10 @@ function buildScenePrompt(productDesc, toneDesc, accent, pack, set) {
                 tail += '配材是' + fills.map(f => f.name + (f.anchor ? '（' + anchorNoSize(f.anchor) + '）' : '')).join('、') + '，同样必须按各自的形态特征绘制，不能互相混淆。';
             }
         }
-        return body + tail;
+        const refNote = (typeof refMoodSrc !== 'undefined' && refMoodSrc)
+            ? '参考图是氛围参考：只取它的色调、光线方向和画面气质，不要照搬它里面的物体、场景和构图。\n\n'
+            : '';
+        return refNote + body + tail;
     }
 
     const propsText = set.props
@@ -1439,7 +1453,7 @@ async function runShots() {
     try {
         showView('l');
         // 每次按当前画幅重做参考图，保证传进去的构图占比正确
-        lastRefImage = await prepareRefImage(productCroppedSrc);
+        lastRefImage = await buildGenRefImage();
         const picked = pickSets();
         setStep(2);
         $('ldgTxt').textContent = '正在生成 ' + picked.length + ' 张场景图...';
@@ -1536,7 +1550,7 @@ async function generate() {
         $('ldgTxt').textContent = (curPack.key === 'flower') ? '正在分析产品、色调与花材...' : '正在分析产品与色调...';
         $('ldgSub').textContent = '大约需要 5-10 秒';
         await analyzeImages(curPack);
-        lastRefImage = await prepareRefImage(productCroppedSrc);
+        lastRefImage = await buildGenRefImage();
     } catch (err) {
         console.error(err); busy = false; updateGenBtn(); showView('x'); $('errTxt').textContent = err.message || '请稍后重试';
         return;
