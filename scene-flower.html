@@ -38,6 +38,19 @@
         .fl-input { width: 100%; box-sizing: border-box; margin-top: 8px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 12.5px; font-family: inherit; color: var(--text); outline: none; }
         .fl-input:focus { border-color: #c9c1f5; }
         .fl-state { font-size: 11.5px; color: var(--text-sec); margin-top: 7px; line-height: 1.5; }
+        .fl-chip.is-main { background: var(--grad); color: #fff; border-color: transparent; box-shadow: 0 3px 10px rgba(107,92,231,.22); }
+        .fl-idx { display: inline-block; margin-left: 5px; width: 13px; height: 13px; line-height: 13px; border-radius: 50%; background: rgba(255,255,255,.34); font-size: 9px; font-style: normal; text-align: center; vertical-align: 1px; }
+        .sec-opt { font-size: 10px; font-weight: 400; color: #9a97a8; margin-left: 6px; letter-spacing: 0; }
+        .mood-up { display: flex; align-items: center; gap: 10px; padding: 10px 11px; border: 1px dashed #d8d5e0; border-radius: 10px; cursor: pointer; transition: all .15s; background: #fcfcfd; }
+        .mood-up:hover { border-color: #c9c1f5; background: #faf8ff; }
+        .mood-txt { font-size: 11.5px; color: var(--text-sec); line-height: 1.45; }
+        .mood-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; flex-shrink: 0; display: block; }
+        .mood-row { display: flex; align-items: center; gap: 10px; width: 100%; }
+        .mood-info { flex: 1; min-width: 0; }
+        .mood-name { font-size: 11.5px; color: var(--text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .mood-sub { font-size: 10.5px; color: var(--text-sec); margin-top: 3px; line-height: 1.4; }
+        .mood-x { width: 20px; height: 20px; border-radius: 50%; border: none; background: #eee; color: #666; font-size: 12px; line-height: 1; cursor: pointer; flex-shrink: 0; }
+        .mood-x:hover { background: #e2e2e8; }
                 @media (max-width: 720px) {
             .hdr { height: auto; padding: 14px 16px; flex-wrap: wrap; gap: 10px; }
             .hdr-title { font-size: 21px; }
@@ -260,24 +273,37 @@
             </div>
         </div>
         <div id="flowerBox">
-            <div class="sec-label">④ 花种</div>
+            <div class="sec-label">④ 花材 <span class="sec-opt">最多 4 种，第一个是主花</span></div>
             <div class="fl-chips">
                 <button class="fl-auto active" id="flowerAutoBtn" onclick="setFlowerAuto()">自动判断</button>
-                <button class="fl-chip" data-f="玫瑰" onclick="pickFlower('玫瑰')">玫瑰</button>
-                <button class="fl-chip" data-f="芍药" onclick="pickFlower('芍药')">芍药</button>
-                <button class="fl-chip" data-f="洋牡丹" onclick="pickFlower('洋牡丹')">洋牡丹</button>
-                <button class="fl-chip" data-f="洋桔梗" onclick="pickFlower('洋桔梗')">洋桔梗</button>
-                <button class="fl-chip" data-f="绣球" onclick="pickFlower('绣球')">绣球</button>
-                <button class="fl-chip" data-f="薰衣草" onclick="pickFlower('薰衣草')">薰衣草</button>
-                <button class="fl-chip" data-f="飞燕草" onclick="pickFlower('飞燕草')">飞燕草</button>
-                <button class="fl-chip" data-f="郁金香" onclick="pickFlower('郁金香')">郁金香</button>
-                <button class="fl-chip" data-f="蝴蝶兰" onclick="pickFlower('蝴蝶兰')">蝴蝶兰</button>
-                <button class="fl-chip" data-f="茉莉" onclick="pickFlower('茉莉')">茉莉</button>
-                <button class="fl-chip" data-f="尤加利" onclick="pickFlower('尤加利')">尤加利</button>
-                <button class="fl-chip" data-f="满天星" onclick="pickFlower('满天星')">满天星</button>
+                <button class="fl-chip" data-f="玫瑰" onclick="toggleFlower('玫瑰')">玫瑰</button>
+                <button class="fl-chip" data-f="芍药" onclick="toggleFlower('芍药')">芍药</button>
+                <button class="fl-chip" data-f="洋牡丹" onclick="toggleFlower('洋牡丹')">洋牡丹</button>
+                <button class="fl-chip" data-f="洋桔梗" onclick="toggleFlower('洋桔梗')">洋桔梗</button>
+                <button class="fl-chip" data-f="绣球" onclick="toggleFlower('绣球')">绣球</button>
+                <button class="fl-chip" data-f="洋甘菊" onclick="toggleFlower('洋甘菊')">洋甘菊</button>
+                <button class="fl-chip" data-f="薰衣草" onclick="toggleFlower('薰衣草')">薰衣草</button>
+                <button class="fl-chip" data-f="飞燕草" onclick="toggleFlower('飞燕草')">飞燕草</button>
+                <button class="fl-chip" data-f="郁金香" onclick="toggleFlower('郁金香')">郁金香</button>
+                <button class="fl-chip" data-f="蝴蝶兰" onclick="toggleFlower('蝴蝶兰')">蝴蝶兰</button>
+                <button class="fl-chip" data-f="茉莉" onclick="toggleFlower('茉莉')">茉莉</button>
+                <button class="fl-chip" data-f="尤加利" onclick="toggleFlower('尤加利')">尤加利</button>
+                <button class="fl-chip" data-f="满天星" onclick="toggleFlower('满天星')">满天星</button>
+                <button class="fl-chip" data-f="蕨叶" onclick="toggleFlower('蕨叶')">蕨叶</button>
+                <button class="fl-chip" data-f="紫珠" onclick="toggleFlower('紫珠')">紫珠</button>
             </div>
-            <input class="fl-input" id="flowerInput" placeholder="也可以直接输入，比如：苹果花、柑橘花、银柳" oninput="onFlowerInput()">
-            <div class="fl-state" id="flowerState">自动判断：出图前按产品香调决定</div>
+            <input class="fl-input" id="flowerInput" placeholder="也可直接输入，多种用顿号隔开：苹果花、雪柳、橄榄枝" onkeydown="if(event.key==='Enter'){event.preventDefault();onFlowerInput()}" onblur="onFlowerInput()">
+            <div class="fl-state" id="flowerState">自动判断：出图前按产品香调决定花材组合</div>
+        </div>
+        <div id="moodBox">
+            <div class="sec-label">⑤ 氛围参考图 <span class="sec-opt">可选</span></div>
+            <input type="file" id="moodFile" accept="image/*" style="display:none" onchange="moodSel(event)">
+            <div class="mood-up" id="moodUp" onclick="$('moodFile').click()">
+                <div id="moodInner">
+                    <div class="mood-txt">传一张你喜欢的图，只取它的配色，不照搬画面内容</div>
+                </div>
+            </div>
+            <div class="fl-state" id="moodState">不传就按产品颜色自己生成渐变底色</div>
         </div>
         <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成 4 张场景图</button>
     </div>
@@ -383,37 +409,37 @@ const PACKS = {
         large:  { ref: 0.30, text: '30%~34%' }
     },
     tone: '柔和、自然、有呼吸感的鲜花氛围，明暗关系统一，不追求强对比',
-    light: '柔和的自然侧光从画面左上方斜射进来，光线有方向感但不硬，花瓣边缘被照出半透明的质感，产品表面有一道柔和的高光。浅景深：只有产品所在的平面前后一小段是清晰的，花的前后都逐渐虚化。产品下方是自然柔和的浅投影，投影边缘松散。背景是均匀的柔和渐变，不要出现光斑、不要出现窗户影子、不要戏剧化打光。',
+    light: '柔和的自然侧光从画面左上方斜射进来，光线有方向感但不硬，花瓣边缘被照出半透明的质感，产品表面有一道柔和的高光。浅景深：只有产品所在的平面前后一小段是清晰的，花的前后都逐渐虚化。产品下方是自然柔和的浅投影，投影边缘松散。背景是柔和的自然渐变，可以有一点点极轻的散景，但不要夸张的光斑、不要窗户影子、不要戏剧化打光。',
     composition: '产品是画面的视觉焦点，视觉重量必须压过所有花材。判断标准是清晰度和位置，不是饱和度：花可以比产品更鲜艳，但必须比产品更虚、更靠边。花材可以高过产品、可以贴近产品、可以部分交叠，但产品正面标签区绝对不能被花、叶或枝条遮挡。画面必须有三层结构：前景、中景、背景——只有产品所在的中景是实焦，前景和背景的花材都必须虚化、低对比。花材的走向要形成一条从画面边缘指向产品的视线引导，不能平铺、不能对称等距摆放。产品上方留白不少于画面高度的五分之一。禁止花材比产品更清晰、禁止花团把产品围死、禁止花材压在产品正上方遮住瓶盖。',
-    propsRule: '花材只能作为背景层次存在。所有花必须是真实鲜花的质感：花瓣有厚度、有轻微的透光和细腻的纹理，能看清花瓣的层次与边缘；禁止假花感、禁止塑料花、禁止毛毡花、禁止过度饱和的插画感。叶片是自然的灰绿，叶脉清晰。禁止干花、禁止花束包装、禁止丝带与包装纸、禁止把花扎成一束。画面第一视觉焦点必须是产品本身。',
-    floorRule: '禁止大理石、水泥、砖墙、石膏、纯金属台面、裸露混凝土、深色抛光大理石；台面只允许洞石、粗岩、原木、苔藓、亚麻布、玻璃层板、镜面、纯色哑光这几类。',
-    colorRule: '主色：{ACCENT}。这是产品自身的颜色，必须准确、干净地出现在产品上，不能被花的环境色染偏。\n辅色：{FCOLOR}，由画面中的{FNAME}承载，是整套图的氛围来源，允许饱和。\n过渡色：米白、浅灰、暖白，只用于背景、台面与留白。\n色彩关系：主色与辅色必须是同一色系或相邻色系，禁止出现第三种无关彩色。花的颜色可以比产品鲜艳，但面积与清晰度不得压过产品所在的视觉中心。',
-    noColorRule: '色彩：产品通体无彩色。主色由花承担——{FCOLOR}的{FNAME}是画面唯一的彩色来源，其余只用白、浅灰、米白与自然木色。',
+    propsRule: '花材只能作为背景层次存在。所有花必须是真实鲜花的质感：花瓣有厚度、有轻微的透光和细腻的纹理，能看清花瓣的层次与边缘；禁止假花感、禁止塑料花、禁止毛毡花、禁止过度饱和的插画感。叶片是自然的灰绿，叶脉清晰。主花可以有一定清晰度但必须比产品虚一档；配材（{FILLS}）全部虚化，只作为色块、质感和层次存在，不能抢焦点。禁止干花、禁止花束包装、禁止丝带与包装纸、禁止把花扎成一束。画面第一视觉焦点必须是产品本身。',
+    floorRule: '禁止水泥、砖墙、石膏、裸露混凝土、深色抛光大理石、纯金属台面；台面允许洞石、粗岩、浅色大理石、原木、苔藓、亚麻布、玻璃层板、镜面、纯色哑光这几类。',
+    colorRule: '基调：{MOOD}\n产品色：{ACCENT}。这是产品自身的颜色，只出现在产品上，必须准确、干净，不能被环境色染偏。\n点缀色：主花是{FC}色的{F}，占画面 8%~12%，可以有清晰度，但必须比产品虚一档；配材 {FILLS} 各自保留自己的天然色，每种面积不超过 3%，必须虚化、低对比，只作为色块和质感存在。所有花材加起来不超过画面 18%。\n压暗：画面下方三分之一必须压暗，明度 30%~50%——可以是深色石材、深木、暗调台面，也可以是浅色台面配上明显的深色投影。没有这块压暗，整张图会飘。\n色彩关系：底色渐变与产品色同色系或相邻色系；花材的天然色（绿、白、紫）是允许且必要的，作用是让画面不单调，不是让画面变花。禁止大面积高饱和撞色。',
+    noColorRule: '基调：{MOOD}\n产品色：产品通体无彩色，只用白、透明、浅灰表现，不做任何染色。\n点缀色：主花是{FC}色的{F}，占画面 8%~12%；配材 {FILLS} 各自保留天然色，每种面积不超过 3%，必须虚化、低对比。\n压暗：画面下方三分之一必须有明度 30%~50% 的深色台面或明显阴影，压住整体。\n色彩关系：产品无彩色时，彩色全部来自花材和底色渐变，绿、白、粉、紫可以并存，但每种面积都要小，加起来不超过画面 18%。',
     sets: [
         { name: '长茎弧线环绕', tag: '弧线', fit: ['spike', 'branch'],
-          props: '产品立在浅米色洞石台面正中，台面只占画面下方三分之一，洞石表面有细密的天然孔洞、哑光不反光。画面左侧下方伸入三四支长茎{F}，花茎细长、呈自然弧线，从产品身后绕过延伸到画面右侧，形成一个不闭合的弧，末端的花头落在产品右后方，最高处比产品高出一个花头。花朵数量不多，三到五朵，彼此间隔明显，不簇拥。花是{FC}色，花瓣边缘有轻微的透光。花茎要能看清走向和轻微的弯曲，不能糊成一片。前景左下角露出一小段虚化的花茎与一片叶子，只作为层次。背景是米白到浅暖灰的柔和渐变，产品上方留白不少于画面高度的五分之一。花可以贴近产品，但产品正面标签区绝对不能被花或叶遮挡。' },
+          props: '产品立在浅米色洞石台面正中，台面只占画面下方三分之一，洞石表面有细密的天然孔洞、哑光不反光。画面左侧下方伸入三四支长茎{F}，花茎细长、呈自然弧线，从产品身后绕过延伸到画面右侧，形成一个不闭合的弧，末端的花头落在产品右后方，最高处比产品高出一个花头。花朵数量不多，三到五朵，彼此间隔明显，不簇拥。花是{FC}色，花瓣边缘有轻微的透光。花茎要能看清走向和轻微的弯曲，不能糊成一片。前景左下角露出一小段虚化的花茎与一片叶子，只作为层次。背景是{BG}。花可以贴近产品，但产品正面标签区绝对不能被花或叶遮挡。' },
         { name: '长茎两侧直立', tag: '直立', fit: ['spike', 'branch'],
-          props: '产品立在浅暖白的哑光台面上，台面只占画面下方三分之一，产品下方是一片柔和自然的浅投影。产品左右两侧各立两三支笔直的长茎{F}，花茎竖直向上，比产品高出一个到一个半花头的高度，两侧的花茎在画面上方微微向外张开，把产品夹在中间，但两侧数量不一样——左边三支、右边两支，避免呆板对称。花头朝向镜头略偏，能看到花瓣的层叠结构。花是{FC}色。产品正后方是柔和的米白背景，不出现实体墙面。前景右下角有一片虚化的叶子，只作为层次。背景上方大面积留白，不少于画面高度的四分之一。花茎细长，视觉重量远轻于产品，不得遮挡产品正面标签。' },
+          props: '产品立在浅暖白的哑光台面上，台面只占画面下方三分之一，产品下方是一片柔和自然的浅投影。产品左右两侧各立两三支笔直的长茎{F}，花茎竖直向上，比产品高出一个到一个半花头的高度，两侧的花茎在画面上方微微向外张开，把产品夹在中间，但两侧数量不一样——左边三支、右边两支，避免呆板对称。花头朝向镜头略偏，能看到花瓣的层叠结构。花是{FC}色。背景是{BG}，不出现实体墙面。前景右下角有一片虚化的叶子，只作为层次。背景上方大面积留白，不少于画面高度的四分之一。花茎细长，视觉重量远轻于产品，不得遮挡产品正面标签。' },
         { name: '枝条垂落', tag: '垂枝', fit: ['branch'],
-          props: '产品立在原木台面上，台面只占画面下方三分之一，木质有清晰的年轮和轻微的开裂纹理，表面哑光。画面上方有一根{F}的枝条从顶部横穿垂下，枝条上带着几簇花朵和叶片，花朵垂落在产品左上方，最低处接近产品瓶盖的高度但不碰到。枝条的走向是从右上向左下倾斜，形成一条斜线。花是{FC}色，叶片是偏灰的绿，不与花色抢。枝条和叶片部分虚化，只作为上方的层次。前景右下角露出一点虚化的苔藓。背景是柔和的浅米色，产品上方留白不少于画面高度的五分之一。花朵不得垂落到产品正面标签前方。' },
+          props: '产品立在原木台面上，台面只占画面下方三分之一，木质有清晰的年轮和轻微的开裂纹理，表面哑光。画面上方有一根{F}的枝条从顶部横穿垂下，枝条上带着几簇花朵和叶片，花朵垂落在产品左上方，最低处接近产品瓶盖的高度但不碰到。枝条的走向是从右上向左下倾斜，形成一条斜线。花是{FC}色，叶片是偏灰的绿，不与花色抢。枝条和叶片部分虚化，只作为上方的层次。前景右下角露出一点虚化的苔藓。背景是{BG}。花朵不得垂落到产品正面标签前方。' },
         { name: '花叶贴身', tag: '贴身', fit: ['cluster', 'branch'],
-          props: '产品立在浅米白的哑光台面上，台面只占画面下方三分之一。几朵{F}紧贴产品瓶身两侧，花头高度在产品瓶身中部，花瓣轻轻贴近瓶身但不遮挡标签，像是从产品身后长出来的。花朵数量少，左右各一到两朵，加两三片叶子。花是{FC}色，花瓣有细腻的层次，边缘透光。叶子是偏灰的绿，叶脉清晰。产品右后方有一朵完全虚化的花，只留下{FC}色的色块作为背景层次。背景是米白到浅暖灰的渐变。产品正面标签区必须完整可见，任何花瓣或叶子都不得压在上面。上方留白不少于画面高度的五分之一。' },
+          props: '产品立在浅米白的哑光台面上，台面只占画面下方三分之一。几朵{F}紧贴产品瓶身两侧，花头高度在产品瓶身中部，花瓣轻轻贴近瓶身但不遮挡标签，像是从产品身后长出来的。花朵数量少，左右各一到两朵，加两三片叶子。花是{FC}色，花瓣有细腻的层次，边缘透光。叶子是偏灰的绿，叶脉清晰。产品右后方有一朵完全虚化的花，只留下{FC}色的色块作为背景层次。背景是{BG}。产品正面标签区必须完整可见，任何花瓣或叶子都不得压在上面。上方留白不少于画面高度的五分之一。' },
         { name: '稀疏点缀', tag: '点缀', fit: ['accent', 'spike'],
-          props: '产品立在浅米色洞石台面上，台面只占画面下方三分之一。画面里只有极少的花：台面上散落三四片{FC}色的花瓣，产品右后方立一两支细茎的{F}，花头比产品低。花瓣是单独的一片片，能看清边缘的弧度和轻微的卷曲，不是一团。整体保持大面积留白，花只是点缀，不能形成花团。前景左下角有一片虚化的花瓣，只作为层次。背景是米白到浅暖灰的柔和渐变，产品上方留白不少于画面高度的三分之一。花和花瓣都不得遮挡产品正面标签。' },
+          props: '产品立在浅米色洞石台面上，台面只占画面下方三分之一。画面里只有极少的花：台面上散落三四片{FC}色的花瓣，产品右后方立一两支细茎的{F}，花头比产品低。花瓣是单独的一片片，能看清边缘的弧度和轻微的卷曲，不是一团。整体保持大面积留白，花只是点缀，不能形成花团。前景左下角有一片虚化的花瓣，只作为层次。背景是{BG}。花和花瓣都不得遮挡产品正面标签。' },
         { name: '地面生长', tag: '地面', fit: ['cluster', 'branch'],
-          props: '产品直接立在苔藓地面上，没有可见的台面，苔藓只占画面下方三分之一，苔藓是低矮细密的绒状，表面有深浅不一的绿。产品周围的苔藓里长出几支{F}，花茎从苔藓中直立或微微倾斜地长出，花头比产品低，围着产品的下半部分形成一个稀疏的半环。花是{FC}色，花瓣在苔藓的暗绿衬托下显得柔和。苔藓里还散落几片{FC}色的落瓣。产品右后方有一朵虚化的花，作为背景层次。背景是柔和的米白到浅暖灰，不是实景天空。产品上方留白不少于画面高度的五分之一。花茎不得遮挡产品正面标签。' },
+          props: '产品直接立在苔藓地面上，没有可见的台面，苔藓只占画面下方三分之一，苔藓是低矮细密的绒状，表面有深浅不一的绿。产品周围的苔藓里长出几支{F}，花茎从苔藓中直立或微微倾斜地长出，花头比产品低，围着产品的下半部分形成一个稀疏的半环。花是{FC}色，花瓣在苔藓的暗绿衬托下显得柔和。苔藓里还散落几片{FC}色的落瓣。产品右后方有一朵虚化的花，作为背景层次。背景是{BG}。产品上方留白不少于画面高度的五分之一。花茎不得遮挡产品正面标签。' },
         { name: '单支主花', tag: '单支', fit: ['cluster'],
-          props: '产品立在浅米白哑光台面上，台面只占画面下方三分之一。产品右侧立着一支单独的{F}，一支花、一段茎、一两片叶，花头高度在产品瓶身中部偏上，花朵饱满，是画面里唯一的一朵花。花是{FC}色，花瓣层层展开，能看清每一片花瓣的形态和边缘的细微褶皱，花心结构清晰。花茎细，叶片是偏灰的绿。产品左后方有一片虚化的花瓣，只作为层次。背景是米白到浅暖灰的柔和渐变，留白充足，产品上方留白不少于画面高度的四分之一。这一朵花是画面里唯一的第二个视觉焦点，但清晰度和对比度必须低于产品，不得遮挡产品正面标签。' },
+          props: '产品立在浅米白哑光台面上，台面只占画面下方三分之一。产品右侧立着一支单独的{F}，一支花、一段茎、一两片叶，花头高度在产品瓶身中部偏上，花朵饱满，是画面里唯一的一朵花。花是{FC}色，花瓣层层展开，能看清每一片花瓣的形态和边缘的细微褶皱，花心结构清晰。花茎细，叶片是偏灰的绿。产品左后方有一片虚化的花瓣，只作为层次。背景是{BG}。这一朵花是画面里唯一的第二个视觉焦点，但清晰度和对比度必须低于产品，不得遮挡产品正面标签。' },
         { name: '花枝斜穿', tag: '斜穿', fit: ['branch', 'spike'],
-          props: '产品立在浅暖白的哑光台面上，台面只占画面下方三分之一。一支长茎{F}从画面左下角斜穿到右上角，从产品身后经过，花头落在产品右上方，比产品高出半个花头。花茎是明确的对角线，把画面分成两半，产品落在这条线的中段。花是{FC}色，沿茎有三四朵花，从上到下依次变小。产品前方有一片虚化的叶子横过，只作为前景层次，不遮挡标签。背景是米白到浅暖灰的渐变。产品上方留白不少于画面高度的五分之一。花枝不得压在产品正面标签区。' },
+          props: '产品立在浅暖白的哑光台面上，台面只占画面下方三分之一。一支长茎{F}从画面左下角斜穿到右上角，从产品身后经过，花头落在产品右上方，比产品高出半个花头。花茎是明确的对角线，把画面分成两半，产品落在这条线的中段。花是{FC}色，沿茎有三四朵花，从上到下依次变小。产品前方有一片虚化的叶子横过，只作为前景层次，不遮挡标签。背景是{BG}。产品上方留白不少于画面高度的五分之一。花枝不得压在产品正面标签区。' },
         { name: '垂枝与高瓶', tag: '高瓶', fit: ['branch'],
-          props: '产品立在原木台面上，台面只占画面下方三分之一，木质哑光、有细微的木纹。产品左侧立着一个素色的高瓶，瓶身是哑光的米白，高度约是产品的两倍，瓶口插着一束{F}，花枝从瓶口散开并向下垂落，垂到产品左侧的高度，形成一个从高处落下的花瀑。花是{FC}色，花朵沿枝条分布，疏密有致。高瓶完全虚化，只留下轮廓和{FC}色的花影，视觉重量很轻。产品右后方是一片柔和的米白背景。产品上方留白不少于画面高度的五分之一。垂下的花枝不得伸到产品正面标签前方。' },
+          props: '产品立在原木台面上，台面只占画面下方三分之一，木质哑光、有细微的木纹。产品左侧立着一个素色的高瓶，瓶身是哑光的米白，高度约是产品的两倍，瓶口插着一束{F}，花枝从瓶口散开并向下垂落，垂到产品左侧的高度，形成一个从高处落下的花瀑。花是{FC}色，花朵沿枝条分布，疏密有致。高瓶完全虚化，只留下轮廓和{FC}色的花影，视觉重量很轻。背景是{BG}。产品上方留白不少于画面高度的五分之一。垂下的花枝不得伸到产品正面标签前方。' },
         { name: '岩石台面', tag: '岩石', fit: ['spike', 'branch'],
-          props: '产品立在一块浅灰褐色的天然粗岩上，岩石表面粗糙、有天然的裂纹和颗粒感，岩石只占画面下方三分之一，边缘不规则。岩石的缝隙里长出几支长茎{F}，花茎从石缝中向上伸出，比产品低或与产品齐平，花朵零散分布在产品两侧。花是{FC}色，在粗糙的岩石质感衬托下显得柔软。岩石表面有细小的苔藓和几片落瓣。产品右后方是一片柔和的米白到浅暖灰的渐变，不是实景天空。产品上方留白不少于画面高度的五分之一。花和岩石都不得遮挡产品正面标签。' },
+          props: '产品立在一块浅灰褐色的天然粗岩上，岩石表面粗糙、有天然的裂纹和颗粒感，岩石只占画面下方三分之一，边缘不规则。岩石的缝隙里长出几支长茎{F}，花茎从石缝中向上伸出，比产品低或与产品齐平，花朵零散分布在产品两侧。花是{FC}色，在粗糙的岩石质感衬托下显得柔软。岩石表面有细小的苔藓和几片落瓣。背景是{BG}，不是实景天空。产品上方留白不少于画面高度的五分之一。花和岩石都不得遮挡产品正面标签。' },
         { name: '玻璃层板', tag: '玻璃层板', fit: ['any'],
-          props: '产品立在一层透明玻璃层板上，层板只占画面下方三分之一，板面有清晰的厚度和一条明亮的边缘高光，透过玻璃能看见下方的模糊空间。产品右侧和左后方各有一组{F}，花朵贴着玻璃层板放置或从层板下方透出，花茎在玻璃下方被折射出轻微的错位。花是{FC}色，透过玻璃的花影更柔和。前景有一片虚化的叶子横在画面下沿，只作为层次。背景是米白到浅暖灰的渐变，产品上方留白不少于画面高度的五分之一。玻璃层板上的花不得遮挡产品正面标签。' },
+          props: '产品立在一层透明玻璃层板上，层板只占画面下方三分之一，板面有清晰的厚度和一条明亮的边缘高光，透过玻璃能看见下方的模糊空间。产品右侧和左后方各有一组{F}，花朵贴着玻璃层板放置或从层板下方透出，花茎在玻璃下方被折射出轻微的错位。花是{FC}色，透过玻璃的花影更柔和。前景有一片虚化的叶子横在画面下沿，只作为层次。背景是{BG}。玻璃层板上的花不得遮挡产品正面标签。' },
         { name: '镜面倒影', tag: '镜面', fit: ['cluster', 'any'],
-          props: '产品立在浅色镜面台面上，台面只占画面下方三分之一，镜面平整、能映出清晰的产品倒影，倒影垂直向下延伸并逐渐虚化。台面上散落几朵{F}，两三朵完整的花和四五片散落的花瓣，花放在产品两侧和前方，不越过产品正面。花是{FC}色，镜面里同时映出花的倒影，倒影比实物更虚。背景是米白到浅暖灰的柔和渐变，留白充足。产品上方留白不少于画面高度的五分之一。花和花瓣都不得遮挡产品正面标签，也不得压住产品倒影的中轴线。' }
+          props: '产品立在浅色镜面台面上，台面只占画面下方三分之一，镜面平整、能映出清晰的产品倒影，倒影垂直向下延伸并逐渐虚化。台面上散落几朵{F}，两三朵完整的花和四五片散落的花瓣，花放在产品两侧和前方，不越过产品正面。花是{FC}色，镜面里同时映出花的倒影，倒影比实物更虚。背景是{BG}。产品上方留白不少于画面高度的五分之一。花和花瓣都不得遮挡产品正面标签，也不得压住产品倒影的中轴线。' }
     ]
   }
 };
@@ -441,14 +467,28 @@ const FLOWER_LIB = {
     '柑橘花': { type: 'branch',  color: '米白',   anchor: '白色五瓣小花、花心黄色、花生于带叶的木质枝条、叶片深绿厚实' },
     '花瓣':   { type: 'accent',  color: '柔粉',   anchor: '单片或几片散落的花瓣、边缘有轻微卷曲和透光、不是完整花朵' },
     '花苞':   { type: 'accent',  color: '浅粉',   anchor: '未开放的花苞、花瓣紧紧包裹成卵形、花萼包住底部' },
-    '果荚':   { type: 'accent',  color: '灰褐',   anchor: '干燥的果荚、外壳有细密纹理、裂开处露出内部结构' }
+    '果荚':   { type: 'accent',  color: '灰褐',   anchor: '干燥的果荚、外壳有细密纹理、裂开处露出内部结构' },
+    '蕨叶':   { type: 'accent',  color: '深绿',   anchor: '羽状复叶、小叶细密对称排列、叶片薄而带自然卷曲、叶背颜色更浅' },
+    '橄榄枝': { type: 'branch',  color: '灰绿',   anchor: '细长叶片对生、叶面灰绿背面银白、枝条木质带细密纹路' },
+    '紫珠':   { type: 'accent',  color: '深紫',   anchor: '细枝上密布小圆果、果实深紫有光泽、成串下垂' },
+    '芒草':   { type: 'spike',   color: '米褐',   anchor: '细长的羽状花序、花穗蓬松柔软、向一侧自然倾斜' },
+    '常春藤': { type: 'accent',  color: '深绿',   anchor: '掌状裂叶、叶脉清晰、藤蔓细长柔软可缠绕' }
 };
 
 let productSrc = null, productCroppedSrc = null, busy = false;
 let sceneProduct = '', sceneTone = '', sceneAccent = '';
 let sceneFlowerName = '', sceneFlowerColor = '';
 let curPack = PACKS.flower, curRatio = '1:1', curSize = 'medium';
-let flowerManual = null;   // null = 自动（用 AI 推断的花种）；{name,color} = 用户指定
+
+/* 花材选择：数组，[0] 是主花，后面最多 3 个配材
+   空数组 = 自动模式（用 AI 按产品香调推断的主花+配材） */
+let flowerSel = [];
+let flowerAutoSel = [];    // AI 推断结果，自动模式下用它
+const MAX_FLOWERS = 4;
+
+/* 氛围参考图：只提取配色，不喂给生图模型 */
+let refMoodSrc = null;     // 用户上传的参考图 dataURL
+let moodTone = null;       // { c1:'浅粉', c2:'浅黄', dir:'暖', raw:'' }
 let lastRefImage = null, lastItems = [];
 
 /* 成本估算：火山方舟官方单价
@@ -612,47 +652,134 @@ function pickSize(v) {
     curSize = v;
     document.querySelectorAll('#sizeRow .ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.s === v));
 }
-/* ===== 花种：自动 / 预设 / 手输 三层 ===== */
-function pickFlower(name) {
-    const lib = FLOWER_LIB[name];
-    flowerManual = { name: name, color: lib ? lib.color : '' };
+/* ===== 花材：自动 / 预设多选 / 手输 三层，最多 4 种 ===== */
+/* 点击花材 chip：已选则取消，未选则加入（最多 4 个，第 1 个是主花） */
+function toggleFlower(name) {
+    if (!name) return;
+    const i = flowerSel.findIndex(x => x.name === name);
+    if (i >= 0) {
+        flowerSel.splice(i, 1);
+    } else {
+        if (flowerSel.length >= MAX_FLOWERS) {
+            flashFlowerTip('最多选 ' + MAX_FLOWERS + ' 种，先取消一个再选');
+            return;
+        }
+        const lib = FLOWER_LIB[name] || null;
+        flowerSel.push({ name: name, color: lib ? lib.color : '', anchor: lib ? lib.anchor : '', type: lib ? lib.type : 'any' });
+    }
     const inp = document.getElementById('flowerInput');
     if (inp) inp.value = '';
     renderFlowerState();
+}
+
+let _flTipTimer = null;
+function flashFlowerTip(msg) {
+    const st = document.getElementById('flowerState');
+    if (!st) return;
+    st.textContent = msg;
+    st.style.color = '#c2410c';
+    clearTimeout(_flTipTimer);
+    _flTipTimer = setTimeout(() => { st.style.color = ''; renderFlowerState(); }, 2200);
 }
 function setFlowerAuto() {
-    flowerManual = null;
+    flowerSel = [];
     const inp = document.getElementById('flowerInput');
     if (inp) inp.value = '';
     renderFlowerState();
 }
+
+/* ===== 氛围参考图：只提取配色，不喂给生图模型 ===== */
+function moodSel(e) {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = ev => {
+        refMoodSrc = ev.target.result;
+        moodTone = null;
+        renderMoodState();
+    };
+    r.readAsDataURL(f);
+}
+
+function clearMood() {
+    refMoodSrc = null;
+    moodTone = null;
+    const f = document.getElementById('moodFile');
+    if (f) f.value = '';
+    renderMoodState();
+}
+
+function renderMoodState() {
+    const inner = document.getElementById('moodInner');
+    const st = document.getElementById('moodState');
+    if (!inner) return;
+    if (refMoodSrc) {
+        const sub = moodTone
+            ? ('底色：' + moodTone.c1 + ' → ' + moodTone.c2 + (moodTone.dir ? ' · ' + moodTone.dir + '调' : ''))
+            : '出图前先提取这张图的配色';
+        inner.innerHTML = '<div class="mood-row">' +
+            '<img class="mood-thumb" src="' + refMoodSrc + '" alt="参考图">' +
+            '<div class="mood-info"><div class="mood-name">已选参考图</div><div class="mood-sub">' + sub + '</div></div>' +
+            '<button class="mood-x" onclick="event.stopPropagation();clearMood()" title="移除">×</button>' +
+            '</div>';
+        if (st) st.textContent = moodTone
+            ? ('整张图的底色：' + moodTone.c1 + ' → ' + moodTone.c2 + ' 渐变')
+            : '只取这张图的配色，不照搬它的画面内容';
+    } else {
+        inner.innerHTML = '<div class="mood-txt">传一张你喜欢的图，只取它的配色，不照搬画面内容</div>';
+        if (st) st.textContent = '不传就按产品颜色自己生成渐变底色';
+    }
+}
+/* 手输框：回车或输入后按顿号/逗号/空格拆分，一次可加多个花材 */
 function onFlowerInput() {
     const inp = document.getElementById('flowerInput');
     const v = (inp && inp.value || '').trim();
-    if (!v) { flowerManual = null; }
-    else {
-        const n = normFlowerName(v);
-        const lib = FLOWER_LIB[n];
-        flowerManual = { name: n, color: lib ? lib.color : '' };
+    if (!v) return;
+    const names = v.split(/[、,，\s\/]+/).map(x => normFlowerName(x)).filter(x => x && x.length >= 2);
+    let added = 0;
+    for (const n of names) {
+        if (!n) continue;
+        if (flowerSel.some(x => x.name === n)) continue;
+        if (flowerSel.length >= MAX_FLOWERS) break;
+        const lib = FLOWER_LIB[n] || null;
+        flowerSel.push({ name: n, color: lib ? lib.color : '', anchor: lib ? lib.anchor : '', type: lib ? lib.type : 'any' });
+        added++;
     }
+    if (added) inp.value = '';
     renderFlowerState();
 }
 function renderFlowerState() {
     if (!curPack || curPack.key !== 'flower') return;
-    const manual = !!(flowerManual && flowerManual.name);
-    const info = curFlowerInfo();
+    const list = curFlowerSet();
+    const manual = flowerSel.length > 0;
     const st = document.getElementById('flowerState');
     if (st) {
+        st.style.color = '';
         if (manual) {
-            st.textContent = '已指定：' + info.name + '（' + info.color + '）' +
-                (FLOWER_LIB[info.name] ? '' : ' · 不在预设库里，形态可能画不准，建议选预设');
-        } else if (sceneFlowerName) {
-            st.textContent = '自动判断：' + info.name + '（' + info.color + '）';
+            const main = list[0];
+            const fills = list.slice(1);
+            let txt = '主花：' + main.name + '（' + main.color + '）';
+            if (fills.length) txt += ' ｜ 配材：' + fills.map(x => x.name + '（' + x.color + '）').join('、');
+            const unknown = list.filter(x => !FLOWER_LIB[x.name]).map(x => x.name);
+            if (unknown.length) txt += ' · ' + unknown.join('、') + ' 不在预设库里，形态可能画不准';
+            st.textContent = txt;
+        } else if (flowerAutoSel.length) {
+            const main = flowerAutoSel[0];
+            const fills = flowerAutoSel.slice(1);
+            let txt = '自动判断：主花 ' + main.name + '（' + main.color + '）';
+            if (fills.length) txt += ' ｜ 配材 ' + fills.map(x => x.name).join('、');
+            st.textContent = txt;
         } else {
-            st.textContent = '自动判断：出图前按产品香调决定';
+            st.textContent = '自动判断：出图前按产品香调决定花材组合';
         }
     }
-    document.querySelectorAll('.fl-chip').forEach(b => b.classList.toggle('active', manual && b.dataset.f === flowerManual.name));
+    document.querySelectorAll('.fl-chip').forEach(b => {
+        const name = b.dataset.f;
+        const idx = flowerSel.findIndex(x => x.name === name);
+        b.classList.toggle('active', idx >= 0);
+        b.classList.toggle('is-main', idx === 0);
+        b.innerHTML = name + (idx >= 0 ? '<i class="fl-idx">' + (idx + 1) + '</i>' : '');
+    });
     const ab = document.getElementById('flowerAutoBtn');
     if (ab) ab.classList.toggle('active', !manual);
 }
@@ -733,15 +860,26 @@ function normFlowerName(raw) {
     return s.slice(0, 8);
 }
 
-/* 当前生效的花种：用户手动指定优先，否则用视觉分析推断出来的
+/* 当前生效的花材组合：用户手动指定优先，否则用视觉分析推断出来的
    返回 { name 花名, color 花主色, anchor 形态锚点, type 花型 } */
+/* 当前花材组合：手动优先，其次 AI 自动推断，最后兜底 */
+function curFlowerSet() {
+    if (flowerSel.length) return flowerSel.slice(0, MAX_FLOWERS);
+    if (flowerAutoSel.length) return flowerAutoSel.slice(0, MAX_FLOWERS);
+    const lib = FLOWER_LIB['洋甘菊'];
+    return [{ name: '洋甘菊', color: lib.color, anchor: lib.anchor, type: lib.type }];
+}
+
+/* 主花（构图按它的花型筛） */
 function curFlowerInfo() {
-    if (!curPack || curPack.key !== 'flower') return { name: '花', color: '柔粉', anchor: '', type: 'any' };
-    const man = (flowerManual && flowerManual.name) ? flowerManual : null;
-    const name = (man ? man.name : sceneFlowerName) || '洋甘菊';
-    const lib = FLOWER_LIB[name] || null;
-    const color = (man && man.color) || (lib && lib.color) || sceneFlowerColor || '柔粉';
-    return { name: name, color: color, anchor: lib ? lib.anchor : '', type: lib ? lib.type : 'any' };
+    const set = curFlowerSet();
+    const m = set[0];
+    return m || { name: '洋甘菊', color: '米白', anchor: '', type: 'any' };
+}
+
+/* 配材列表（不含主花），用于提示词里的点缀描述 */
+function curFlowerFills() {
+    return curFlowerSet().slice(1);
 }
 
 /* 把「产品外观 + 色调 + 风格道具 + 尺寸硬约束」拼成单张生图提示词
@@ -754,20 +892,45 @@ function buildScenePrompt(productDesc, toneDesc, accent, pack, set) {
     const accentFull = accent || '产品标签上的主色';
     const accentName = accentFull.replace(/#[0-9A-Fa-f]{3,8}/g, '').trim() || accentFull;
     const hasAccent = !!accentName && accentName !== '无彩色' && accentName !== '无色';
-    const fl = curFlowerInfo();
+    const flSet = curFlowerSet();
+    const fl = flSet[0] || { name: '洋甘菊', color: '米白', anchor: '', type: 'any' };
+    const fills = flSet.slice(1);
+    const fillsText = fills.length
+        ? fills.map(f => f.name + ' ' + f.color).join('、')
+        : '无额外配材';
+
+    /* 底色渐变：参考图优先，没有就从产品色派生 */
+    let moodText, bgText;
+    if (moodTone && moodTone.c1 && moodTone.c2) {
+        moodText = '整张图的底色是 ' + moodTone.c1 + ' 到 ' + moodTone.c2 + ' 的柔和渐变，从上往下铺满画面，占据画面一半以上的面积' +
+            (moodTone.dir ? '，整体偏' + moodTone.dir + '调' : '') + '。这个渐变是整套图的氛围来源，所有场景元素都要服从这个底色。';
+        bgText = moodTone.c1 + '到' + moodTone.c2 + '的柔和渐变';
+    } else {
+        const base = hasAccent ? accentName : '米白';
+        moodText = '整张图的底色是从 ' + base + ' 的极浅调过渡到暖白的柔和渐变，从上往下铺满画面，占据画面一半以上的面积，与产品色同色系。';
+        bgText = base + '的极浅调到暖白的柔和渐变';
+    }
+
     const propsText = set.props
         .replace(/\{C\}/g, hasAccent ? accentName : '透明无色')
         .replace(/\{FC\}/g, fl.color)
-        .replace(/\{F\}/g, fl.name);
+        .replace(/\{F\}/g, fl.name)
+        .replace(/\{BG\}/g, bgText);
     const anchorText = (isFlower && fl.anchor)
-        ? '画面中的花是' + fl.name + '，必须严格按这些形态特征绘制：' + fl.anchor + '。不能画成其他花种。\n'
+        ? '画面中的花：主花是' + fl.name + '，必须严格按这些形态特征绘制：' + fl.anchor + '，不能画成其他花种。' +
+          (fills.length
+            ? '配材是' + fills.map(f => f.name + (f.anchor ? '（' + f.anchor + '）' : '')).join('、') + '，同样必须按各自的形态特征绘制，不能互相混淆。' +
+              '配材落位：' + fills.map(f => f.name).join('、') + ' 只出现在主花附近和画面边缘，作为主花的陪衬，每种两三枝，不能单独成组、不能占据画面中心、不能比主花清晰。'
+            : '') + '\n'
         : '';
     const colorRule = (hasAccent ? (P.colorRule || '') : (P.noColorRule || ''))
+        .replace(/\{MOOD\}/g, moodText)
         .replace(/\{ACCENT\}/g, accentFull)
-        .replace(/\{FCOLOR\}/g, fl.color)
-        .replace(/\{FNAME\}/g, fl.name);
+        .replace(/\{FC\}/g, fl.color)
+        .replace(/\{F\}/g, fl.name)
+        .replace(/\{FILLS\}/g, fillsText);
     const envBase = isFlower
-        ? '环境底色：米白、浅灰、暖白只作环境底色、台面与留白，不能占据画面全部色彩。\n'
+        ? ''
         : '环境底色：白与浅灰只作环境底色和留白，不能占据画面全部色彩。\n';
     const banRule = P.banRule || (isFlower
         ? '禁止假花感、禁止塑料花、禁止毛毡花、禁止干花、禁止花束包装与丝带。禁止花团把产品围死。'
@@ -780,9 +943,9 @@ function buildScenePrompt(productDesc, toneDesc, accent, pack, set) {
         '【构图】' + (P.composition || '产品是画面唯一的视觉焦点，视觉重量必须明显压过所有道具。产品正面标签区绝对不能被任何物体遮挡。画面必须有三层结构：前景、中景、背景——只有产品所在的中景是实焦，前景和背景都必须虚化、低对比。产品上方留白不少于画面高度的五分之一。禁止道具平铺排列、禁止等距对称摆放、禁止道具比产品更清晰。') + '\n\n' +
         '【场景道具】' + propsText + '\n' +
         anchorText +
-        (P.propsRule || '道具只能作为背景层次存在。画面第一视觉焦点必须是产品本身。') + '\n\n' +
+        String(P.propsRule || '道具只能作为背景层次存在。画面第一视觉焦点必须是产品本身。').replace(/\{FILLS\}/g, fillsText) + '\n\n' +
         '【光影】' + P.light + '\n\n' +
-        '【色调】' + toneDesc + '\n' +
+        '【色调】' + String(toneDesc || '').replace(/[。.]\s*$/, '') + '。\n' +
         colorRule + '\n' +
         envBase +
         '风格基调：' + String(P.tone || '').replace(/[。.]\s*$/, '') + '。必须与同套其他图片保持完全相同的色调、光向、背景色和明暗关系。\n\n' +
@@ -801,16 +964,14 @@ async function analyzeImages(pack) {
         '不写具体尺寸数字，不写场景、道具、背景。\n' +
         '这段必须以"以参考图中的产品为唯一主体，严格保持其外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与文字完全不变"开头。\n\n' +
         '【任务二：色调方案】\n' +
-        '第一原则：整套图的彩色只能来自产品本身，不参考任何外部图片。\n' +
-        '- 观察产品白底图，找出产品身上最鲜明的那一个彩色。这是【产品主色】，也是整套图唯一的彩色来源。\n' +
+        '第一原则：产品的颜色必须准确、干净，不能被环境色染偏。\n' +
+        '- 观察产品白底图，找出产品身上最鲜明的那一个彩色。这是【产品主色】。\n' +
         '  · 产品瓶身或液体本身有明显颜色 → 取那个颜色。\n' +
         '  · 产品是透明、白色或浅色 → 取 logo、标签、瓶盖或包装上最鲜明的那一小块点缀色。哪怕只是一小块红色图案，也是产品主色。\n' +
-        '  · 产品通体确实没有任何彩色 → 场景用纯中性色：白、浅灰、透明，不引入任何彩色。\n' +
+        '  · 产品通体确实没有任何彩色 → 输出"无彩色"。\n' +
         '必须写清：\n' +
         '  产品主色——产品身上最鲜明的那个彩色，精确色名；产品通体无彩色时写"无彩色"。\n' +
-        '  场景主色——必须与产品主色完全一致，精确色名。不允许把白、灰、米白写成场景主色。\n' +
-        '  环境色——白、浅灰、米白，明确说明只用于背景和留白。\n' +
-        '  明暗倾向（明亮/中性/偏暗）、饱和度倾向（高/中/低）、整体氛围（如清爽通透、温润高级、科技冷感）。\n' +
+        '  明暗倾向（明亮/中性/偏暗）、饱和度倾向（高/中/低）、整体氛围（如清爽通透、温润高级、柔和自然）。\n' +
         '  明暗倾向必须按产品自身判断：产品是白色、透明、浅色、带水光感 → 明亮通透；产品是中等明度或哑光 → 中性；产品是黑色、深棕、金属重色 → 偏暗。饱和度跟随产品主色的真实浓度，不要凭空拉高或压低。\n' +
         '全部用具体色名，禁止"深色""浅色""高级色"这类模糊词。\n\n' +
         '【任务三：强调色】\n' +
@@ -820,31 +981,44 @@ async function analyzeImages(pack) {
         '格式为"色名 色值"，例如"珊瑚红 #E8654F"。\n' +
         '这个颜色会直接被写进画面道具的描述里，所以必须是能一眼看出来的颜色，不能是白、灰、米白这类环境色。\n\n' +
         (wantFlower ?
-        '【任务四：花种推断】\n' +
-        '根据产品类型、产品名称与标签文字，推断最适合搭配这一款产品的一种鲜花。\n' +
-        '- 产品名或标签上直接出现花名 → 直接用那个花。\n' +
-        '- 是香氛、精油、香水、香薰类 → 按香调判断：玫瑰调→玫瑰，柑橘调→柑橘花，薰衣草→薰衣草，茉莉→茉莉，白茶或清透调→洋甘菊，花香混合→芍药或洋桔梗。\n' +
-        '- 是护肤、精华、面霜类 → 用柔和低攻击性的花：洋甘菊、洋牡丹、茉莉、白色小花。\n' +
-        '- 完全判断不出 → 输出"洋甘菊"。\n' +
-        '只输出一个花名，不要输出两个选项、不要写"或"、不要输出解释。\n' +
-        '同时给出这个花的主色（一个精确色名，例如"柔粉""浅紫""米白""灰绿"），以及你对这个判断的置信度（高/中/低）。\n\n' : '') +
+        '【任务四：花材组合】\n' +
+        '推断一套适合这一款产品的花材：1 个主花 + 2 到 3 个配材。主花负责主体形态，配材负责补绿、补白、补质感。\n' +
+        '- 主花按产品类型与香调判断：玫瑰调→玫瑰，柑橘调→柑橘花，薰衣草→薰衣草，茉莉→茉莉，白茶或清透调→洋甘菊，花香混合→芍药或洋桔梗。护肤精华面霜类→洋甘菊、洋牡丹、茉莉这类柔和低攻击性的花。\n' +
+        '- 产品名或标签上直接出现花名 → 主花用那个花。\n' +
+        '- 配材从这些里选，按产品调性搭配：尤加利（灰绿，最百搭）、满天星（米白碎花）、洋甘菊（米白小花）、蕨叶（深绿质感）、紫珠（深紫小果，适合紫调或粉调）、银柳（银灰白）、橄榄枝（灰绿）、雪柳（米白细枝）。\n' +
+        '- 完全判断不出 → 主花用洋甘菊，配材用尤加利、满天星。\n' +
+        '主花只给一个，不要写"或"、不要给两个选项。配材给 2 到 3 个，互不重复。\n' +
+        '同时给出主花的主色（精确色名，例如"柔粉""浅紫""米白""灰绿"）。\n\n' +
+        '【任务五：参考图配色】\n' +
+        '如果给了第二张图（氛围参考图），只从它提取配色，不要描述它的内容、物体、构图、光线位置。\n' +
+        '提取两件事：起色（画面上半部的底色）、止色（画面下半部的底色），以及整体是暖调还是冷调。\n' +
+        '用精确色名，例如"浅雾蓝""浅杏黄""藕粉""米白"。禁止写"深色""浅色"。\n' +
+        '如果没有给第二张图，这一整段只输出"无"。\n\n' : '') +
         '【输出格式，严格照此输出】\n' +
         '产品外观：\n（这里写产品外观描述）\n\n' +
         '色调方案：\n（这里写色调方案）\n\n' +
         '强调色：\n（这里只写一个色名和一个色值）' +
-        (wantFlower ? '\n\n花种：\n（这里只写"花名｜花主色｜置信度"三段，用竖线分隔）' : '');
+        (wantFlower ? '\n\n花材组合：\n（这里只写"主花｜主花色｜配材1｜配材2｜配材3"，用竖线分隔，配材可以少给）\n\n参考图配色：\n（这里只写"起色｜止色｜暖调或冷调"，没有第二张图就只写"无"）' : '');
 
-    const userPrompt = '请分析图片，严格按格式输出"产品外观"和"色调方案"两段。\n\n' +
-        '本次只给产品白底图。整套图的彩色只能来自产品本身，明暗倾向也按产品自身判断。\n\n' +
+    const hasMood = !!refMoodSrc;
+    const userPrompt = '请分析图片，严格按格式输出各段。\n\n' +
+        (hasMood
+            ? '图 1 是产品白底图。图 2 是氛围参考图，只从图 2 提取配色，绝对不要把图 2 里的物体、场景、构图、品牌画进描述里。\n\n'
+            : '本次只给产品白底图。\n\n') +
         '要求：\n' +
         '1. 产品外观段必须以"以参考图中的产品为唯一主体，严格保持其外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与文字完全不变"开头\n' +
         '2. 颜色必须用精确色名，例如"冷调银白""雾面米白""香槟金""灰蓝""浅青瓷白"，不要写"深色""浅色"\n' +
         '3. 标签上的文字要如实写出，这是产品识别度的关键\n' +
         '4. 强调色只能来自产品本身，格式"色名 色值"，禁止白、灰、米白这类环境色\n' +
-        '5. 只输出这三段，不要输出解释、不要输出道具和场景描述' +
-        (wantFlower ? '\n6. 花种段只写一个花名，不要写"或"、不要给两个选项、不要解释，格式是"花名｜花主色｜置信度"' : '');
+        '5. 不要输出解释、不要输出道具和场景描述' +
+        (wantFlower ? '\n6. 花材组合段：主花只给一个，配材给 2 到 3 个，用竖线分隔，不要写"或"、不要解释' : '') +
+        (wantFlower ? (hasMood ? '\n7. 参考图配色段：只写起色、止色、冷暖，用竖线分隔，不要描述图 2 的内容' : '\n7. 参考图配色段只写"无"') : '');
 
     const parts = [{ type: 'image_url', image_url: { url: product } }];
+    if (refMoodSrc) {
+        const moodImg = await resizeForAPI(refMoodSrc, 1024);
+        parts.push({ type: 'image_url', image_url: { url: moodImg } });
+    }
     parts.push({ type: 'text', text: userPrompt });
 
     const reqBody = {
@@ -876,22 +1050,60 @@ async function analyzeImages(pack) {
     const content = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
     const pm = content.match(/产品外观[：:]\s*([\s\S]+?)(?=\n\s*色调方案|$)/);
     const tm = content.match(/色调方案[：:]\s*([\s\S]+?)(?=\n\s*强调色|$)/);
-    const am = content.match(/强调色[：:]\s*([\s\S]+?)(?=\n\s*花种[：:]|$)/);
-    const fm = content.match(/花种[：:]\s*([\s\S]+)$/);
+    const am = content.match(/强调色[：:]\s*([\s\S]+?)(?=\n\s*花材组合[：:]|\n\s*花种[：:]|\n\s*参考图配色[：:]|$)/);
+    const fm = content.match(/花材组合[：:]\s*([\s\S]+?)(?=\n\s*参考图配色[：:]|$)/) ||
+               content.match(/花种[：:]\s*([\s\S]+?)(?=\n\s*参考图配色[：:]|$)/);
+    const mm = content.match(/参考图配色[：:]\s*([\s\S]+)$/);
     const uu = data.usage || {};
     addCost(0, (uu.prompt_tokens || 0) * COST_TXT_IN + (uu.completion_tokens || 0) * COST_TXT_OUT);
     sceneProduct = pm ? pm[1].trim() : '';
     sceneTone = tm ? tm[1].trim() : '';
     sceneAccent = am ? am[1].trim().split('\n')[0].trim() : '';
+
+    // 花材组合：主花 + 配材（最多 4 个）
     sceneFlowerName = ''; sceneFlowerColor = '';
+    flowerAutoSel = [];
     if (wantFlower && fm) {
-        const seg = fm[1].trim().split(/[｜|]/).map(s => s.trim()).filter(Boolean);
+        const seg = fm[1].trim().split(/[｜|]/).map(x => x.trim()).filter(Boolean);
         sceneFlowerName = normFlowerName(seg[0] || '');
         sceneFlowerColor = (seg[1] || '').replace(/#[0-9A-Fa-f]{3,8}/g, '').replace(/[（(].*?[）)]/g, '').trim();
+        const push = (nm, col) => {
+            if (!nm) return;
+            if (flowerAutoSel.some(x => x.name === nm)) return;
+            if (flowerAutoSel.length >= MAX_FLOWERS) return;
+            const lib = FLOWER_LIB[nm] || null;
+            flowerAutoSel.push({ name: nm, color: (lib && lib.color) || col || '', anchor: lib ? lib.anchor : '', type: lib ? lib.type : 'any' });
+        };
+        push(sceneFlowerName, sceneFlowerColor);
+        for (let i = 2; i < seg.length; i++) {
+            const nm = normFlowerName(seg[i]);
+            if (!nm || /置信度|高|中|低/.test(nm)) continue;
+            push(nm, '');
+        }
     }
+
+    // 参考图配色：起色｜止色｜冷暖
+    moodTone = null;
+    if (refMoodSrc && mm) {
+        const raw = mm[1].trim();
+        if (raw && !/^无$/.test(raw)) {
+            const seg = raw.split(/[｜|]/).map(x => x.trim()).filter(Boolean);
+            if (seg.length >= 2) {
+                moodTone = {
+                    c1: seg[0].replace(/#[0-9A-Fa-f]{3,8}/g, '').trim(),
+                    c2: seg[1].replace(/#[0-9A-Fa-f]{3,8}/g, '').trim(),
+                    dir: (seg[2] || '').replace(/调/g, '').trim(),
+                    raw: raw
+                };
+            }
+        }
+    }
+
     if (!sceneProduct) sceneProduct = content.trim();
-    if (!sceneTone) sceneTone = '保持产品自身固有色，低饱和，背景干净通透';
+    if (!sceneTone) sceneTone = '保持产品自身固有色，明暗自然，背景柔和通透';
     if (!sceneAccent) sceneAccent = '产品标签上的主色';
+    renderFlowerState();
+    renderMoodState();
     return { product: sceneProduct, tone: sceneTone, accent: sceneAccent, flower: sceneFlowerName };
 }
 
@@ -1109,7 +1321,7 @@ async function generate() {
         showView('l');
         resetRunCost();
         setStep(1);
-        $('ldgTxt').textContent = (curPack.key === 'flower') ? '正在分析产品、色调与花种...' : '正在分析产品与色调...';
+        $('ldgTxt').textContent = (curPack.key === 'flower') ? '正在分析产品、色调与花材...' : '正在分析产品与色调...';
         $('ldgSub').textContent = '大约需要 5-10 秒';
         await analyzeImages(curPack);
         lastRefImage = await prepareRefImage(productCroppedSrc);
@@ -1167,13 +1379,15 @@ function resetAll() {
     clearPd();
     sceneProduct = ''; sceneTone = ''; sceneAccent = '';
     sceneFlowerName = ''; sceneFlowerColor = '';
+    flowerSel = []; flowerAutoSel = [];
+    clearMood();
     lastRefImage = null; lastItems = [];
     showView('e');
     renderFlowerState();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    showView('e'); pickRatio('9:16'); pickSize('medium'); renderFlowerState(); loadCostStat(); updateGenBtn(); renderQuota();
+    showView('e'); pickRatio('9:16'); pickSize('medium'); renderFlowerState(); renderMoodState(); loadCostStat(); updateGenBtn(); renderQuota();
 });
 
 
