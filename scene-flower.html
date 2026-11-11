@@ -1035,8 +1035,38 @@ function normFlowerName(raw) {
 /* 当前生效的花材组合：用户手动指定优先，否则用视觉分析推断出来的
    返回 { name 花名, color 花主色, anchor 形态锚点, type 花型 } */
 /* 当前花材组合：手动优先，其次 AI 自动推断，最后兜底 */
+/* 参考图是成品，花材以它为准：模型按香调猜的那套只用来补位。
+   参考图里只有一种花时，配材最多补一个绿材，不再加第二种花。 */
+function mergeRefFlowers() {
+    if (!moodTone || !moodTone.flowers || !moodTone.flowers.length) return;
+    const fromRef = [];
+    moodTone.flowers.forEach(nm0 => {
+        const nm = normFlowerName(nm0);
+        if (!nm || fromRef.some(x => x.name === nm)) return;
+        const lib = FLOWER_LIB[nm];
+        fromRef.push({ name: nm, color: lib ? lib.color : '', anchor: lib ? lib.anchor : '', type: lib ? lib.type : 'any' });
+    });
+    if (!fromRef.length) return;
+    if (fromRef.length === 1) {
+        const green = flowerAutoSel.find(x => /尤加利|蕨叶|橄榄枝|常春藤|银柳|雪柳/.test(x.name));
+        flowerAutoSel = green ? [fromRef[0], green] : [fromRef[0]];
+    } else {
+        flowerAutoSel = fromRef
+            .concat(flowerAutoSel.filter(x => !fromRef.some(y => y.name === x.name)))
+            .slice(0, MAX_FLOWERS);
+    }
+}
+
 function curFlowerSet() {
-    if (flowerSel.length) return flowerSel.slice(0, MAX_FLOWERS);
+    if (flowerSel.length) {
+        const manual = flowerSel.slice(0, MAX_FLOWERS);
+        /* 手动选花是「局部替换」，不是「整套重来」：用户只点了主花时，
+           配材继续沿用参考图给的那几样，不然改一朵花会把整个花材组合清空。 */
+        if (manual.length === 1 && flowerAutoSel.length > 1) {
+            return manual.concat(flowerAutoSel.slice(1)).slice(0, MAX_FLOWERS);
+        }
+        return manual;
+    }
     if (flowerAutoSel.length) return flowerAutoSel.slice(0, MAX_FLOWERS);
     const lib = FLOWER_LIB['洋甘菊'];
     return [{ name: '洋甘菊', color: lib.color, anchor: lib.anchor, type: lib.type }];
@@ -1152,6 +1182,10 @@ function buildScenePrompt(productDesc, toneDesc, accent, pack, set) {
                 tail += '配材是' + fills.map(f => f.name + (f.anchor ? '（' + anchorNoSize(f.anchor) + '）' : '')).join('、') + '，同样必须按各自的形态特征绘制，不能互相混淆。';
             }
         }
+        if (moodTone && moodTone.props && moodTone.props.length) {
+            tail += '\n\n# 道具\n参考图里出现过的非花道具是：' + moodTone.props.join('、')
+                + '。这套构图需要道具时优先用这些，不需要就不要硬加，绝不出现这份清单以外的道具。';
+        }
         const refNote = (typeof refMoodSrc !== 'undefined' && refMoodSrc)
             ? '参考图是氛围参考：只取它的色调、光线方向和画面气质，不要照搬它里面的物体、场景和构图。\n\n'
             : '';
@@ -1235,6 +1269,7 @@ async function analyzeImages(pack) {
         (wantFlower ?
         '【任务四：花材组合】\n' +
         '推断一套适合这一款产品的花材：1 个主花 + 1 到 2 个配材。主花负责主体形态，配材只补一点绿和质感。花材种类越少画面越干净，宁可少给也不要凑数。\n' +
+        '只能从这个列表里选，绝对不许用列表以外的花材：玫瑰、芍药、洋牡丹、洋桔梗、绣球、洋甘菊、薰衣草、飞燕草、鼠尾草、满天星、郁金香、蝴蝶兰、苹果花、茉莉、银柳、雪柳、尤加利、小苍兰、柑橘花、花瓣、花苞、果荚、蕨叶、橄榄枝、紫珠、芒草、常春藤。\n' +
         '- 最高优先级：如果给了第二张图（氛围参考图），先看参考图里画的是什么花，主花必须用参考图里最显眼的那一种。用户找这张参考图，本来就是冲着这个花和这个颜色来的。\n' +
         '- 参考图里只有一种花时，配材只给一个绿材（尤加利、蕨叶、橄榄枝这类），不要再加第二种花。参考图里有两三种花时，配材只从参考图里出现过的花里挑，绝不引入参考图里没有的花种。\n' +
         '- 参考图里有花但认不出具体品种时，按花瓣形态找最接近的：花瓣层叠成杯状或球状→玫瑰；花瓣蓬松多层堆叠→芍药或洋牡丹；细碎小花成簇→洋甘菊或满天星；细长花穗→薰衣草或小苍兰。\n' +
@@ -1244,16 +1279,18 @@ async function analyzeImages(pack) {
         '- 完全判断不出 → 主花用洋甘菊，配材用尤加利、满天星。\n' +
         '主花只给一个，不要写"或"、不要给两个选项。配材给 2 到 3 个，互不重复。\n' +
         '同时给出主花的主色（精确色名，例如"柔粉""浅紫""米白""灰绿"）。\n\n' +
-        '【任务五：参考图配色】\n' +
-        '如果给了第二张图（氛围参考图），只从它提取配色，不要描述它的构图、物体位置和光线方向。\n' +
-        '提取两件事：起色（画面上半部的底色）、止色（画面下半部的底色），以及整体是暖调还是冷调。\n' +
+        '【任务五：参考图解析】\n' +
+        '如果给了第二张图（氛围参考图），从它提取三件事，不要描述它的构图、物体位置和光线方向。\n' +
+        '一、配色：起色（画面上半部的底色）、止色（画面下半部的底色），以及整体是暖调还是冷调。\n' +
+        '二、花材：参考图里出现了哪些花，按显眼程度从高到低排，只写花名，认不出就写最接近的花种。\n' +
+        '三、道具：参考图里出现了哪些不是花的东西，比如丝带、镜面、亚克力、玻璃、蜡烛、书本、水波、光斑。只写名词，没有就写"无"。\n' +
         '用精确色名，例如"浅雾蓝""浅杏黄""藕粉""米白"。禁止写"深色""浅色""暖色"这类看不出色相的词——色名必须一眼能看出是白、粉、绿、蓝、紫、黄还是杏，因为后面要用它决定花材选哪个品种的颜色。\n' +
         '如果没有给第二张图，这一整段只输出"无"。\n\n' : '') +
         '【输出格式，严格照此输出】\n' +
         '产品外观：\n（这里写产品外观描述）\n\n' +
         '色调方案：\n（这里写色调方案）\n\n' +
         '强调色：\n（这里只写一个色名和一个色值）' +
-        (wantFlower ? '\n\n花材组合：\n（这里只写"主花｜主花色｜配材1｜配材2｜配材3"，用竖线分隔，配材可以少给）\n\n参考图配色：\n（这里只写"起色｜止色｜暖调或冷调"，没有第二张图就只写"无"）' : '');
+        (wantFlower ? '\n\n花材组合：\n（这里只写"主花｜主花色｜配材1｜配材2｜配材3"，用竖线分隔，配材可以少给）\n\n参考图解析：\n（这里只写"起色｜止色｜暖调或冷调｜花1、花2｜道具1、道具2"，某一段没有就写"无"，没有第二张图整段只写"无"）' : '');
 
     const hasMood = !!refMoodSrc;
     const userPrompt = '请分析图片，严格按格式输出各段。\n\n' +
@@ -1308,7 +1345,7 @@ async function analyzeImages(pack) {
     const am = content.match(/强调色[：:]\s*([\s\S]+?)(?=\n\s*花材组合[：:]|\n\s*花种[：:]|\n\s*参考图配色[：:]|$)/);
     const fm = content.match(/花材组合[：:]\s*([\s\S]+?)(?=\n\s*参考图配色[：:]|$)/) ||
                content.match(/花种[：:]\s*([\s\S]+?)(?=\n\s*参考图配色[：:]|$)/);
-    const mm = content.match(/参考图配色[：:]\s*([\s\S]+)$/);
+    const mm = content.match(/参考图(?:解析|配色)[：:]\s*([\s\S]+)$/);
     const uu = data.usage || {};
     addCost(0, (uu.prompt_tokens || 0) * COST_TXT_IN + (uu.completion_tokens || 0) * COST_TXT_OUT);
     sceneProduct = pm ? pm[1].trim() : '';
@@ -1350,9 +1387,16 @@ async function analyzeImages(pack) {
                     dir: (seg[2] || '').replace(/调/g, '').trim(),
                     raw: raw
                 };
+                /* 参考图里的花和道具：花用来补花材判断，道具用来限制画面里出现什么 */
+                const refFlowers = (seg[3] || '').split(/[、,，]/).map(x => x.trim()).filter(x => x && !/^无$/.test(x));
+                const refProps = (seg[4] || '').split(/[、,，]/).map(x => x.trim()).filter(x => x && !/^无$/.test(x));
+                moodTone.flowers = refFlowers;
+                moodTone.props = refProps;
             }
         }
     }
+
+    if (wantFlower) mergeRefFlowers();
 
     if (!sceneProduct) sceneProduct = content.trim();
     if (!sceneTone) sceneTone = '保持产品自身固有色，明暗自然，背景柔和通透';
