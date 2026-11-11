@@ -460,7 +460,10 @@ function famOf(s) {
 
 function toneFamily(tone) {
     if (!tone) return '';
-    return famOf(tone.c1) || famOf(tone.c2) || '';
+    /* 花材跟的是画面里「暖色那一侧」。c1 是大面积背景色（雾蓝、灰、白这类冷底），
+       拿 c1 去选花会一路选成白花——参考图明明是蓝底配杏粉花，出来一片白，跟氛围对不上。
+       所以先看 c2，c2 空或者认不出色系时才退回 c1。 */
+    return famOf(tone.c2) || famOf(tone.c1) || '';
 }
 
 /* 手输花材时带的颜色词（白玫瑰、香槟玫瑰），优先锁定 */
@@ -491,9 +494,9 @@ function pickFlowerColor(name, tone, lock) {
    AI 画花会混淆品种（玫瑰→月季、芍药→牡丹），所以提示词里必须写形态特征，不能只写花名 */
 const FLOWER_LIB = {
     '玫瑰':   { type: 'cluster', color: '柔粉',   anchor: '花瓣层层紧密包裹、花心紧实不外露、花型杯状、外层花瓣微微外翻、花朵是中小型的，不追求大花头', colors: [{ name: '白', fam: 'white' }, { name: '香槟', fam: 'cream' }, { name: '浅粉', fam: 'pink' }, { name: '深粉', fam: 'rose' }, { name: '玫红', fam: 'rose' }, { name: '深红', fam: 'red' }] },
-    '芍药':   { type: 'cluster', color: '浅粉',   anchor: '花瓣松散外翻、花心可见黄色花蕊、花型饱满球状、花瓣边缘有褶皱', colors: [{ name: '白', fam: 'white' }, { name: '浅粉', fam: 'pink' }, { name: '玫红', fam: 'rose' }, { name: '深红', fam: 'red' }] },
+    '芍药':   { type: 'cluster', color: '浅粉',   anchor: '花瓣柔软宽大、层层交错外翻，边缘呈不规则波浪褶皱，花心被内层花瓣半掩、不露出大团花蕊', colors: [{ name: '白', fam: 'white' }, { name: '浅粉', fam: 'pink' }, { name: '玫红', fam: 'rose' }, { name: '深红', fam: 'red' }] },
     '洋牡丹': { type: 'cluster', color: '奶白',   anchor: '花瓣圆润层层叠压、花型紧凑小巧、花茎中空细直、叶片羽状细裂', colors: [{ name: '奶白', fam: 'white' }, { name: '奶油', fam: 'cream' }, { name: '浅粉', fam: 'pink' }, { name: '橘', fam: 'orange' }, { name: '深红', fam: 'red' }] },
-    '洋桔梗': { type: 'cluster', color: '藕粉',   anchor: '花瓣薄而带轻微褶皱、花瓣呈螺旋状向外展开、花心露出绿色花蕊', colors: [{ name: '白', fam: 'white' }, { name: '香槟', fam: 'cream' }, { name: '藕粉', fam: 'pink' }, { name: '浅紫', fam: 'purple' }] },
+    '洋桔梗': { type: 'cluster', color: '藕粉',   anchor: '花瓣薄而带轻微褶皱、呈螺旋状向外展开、花心被内层花瓣收拢', colors: [{ name: '白', fam: 'white' }, { name: '香槟', fam: 'cream' }, { name: '藕粉', fam: 'pink' }, { name: '浅紫', fam: 'purple' }] },
     '绣球':   { type: 'cluster', color: '浅蓝紫', anchor: '由数十朵四瓣小花聚成一个球、球形轮廓饱满、小花之间有细缝', colors: [{ name: '白', fam: 'white' }, { name: '浅蓝', fam: 'blue' }, { name: '浅粉', fam: 'pink' }, { name: '浅紫', fam: 'purple' }, { name: '浅绿', fam: 'green' }] },
     '洋甘菊': { type: 'cluster', color: '米白',   anchor: '白色细长花瓣环绕黄色圆凸花心、花型像小雏菊、单朵很小、花茎细弱', colors: [{ name: '白', fam: 'white' }] },
     '薰衣草': { type: 'spike',   color: '浅紫',   anchor: '细长花穗由密集的小花沿茎螺旋排列、花穗顶端渐尖、茎细直', colors: [{ name: '浅紫', fam: 'purple' }, { name: '深紫', fam: 'purple' }] },
@@ -561,7 +564,7 @@ const FLOWER_TPL = [
         fit: ['any'],
         tpl: '商业香水创意摄影，{产品}，禁止变形、重绘、文字修改、瓶型改动、液体变色。\n\n' +
              '# 场景构图\n' +
-             '整体采用极简悬浮柔焦构图，产品居中悬浮于画面中央，背景为大面积模糊的春日花卉，呈现出朦胧的{主花色词}、{产品色词}、浅金色晕染效果，无多余道具，画面干净柔和，突出产品主体。{配材句}\n\n' +
+             '整体采用极简悬浮柔焦构图，产品居中悬浮于画面中央，背景为大面积模糊的春日花卉，呈现为弥散的色块、光斑与虚影，不出现轮廓清晰的大朵花，呈现出朦胧的{主花色词}、{产品色词}、浅金色晕染效果，无多余道具，画面干净柔和，突出产品主体。{配材句}\n\n' +
              '# 光影质感\n' +
              '统一采用柔和均匀的漫射自然光，光线从四周均匀包裹瓶身，形成细腻的高光与柔和的边缘光，瓶身通透，液体光泽温润；整体光线干净、无强烈阴影，营造出朦胧柔焦的高级感，无脏影、无杂光、无过曝、无死黑。\n\n' +
              '# 色彩氛围\n' +
@@ -593,7 +596,7 @@ const FLOWER_TPL = [
         fit: ['any'],
         tpl: '商业美妆产品创意摄影，{产品}，禁止变形、重绘、文字修改、瓶型改动、液体变色。\n\n' +
              '# 场景构图\n' +
-             '整体采用温柔奶油风静物构图，产品倾斜放置在{基调}柔光台面上，瓶身右侧搭配一朵盛开的{主花色}{主花}，散落几片花瓣在周围；背景为纯净的{基调}，窗格状的阳光条从画面左侧斜射进来，在台面上投下柔和的光影，整体构图干净松弛，突出产品与自然的温柔质感。{配材句}\n\n' +
+             '整体采用温柔奶油风静物构图，香水瓶以自然姿态微微倾斜、稳稳立在浅米色柔光台面上，瓶身右侧搭配一朵盛开的{主花色}{主花}，散落几片花瓣在周围；背景为纯净的{基调}，窗格状的阳光条从画面左侧斜射进来，在台面和背景上投下清晰的明暗光斑与条纹，整体构图干净松弛，突出产品与自然的温柔质感。{配材句}\n\n' +
              '# 光影质感\n' +
              '统一采用柔和的窗格侧逆光，光线温暖明亮，在瓶身与台面上形成细腻的高光与柔和的反射光，瓶身通透，液体光泽温润，花瓣呈现出半透明的质感；光影过渡自然，整体光线干净治愈，无强烈阴影，无脏影、无杂光、无过曝、无死黑。\n\n' +
              '# 色彩氛围\n' +
@@ -1103,10 +1106,15 @@ function buildScenePrompt(productDesc, toneDesc, accent, pack, set) {
         // 独立作名词出现的颜色要补「色」字：「以白色、浅杏色、暖金色为主」
         const cw = c => { const t = String(c || '').trim(); return /色$/.test(t) ? t : t + '色'; };
         const mainWord = cw(fl.color), prodWord = cw(prodColor);
+        // 「被一朵巨大的花包裹/托举」这种构图，只有花瓣厚实、层次多的花能撑住；
+        // 洋桔梗、满天星、小苍兰这类画成巨型就是一团看不出品种的白球，必须降成「饱满盛开的」
+        const canGoGiant = /玫瑰|芍药|洋牡丹|绣球/.test(fl.name);
         const fillSentence = fills.length
             ? '画面中还点缀' + fillNames + '，作为主花的陪衬，分散在主花周围和画面边缘，不占据画面中心、不与产品争夺焦点。'
             : '';
-        const body = String(set.tpl)
+        let body = String(set.tpl);
+        if (!canGoGiant) body = body.replace(/一朵巨大的、层次饱满的/g, '一朵饱满盛开的');
+        body = body
             .replace(/\{产品\}/g, String(productDesc || '').replace(/[。.]\s*$/, ''))
             .replace(/\{主花\}/g, fl.name)
             .replace(/\{主花色\}/g, fl.color)
@@ -1117,7 +1125,10 @@ function buildScenePrompt(productDesc, toneDesc, accent, pack, set) {
             .replace(/\{产品色词\}/g, prodWord)
             .replace(/\{基调\}/g, baseName)
             .replace(/\{产品色\}/g, prodColor);
-        let tail = '\n\n产品必须完整出现在画面内，任何部位都不得被画面边缘裁切、不得贴边；产品正面标签必须完整可读、字迹清晰。';
+        // 通透度插在画质参数前面：四张图都灰蒙蒙，「低饱和」被模型理解成了「去饱和」
+        body = body.replace('# 画质参数',
+            '# 通透度\n画面整体通透、明亮、干净，瓶身和花瓣上有清楚的高光和反光，' + baseName + '的色调分得出层次，不浑浊、不蒙雾。\n\n# 画质参数');
+        let tail = '\n\n产品在画面中足够醒目，高度不少于画面高度的三分之一。\n\n产品必须完整出现在画面内，任何部位都不得被画面边缘裁切、不得贴边；产品正面标签必须完整可读、字迹清晰。';
         if (fl.anchor) {
             tail += '\n\n# 花材形态\n主花是' + fl.name + '，必须严格按这些形态特征绘制：' + anchorNoSize(fl.anchor) + '，不能画成其他花种。';
             if (fills.length) {
