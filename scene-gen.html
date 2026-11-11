@@ -29,10 +29,10 @@
         .hdr-tag { flex-shrink: 0; display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: #6b5ce7; background: rgba(107,92,231,.08); border: 1px solid rgba(107,92,231,.18); border-radius: 999px; padding: 7px 15px; font-weight: 500; }
         .hdr-tag i { width: 6px; height: 6px; border-radius: 50%; background: var(--grad); display: block; }
         /* 风格包切换 */
-        .pack-row { display: flex; gap: 10px; margin: 0 0 18px; }
-        .pack-btn { flex: 1; display: flex; flex-direction: column; gap: 3px; align-items: flex-start; padding: 12px 16px; border: 1px solid var(--border); background: #fafafa; border-radius: 12px; cursor: pointer; font-family: inherit; text-align: left; transition: all .15s; }
-        .pack-btn b { font-size: 13.5px; font-weight: 600; color: var(--text); }
-        .pack-btn span { font-size: 11.5px; color: var(--text-sec); letter-spacing: .3px; }
+        .pack-row { display: flex; gap: 8px; margin: 0; }
+        .pack-btn { flex: 1; display: flex; flex-direction: column; gap: 2px; align-items: flex-start; padding: 9px 10px; border: 1px solid var(--border); background: #fafafa; border-radius: 10px; cursor: pointer; font-family: inherit; text-align: left; transition: all .15s; }
+        .pack-btn b { font-size: 12.5px; font-weight: 600; color: var(--text); }
+        .pack-btn span { font-size: 10px; color: var(--text-sec); letter-spacing: 0; }
         .pack-btn:hover { border-color: #bbb; }
         .pack-btn.active { border-color: transparent; background: var(--grad); box-shadow: 0 4px 14px rgba(107,92,231,.24); }
         .pack-btn.active b, .pack-btn.active span { color: #fff; }
@@ -243,16 +243,16 @@
     </div>
     <div class="hdr-tag"><i></i><span id="hdrTagTxt">专为美妆护肤场景</span></div>
 </div>
-<div class="pack-row" id="packRow">
-    <button class="pack-btn active" data-p="research" onclick="pickPack('research')">
-        <b>科研医美风</b><span>护肤 · 精华 · 医美</span>
-    </button>
-    <button class="pack-btn" data-p="flower" onclick="pickPack('flower')">
-        <b>鲜花氛围风</b><span>香氛 · 精油 · 香水</span>
-    </button>
-</div>
 <div class="wrap">
     <div class="left">
+        <div class="pack-row" id="packRow">
+            <button class="pack-btn active" data-p="research" onclick="pickPack('research')">
+                <b>科研医美风</b><span>护肤 · 精华 · 医美</span>
+            </button>
+            <button class="pack-btn" data-p="flower" onclick="pickPack('flower')">
+                <b>鲜花氛围风</b><span>香氛 · 精油 · 香水</span>
+            </button>
+        </div>
         <div>
             <div class="sec-label">① 产品白底图</div>
             <div class="up-area" id="pdArea" onclick="$('pdFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'pd')">
