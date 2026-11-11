@@ -176,19 +176,15 @@
         .ratio-btn:hover { border-color: #bbb; }
         .ratio-btn.active { border-color: transparent; background: var(--grad); color: #fff; box-shadow: 0 4px 12px rgba(107,92,231,.24); }
         .opt-tag { font-size: 11px; color: #aaa; font-weight: 400; margin-left: 4px; }
-        .set-name { font-size: 12px; color: var(--text-sec); margin-bottom: 6px; }
+        .set-name { font-size: 12px; color: var(--text-sec); margin-bottom: 9px; }
         .res-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
         @media (max-width: 1080px) { .res-grid { grid-template-columns: 1fr; } }
         .res-card-body { padding: 10px 14px 14px; }
-        .tune-row { display: flex; gap: 8px; margin: 8px 0 10px; align-items: stretch; }
-        .tune-box { flex: 1; min-height: 52px; max-height: 140px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-family: inherit; color: var(--text); resize: vertical; line-height: 1.55; background: #fafafa; }
-        .tune-box:focus { outline: none; border-color: #999; background: #fff; }
-        .tune-box::placeholder { color: #bbb; }
-        .tune-btn { padding: 0 16px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; white-space: nowrap; }
-        .tune-btn:hover { background: var(--accent-h); }
-        .tune-hint { font-size: 11px; color: #b0b0b0; line-height: 1.5; margin: 0 0 8px; }
-        .res-links { display: flex; gap: 16px; justify-content: center; align-items: center; }
-        .res-links a { font-size: 13px; color: var(--text-sec); text-decoration: none; cursor: pointer; }
+        .res-links { display: flex; gap: 10px; }
+        .res-links a { flex: 1; text-align: center; padding: 9px 0; border: 1px solid var(--border); border-radius: 8px; font-size: 12.5px; color: var(--text-sec); text-decoration: none; cursor: pointer; transition: all .15s; background: #fafafa; }
+        .res-links a:hover { border-color: #b9b0ff; color: var(--text); background: #fbfaff; }
+        .res-links a.primary { border-color: var(--accent); color: var(--accent); background: #fff; font-weight: 500; }
+        .res-links a.primary:hover { background: var(--accent); color: #fff; }
         .res-links a:first-child { color: var(--text); }
         .res-links a:hover { color: var(--text); }
 
@@ -1360,14 +1356,9 @@ function showResults() {
             '<div class="res-card-img"><img src="' + v.src + '" alt="场景图' + (idx + 1) + '"></div>' +
             '<div class="res-card-body">' +
             '<div class="set-name">' + it.name + '</div>' +
-            '<div class="tune-row">' +
-            '<textarea class="tune-box" data-tune="' + idx + '" placeholder="调颜色、明暗、虚化。比如：水的颜色加深 / 整体亮一点 / 背景再虚一点">' + (v.tune || '') + '</textarea>' +
-            '<button class="tune-btn" onclick="submitTune(' + idx + ')">提交</button>' +
-            '</div>' +
-            '<div class="tune-hint">微调只改颜色 / 明暗 / 虚化；想换道具和摆放，点「重出这张」重新抽</div>' +
             '<div class="res-links">' +
             '<a href="' + v.src + '" download="scene-' + (idx + 1) + '.jpg">下载</a>' +
-            '<a onclick="regenerateOne(' + idx + ')">重出这张</a>' +
+            '<a class="primary" onclick="regenerateOne(' + idx + ')">重出这张</a>' +
             '</div>' +
             '</div>';
         grid.appendChild(card);
