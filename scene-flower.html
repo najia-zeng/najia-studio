@@ -716,8 +716,8 @@ function isLicensed() {
     try { return localStorage.getItem('nj_lic') === '1'; } catch (e) { return false; }
 }
 
-/* 测试期开关：true 时不限次数、不弹付费框、不消耗额度。正式上线改回 false。 */
-const UNLIMITED = true;
+/* 正式版：3 次免费体验，用完弹购买框。自用版（scene-flower1.html）里这里是 true。 */
+const UNLIMITED = false;
 
 /* 免费体验额度：内置 Key 期间每人 3 次，客户填了自己的 Key 则不限制 */
 const FREE_LIMIT = 3;
@@ -1589,12 +1589,19 @@ async function runShots() {
 // 换一批道具：跳过分析，直接重抽 N 套
 async function regenerateProps() {
     if (busy) return;
+    if (!UNLIMITED && !isLicensed() && freeLeft() <= 0) { openBuyDlg(); return; }
     await runShots();
+    if (!UNLIMITED && !isLicensed() && lastItems && lastItems.length > 0) {
+        setFreeUsed(getFreeUsed() + 1);
+        renderQuota();
+    }
 }
 
 // 重出某一张（当前角度，原样再画一次）
 async function regenerateOne(idx) {
     if (busy) return;
+    /* 重出也算一次额度：否则免费用户点完 3 次，可以靠「重出这张」无限续杯 */
+    if (!UNLIMITED && !isLicensed() && freeLeft() <= 0) { openBuyDlg(); return; }
     const it = lastItems[idx];
     if (!it) return;
     const v = it.views[it.active];
@@ -1602,14 +1609,17 @@ async function regenerateOne(idx) {
     busy = true;
     const card = document.querySelector('[data-idx="' + idx + '"]');
     if (card) card.style.opacity = '.35';
+    let ok = false;
     try {
         const src = await generateSceneImage(promptForView(it, v), v.refImage);
         v.src = src;
+        ok = true;
         showResults();
     } catch (e) {
         alert('重出失败：' + (e.message || '请稍后重试'));
         if (card) card.style.opacity = '1';
     } finally { busy = false; }
+    if (ok && !UNLIMITED && !isLicensed()) { setFreeUsed(getFreeUsed() + 1); renderQuota(); }
 }
 
 // 提交微调指令：把框里的话拼进这张图的提示词，只重出这一张
