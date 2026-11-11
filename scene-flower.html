@@ -351,21 +351,23 @@ async function callApi(type, payload) {
 }
 // 视觉模型按优先级回退：方舟模型迭代快，旧版下线后自动切下一个
 const VISION_MODELS = ['doubao-seed-2-1-pro-260915', 'doubao-seed-2-0-lite-260428', 'doubao-seed-2-0-mini-260428'];
-// 图像模型按优先级回退：seedream-4-0-250828 已列入下线计划，备用 20260415 版本
-const IMAGE_MODELS = ['doubao-seedream-4-0-250828', 'doubao-seedream-4-0-20260415'];
+// 图像模型按优先级回退：5.0 lite 的画质、光影层次和材质真实度明显好于 4.0，
+// 4.5 是中间档，4.0 只作为最后兜底（已列下线计划）。
+const IMAGE_MODELS = ['doubao-seedream-5-0-260128', 'doubao-seedream-4-5-251128', 'doubao-seedream-4-0-250828'];
 
 const CROP_THRESHOLD = 240;
 const CROP_PADDING = 20;
 const REF_IMAGE_MAX = 1536;
 const SHOTS_PER_RUN = 4;
 
-// 画幅：产品只占画面 1/3，画布不用太大
-// 产品只占画面 1/3，画布要给足像素，否则产品细节会糊
-// 方舟 seedream 4.0 总像素范围 [1280x720, 4096x4096]，宽高比 [1/16, 16]
+// 画幅：产品只占画面 1/3，所以画布必须给足像素，否则产品细节和花瓣纹理糊成一团。
+// 原来 2K（1728x2304 约 400 万像素）放在手机上看还行，放大就看得出「AI 味」；
+// 提到 3K（2304x3072 约 700 万像素）后，瓶身反光、花瓣脉络、标签印刷都能站住。
+// 方舟 seedream 5.0 lite / 4.5 / 4.0 总像素下限 3686400、上限 16777216，以下均在范围内
 const RATIOS = {
-    '1:1':  { size: '2048x2048', label: '1:1 主图' },
-    '3:4':  { size: '1728x2304', label: '3:4 竖版' },
-    '9:16': { size: '1440x2560', label: '9:16 长图' }
+    '1:1':  { size: '3072x3072', label: '1:1 主图' },
+    '3:4':  { size: '2304x3072', label: '3:4 竖版' },
+    '9:16': { size: '1800x3200', label: '9:16 长图' }
 };
 
 /* ============================================================
