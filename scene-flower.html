@@ -254,7 +254,7 @@
         <div id="moodBox">
             <div class="sec-label">② 氛围参考图 <span class="sec-opt">可选</span></div>
             <input type="file" id="moodFile" accept="image/*" style="display:none" onchange="moodSel(event)">
-            <div class="mood-up" id="moodUp" onclick="$('moodFile').click()">
+            <div class="mood-up" id="moodUp" onclick="$('moodFile').click()" ondragover="dOver(event,this)" ondragleave="dLeave(event,this)" ondrop="dDrop(event,this,'mood')">
                 <div id="moodInner">
                     <div class="up-ico">🎨</div>
                     <div class="up-txt">传一张氛围参考图</div>
@@ -520,8 +520,18 @@ function renderCostStat() {
 const $ = id => document.getElementById(id);
 
 function dOver(e, el) { e.preventDefault(); el.style.borderColor = '#999'; }
-function dLeave(e, el) { if (!el.classList.contains('has')) el.style.borderColor = ''; }
-function dDrop(e, el, type) { e.preventDefault(); e.stopPropagation(); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) loadPd(f); }
+function dLeave(e, el) { if (e.relatedTarget && el.contains(e.relatedTarget)) return; if (!el.classList.contains('has')) el.style.borderColor = ''; }
+function dDrop(e, el, type) {
+    e.preventDefault(); e.stopPropagation();
+    el.style.borderColor = '';
+    const f = e.dataTransfer.files[0];
+    if (!f || !f.type.startsWith('image/')) return;
+    if (type === 'mood') loadMood(f); else loadPd(f);
+}
+/* 拖到页面其他地方时不要用图片替换整个页面 */
+window.addEventListener('dragover', e => e.preventDefault(), false);
+window.addEventListener('drop', e => e.preventDefault(), false);
+
 function pdSel(e) { const f = e.target.files[0]; if (f) loadPd(f); }
 
 function loadPd(file) {
@@ -685,16 +695,20 @@ function setFlowerAuto() {
 }
 
 /* ===== 氛围参考图：只提取配色，不喂给生图模型 ===== */
-function moodSel(e) {
-    const f = e.target.files && e.target.files[0];
-    if (!f) return;
+function loadMood(file) {
+    if (!file) return;
     const r = new FileReader();
     r.onload = ev => {
         refMoodSrc = ev.target.result;
         moodTone = null;
         renderMoodState();
     };
-    r.readAsDataURL(f);
+    r.readAsDataURL(file);
+}
+
+function moodSel(e) {
+    const f = e.target.files && e.target.files[0];
+    if (f) loadMood(f);
 }
 
 function clearMood() {
