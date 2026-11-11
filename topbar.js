@@ -16,7 +16,6 @@
     'scene-flower.html': 'tools',
     'scene-flower1.html': 'tools',
     'scene-gen1.html': 'tools',
-    'scene-flower.html': 'tools',
     'kuociq.html': 'tools',
     'kuociq-chatsdk.html': 'tools',
     'fusion-pro.html': 'tools',
