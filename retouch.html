@@ -114,11 +114,32 @@
             linear-gradient(45deg, #1a1a22 25%, transparent 25%, transparent 75%, #1a1a22 75%) 11px 11px/22px 22px,
             #16161e;
     }
+    .stage-inner { display: flex; flex-direction: column; align-items: center; max-width: 100%; max-height: 100%; }
     .stage { position: relative; line-height: 0; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
     .stage canvas { display: block; }
+    #cvPreview { position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+        pointer-events: none; display: none; }
+    .stage-tools { display: flex; gap: 8px; justify-content: center; padding: 14px 0 18px; }
+    .stage-tools .btn { width: auto; flex: none; padding: 9px 24px; }
+
+    /* 力度滑块 */
+    .sld { display: flex; align-items: center; gap: 11px; margin-bottom: 12px; }
+    .sld-l { font-size: 12px; color: var(--text-sec); flex: none; }
+    .sld-v { font-size: 12.5px; color: var(--text); font-weight: 600; min-width: 22px; text-align: right; }
+    .sld input[type=range] {
+        flex: 1; -webkit-appearance: none; appearance: none;
+        height: 4px; border-radius: 3px; background: var(--panel-2); outline: none; cursor: pointer;
+    }
+    .sld input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+        background: var(--accent); cursor: pointer; border: 2px solid rgba(255,255,255,.18);
+    }
+    .sld input[type=range]::-moz-range-thumb {
+        width: 16px; height: 16px; border-radius: 50%;
+        background: var(--accent); cursor: pointer; border: none;
+    }
     #cvMask {
-        position: absolute; left: 0; top: 0; cursor: none;
-        touch-action: none;
+        position: absolute; left: 0; top: 0; pointer-events: none;
     }
     #cvCursor {
         position: absolute; border-radius: 50%; pointer-events: none;
@@ -203,51 +224,35 @@
             <input type="file" id="file" accept="image/*" hidden>
         </div>
 
-        <div class="sec" id="secAuto" style="display:none;">
-            <div class="sec-t">一键修 <span class="badge ok" id="autoBadge">已识别产品</span></div>
-            <div class="seg" id="strength">
-                <button class="seg-b on" data-v="1">轻微</button>
-                <button class="seg-b" data-v="2">标准</button>
-                <button class="seg-b" data-v="3">强力</button>
+        <div class="sec" id="secAutoBg" style="display:none;">
+            <div class="sec-t">一键修背景 <span class="badge ok" id="autoBadge">已识别产品</span></div>
+            <div class="sld">
+                <span class="sld-l">力度</span>
+                <input type="range" id="slBg" min="6" max="30" value="15" step="1">
+                <b class="sld-v" id="slBgVal">15</b>
             </div>
-            <button class="btn btn-main" id="btnAutoBg">净背景 · 灰尘杂物脏点</button>
-            <button class="btn" id="btnAutoProd" style="margin-top:8px;">净产品 · 表面浮尘指纹</button>
-            <label class="chk"><input type="checkbox" id="chkMask"> 显示产品识别范围</label>
-            <div class="hint" id="autoInfo">产品以外的区域用大半径修，产品本身用小半径修，互不干扰。</div>
+            <button class="btn btn-main" id="btnAutoBg">修背景 · 灰尘杂物脏点</button>
+            <div class="hint">只动产品以外的部分，产品一点不碰。</div>
         </div>
 
-        <div class="sec" id="secManualToggle" style="display:none;">
-            <button class="btn btn-ghost" id="btnManual">一键修不掉的，手动补一下 →</button>
-            <div class="hint" style="margin-top:8px;">大块杂物、淡反光、整片阴影，这些得涂。</div>
+        <div class="sec" id="secAutoProd" style="display:none;">
+            <div class="sec-t">一键修产品</div>
+            <div class="sld">
+                <span class="sld-l">力度</span>
+                <input type="range" id="slProd" min="1" max="8" value="2" step="1">
+                <b class="sld-v" id="slProdVal">2</b>
+            </div>
+            <button class="btn btn-main" id="btnAutoProd">修产品 · 表面浮尘指纹</button>
+            <div class="hint">只动产品，背景一点不碰。开太大产品会糊。</div>
         </div>
 
-        <div class="sec" id="secBrush" style="display:none;">
-            <div class="sec-t">笔刷大小 <b id="brushVal">40</b></div>
-            <div class="brush-row">
-                <div class="brush-preview"><div class="brush-dot" id="brushDot"></div></div>
-                <input type="range" id="brush" min="6" max="200" value="40" step="2">
-            </div>
-            <div class="hint">按住鼠标在图上涂，红色区域就是会被修掉的部分。</div>
+        <div class="sec" id="secMask" style="display:none;">
+            <label class="chk"><input type="checkbox" id="chkMask"> 显示产品和背景的分界</label>
+            <div class="hint" id="autoInfo">上传后自动把产品和背景分开，两个按钮各修一边，互不干扰。</div>
         </div>
 
-        <div class="sec" id="secAct" style="display:none;">
-            <div class="sec-t">手动补 · 大块杂物和倒影</div>
-            <button class="btn btn-main" id="btnFix" disabled>修补涂抹区域</button>
-            <div class="btn-row">
-                <button class="btn" id="btnUndo" disabled>撤销</button>
-                <button class="btn" id="btnClear" disabled>清除</button>
-            </div>
-            <div class="hint" id="maskInfo">还没涂抹</div>
-        </div>
-
-        <div class="sec" id="secOut" style="display:none;">
-            <div class="sec-t">结果</div>
-            <div class="btn-row" style="margin-top:0;">
-                <button class="btn" id="btnCmp">按住看原图</button>
-                <button class="btn btn-main" id="btnDl">下载</button>
-            </div>
-            <button class="btn" id="btnReset" style="margin-top:8px;">换一张图</button>
-            <div class="hint">不满意可以继续涂、继续修，原图始终保留。</div>
+        <div class="sec" id="secReset" style="display:none;">
+            <button class="btn" id="btnReset">换一张图</button>
         </div>
 
         <div class="sec">
@@ -266,10 +271,17 @@
             <div class="empty-s">涂掉想删的东西，点一下就好<br>产品部分不会被改动</div>
         </div>
 
-        <div class="stage" id="stage" style="display:none;">
-            <canvas id="cvBase"></canvas>
-            <canvas id="cvMask"></canvas>
-            <div id="cvCursor"></div>
+        <div class="stage-inner">
+            <div class="stage" id="stage" style="display:none;">
+                <canvas id="cvBase"></canvas>
+                <canvas id="cvPreview"></canvas>
+                <canvas id="cvMask"></canvas>
+                <div id="cvCursor"></div>
+            </div>
+            <div class="stage-tools" id="stageTools" style="display:none;">
+                <button class="btn" id="btnCmp">按住看原图</button>
+                <button class="btn btn-main" id="btnDl">下载</button>
+            </div>
         </div>
 
         <div class="cmp-badge" id="cmpBadge">原图</div>
@@ -300,8 +312,9 @@
     var originalData = null;   // 修补前的像素备份，用于"按住看原图"
     var hasResult = false;
     var prodMask = null;       // 产品识别结果，1 = 产品
-    var strength = 1;          // 一键修强度：1 轻微 / 2 标准 / 3 强力
-    var maskOn = false;        // 是否显示产品轮廓
+    var maskOn = false;        // 是否显示产品分界
+    var previewTimer = null;   // 拖滑块时的预览节流
+    var previewSeq = 0;
 
     /* ---------------- 上传 ---------------- */
 
@@ -372,18 +385,15 @@
 
         $('empty').style.display = 'none';
         $('stage').style.display = 'block';
-        $('secAuto').style.display = '';
-        $('secManualToggle').style.display = '';
-        $('secBrush').style.display = 'none';
-        $('secAct').style.display = 'none';
-        $('btnManual').textContent = '一键修不掉的，手动补一下 →';
-        $('secOut').style.display = 'none';
+        $('secAutoBg').style.display = '';
+        $('secAutoProd').style.display = '';
+        $('secMask').style.display = '';
+        $('secReset').style.display = '';
+        $('stageTools').style.display = 'none';
 
         fitStage();
         requestAnimationFrame(fitStage);
         setStep(2);
-        updateMaskInfo();
-        updateBrushPreview();
 
         // 自动识别产品：识别完才允许一键修
         $('btnAutoBg').disabled = true;
@@ -407,15 +417,15 @@
                 // 没识别出来，或者几乎整幅都是产品
                 $('autoBadge').className = 'badge warn';
                 $('autoBadge').textContent = '没认出产品';
-                $('autoInfo').textContent = '背景和产品颜色太接近，自动识别不准。可以直接用下面的手动涂抹修。';
+                $('autoInfo').textContent = '背景和产品颜色太接近，自动分不干净。可以勾上「显示产品和背景的分界」看看，或者换个背景重拍。';
                 prodMask = null;
                 $('btnAutoBg').disabled = true;
                 $('btnAutoProd').disabled = true;
             } else {
                 $('autoBadge').className = 'badge ok';
                 $('autoBadge').textContent = '已识别产品';
-                $('autoInfo').textContent = '产品占画面 ' + (pct * 100).toFixed(0) +
-                    '%，产品以外的区域用大半径修，产品本身用小半径修，互不干扰。';
+                $('autoInfo').textContent = '产品和背景已分开（产品占画面 ' + (pct * 100).toFixed(0) +
+                    '%）。修背景只动背景，修产品只动产品。';
             }
             if (maskOn) drawMaskOverlay();
         }, 40);
@@ -457,7 +467,6 @@
         var p = pos(e);
         curStroke = { size: brushSize, pts: [{ x: p.x, y: p.y }] };
         drawDot(ctxMask, p.x, p.y, brushSize);
-        updateMaskInfo();
     }
 
     function moveStroke(e) {
@@ -477,7 +486,6 @@
         curStroke.pts.push({ x: p.x, y: p.y });
         // 两点之间连线，避免快速移动断开
         drawLine(ctxMask, last.x, last.y, p.x, p.y, brushSize);
-        updateMaskInfo();
     }
 
     function endStroke() {
@@ -485,23 +493,7 @@
         drawing = false;
         if (curStroke && curStroke.pts.length) strokes.push(curStroke);
         curStroke = null;
-        $('btnUndo').disabled = strokes.length === 0;
-        $('btnClear').disabled = strokes.length === 0;
-        $('btnFix').disabled = strokes.length === 0;
     }
-
-    cvMask.addEventListener('mousedown', startStroke);
-    cvMask.addEventListener('mousemove', moveStroke);
-    window.addEventListener('mouseup', endStroke);
-    cvMask.addEventListener('mouseleave', function () {
-        cvCursor.style.display = 'none';
-        if (drawing) endStroke();
-    });
-    cvMask.addEventListener('mouseenter', function () { if (imgW) cvCursor.style.display = 'block'; });
-
-    cvMask.addEventListener('touchstart', startStroke, { passive: false });
-    cvMask.addEventListener('touchmove', moveStroke, { passive: false });
-    cvMask.addEventListener('touchend', endStroke);
 
     function drawDot(ctx, x, y, r) {
         ctx.beginPath();
@@ -532,135 +524,23 @@
                 }
             }
         });
-        updateMaskInfo();
     }
-
-    // 统计涂抹面积（几何估算，够用）
-    function updateMaskInfo() {
-        var el = $('maskInfo');
-        var all = strokes.slice();
-        if (curStroke) all.push(curStroke);
-
-        if (!all.length) {
-            el.textContent = '还没涂抹';
-            $('btnFix').disabled = true;
-            return;
-        }
-        var px = 0;
-        all.forEach(function (s) {
-            px += Math.PI * Math.pow(s.size / 2, 2) * Math.max(1, s.pts.length - 1);
-        });
-        var pct = (px / (imgW * imgH) * 100);
-        el.innerHTML = '已涂 <b>' + all.length + '</b> 笔 · 约覆盖 <b>' + pct.toFixed(1) + '%</b> 画面';
-        $('btnFix').disabled = false;
-    }
-
-    /* ---------------- 笔刷滑块 ---------------- */
-
-    function updateBrushPreview() {
-        // 预览圈只是示意，按笔刷值线性映射到 5-30px，不跟图片尺寸挂钩
-        var d = 5 + (brushSize / 200) * 25;
-        $('brushDot').style.width = d + 'px';
-        $('brushDot').style.height = d + 'px';
-    }
-
-    $('brush').addEventListener('input', function (e) {
-        brushSize = parseInt(e.target.value, 10);
-        $('brushVal').textContent = brushSize;
-        updateBrushPreview();
-    });
 
     /* ---------------- 撤销 / 清除 ---------------- */
-
-    $('btnUndo').addEventListener('click', function () {
-        strokes.pop();
-        redrawMask();
-        $('btnUndo').disabled = strokes.length === 0;
-        $('btnClear').disabled = strokes.length === 0;
-        $('btnFix').disabled = strokes.length === 0;
-    });
-
-    $('btnClear').addEventListener('click', function () {
-        strokes = [];
-        redrawMask();
-        $('btnUndo').disabled = true;
-        $('btnClear').disabled = true;
-        $('btnFix').disabled = true;
-    });
-
-    /* ---------------- 修补核心 ---------------- */
-
-    /* ---------------- 一键修事件 ---------------- */
-
-    $('btnManual').addEventListener('click', function () {
-        var closed = $('secBrush').style.display === 'none';
-        $('secBrush').style.display = closed ? '' : 'none';
-        $('secAct').style.display = closed ? '' : 'none';
-        this.textContent = closed ? '收起手动修补 ↑' : '一键修不掉的，手动补一下 →';
-    });
 
     $('btnAutoBg').addEventListener('click', function () { runAuto(true); });
     $('btnAutoProd').addEventListener('click', function () { runAuto(false); });
 
-    // 强度切换
-    var segBtns = document.querySelectorAll('#strength .seg-b');
-    for (var si = 0; si < segBtns.length; si++) {
-        segBtns[si].addEventListener('click', function () {
-            for (var k = 0; k < segBtns.length; k++) segBtns[k].className = 'seg-b';
-            this.className = 'seg-b on';
-            strength = parseInt(this.getAttribute('data-v'), 10);
-        });
-    }
+    // 拖滑块实时预览，松手出正式结果
+    $('slBg').addEventListener('input', function () { onSlide(true); });
+    $('slBg').addEventListener('change', function () { onSlideEnd(true); });
+    $('slProd').addEventListener('input', function () { onSlide(false); });
+    $('slProd').addEventListener('change', function () { onSlideEnd(false); });
 
     // 显示产品轮廓
     $('chkMask').addEventListener('change', function () {
         maskOn = this.checked;
         drawMaskOverlay();
-    });
-
-    $('btnFix').addEventListener('click', function () {
-        if (!imgW || !strokes.length) return;
-
-        // 第一次修补前备份原图，之后一直用这份做对比
-        if (!originalData) {
-            originalData = ctxBase.getImageData(0, 0, imgW, imgH);
-        }
-
-        $('busy').classList.add('on');
-        var mp = imgW * imgH / 1000000;
-        $('busyTxt').textContent = mp > 4 ? '正在修补…（大图，可能要几秒）' : '正在修补…';
-
-        // 让 UI 先渲染出 loading，再跑重活
-        setTimeout(function () {
-            try {
-                var t0 = performance.now();
-                var filled = inpaint();
-                var ms = Math.round(performance.now() - t0);
-                $('busy').classList.remove('on');
-
-                if (filled < 0) {
-                    $('busyTxt').textContent = '涂到的地方基本都是产品，没东西可修';
-                    $('busy').classList.add('on');
-                    setTimeout(function () { $('busy').classList.remove('on'); }, 1600);
-                    return;
-                }
-
-                strokes = [];
-                ctxMask.clearRect(0, 0, imgW, imgH);
-                updateMaskInfo();
-                $('btnUndo').disabled = true;
-                $('btnClear').disabled = true;
-                $('btnFix').disabled = true;
-
-                hasResult = true;
-                $('secOut').style.display = '';
-                setStep(3);
-                $('maskInfo').textContent = '修补完成，用时 ' + ms + 'ms · 已填 ' + filled.toLocaleString() + ' 像素';
-            } catch (err) {
-                $('busy').classList.remove('on');
-                alert('修补失败：' + (err.message || err));
-            }
-        }, 30);
     });
 
     function inpaint() {
@@ -1125,17 +1005,83 @@
     }
 
     // 强度 → 参数
-    function strengthParams(isBg) {
+    // 滑块值 → 半径和阈值（半径越大，阈值也跟着放大，不然大半径会糊）
+    function radiusParams(isBg) {
         if (isBg) {
-            // 背景：半径大，抹得掉灰尘和小杂物
-            if (strength === 1) return { r: 8,  t: 14 };
-            if (strength === 2) return { r: 15, t: 18 };
-            return { r: 24, t: 24 };
+            var r = parseInt($('slBg').value, 10);
+            return { r: r, t: Math.round(r * 1.2) };
         }
-        // 产品：半径小，只碰表面浮尘，不动结构
-        if (strength === 1) return { r: 1, t: 10 };
-        if (strength === 2) return { r: 2, t: 12 };
-        return { r: 3, t: 14 };
+        var r2 = parseInt($('slProd').value, 10);
+        return { r: r2, t: 8 + r2 * 2 };
+    }
+
+    // 拖滑块时的快速预览：缩到 600px 算，秒出
+    function doPreview(isBg) {
+        if (!imgW || !prodMask) return;
+        var seq = ++previewSeq;
+        var w = imgW, h = imgH;
+        var pscale = Math.min(1, 600 / Math.max(w, h));
+        var pw = Math.max(1, Math.round(w * pscale));
+        var ph = Math.max(1, Math.round(h * pscale));
+
+        var c1 = document.createElement('canvas');
+        c1.width = pw; c1.height = ph;
+        var x1 = c1.getContext('2d', { willReadFrequently: true });
+        x1.drawImage(cvBase, 0, 0, pw, ph);
+        var pd = x1.getImageData(0, 0, pw, ph).data;
+
+        var pmask = new Uint8Array(pw * ph);
+        for (var yy = 0; yy < ph; yy++) {
+            var sy = Math.min(h - 1, Math.round(yy / pscale));
+            var off = sy * w;
+            for (var xx = 0; xx < pw; xx++) {
+                pmask[yy * pw + xx] = prodMask[off + Math.min(w - 1, Math.round(xx / pscale))];
+            }
+        }
+
+        var buf = new Float32Array(pw * ph * 3);
+        for (var i = 0; i < pw * ph; i++) {
+            buf[i * 3] = pd[i * 4]; buf[i * 3 + 1] = pd[i * 4 + 1]; buf[i * 3 + 2] = pd[i * 4 + 2];
+        }
+        var region = new Uint8Array(pw * ph);
+        for (var k = 0; k < pw * ph; k++) region[k] = isBg ? (pmask[k] ? 0 : 1) : (pmask[k] ? 1 : 0);
+
+        var pr = radiusParams(isBg);
+        var rr = Math.max(1, Math.round(pr.r * pscale));
+        var res = dustScratches(buf, pw, ph, rr, pr.t, region);
+        var soft = softRegionEdge(region, pw, ph, Math.max(1, Math.round(6 * pscale)));
+
+        var out = new Uint8ClampedArray(pd.length);
+        for (var p = 0; p < pw * ph; p++) {
+            var a = soft[p], q4 = p * 4, q3 = p * 3;
+            out[q4]     = pd[q4]     * (1 - a) + res[q3]     * a;
+            out[q4 + 1] = pd[q4 + 1] * (1 - a) + res[q3 + 1] * a;
+            out[q4 + 2] = pd[q4 + 2] * (1 - a) + res[q3 + 2] * a;
+            out[q4 + 3] = 255;
+        }
+
+        if (seq !== previewSeq) return;
+        var pv = $('cvPreview');
+        pv.width = pw; pv.height = ph;
+        var pctx = pv.getContext('2d');
+        var im = pctx.createImageData(pw, ph);
+        im.data.set(out);
+        pctx.putImageData(im, 0, 0);
+        pv.style.display = 'block';
+    }
+
+    function onSlide(isBg) {
+        var val = isBg ? $('slBg').value : $('slProd').value;
+        $(isBg ? 'slBgVal' : 'slProdVal').textContent = val;
+        if (previewTimer) clearTimeout(previewTimer);
+        previewTimer = setTimeout(function () { doPreview(isBg); }, 80);
+    }
+
+    function onSlideEnd(isBg) {
+        if (previewTimer) { clearTimeout(previewTimer); previewTimer = null; }
+        previewSeq++;
+        $('cvPreview').style.display = 'none';
+        runAuto(isBg);
     }
 
     /* ---------------- 一键修 ---------------- */
@@ -1202,7 +1148,7 @@
                     pregion[k] = isBg ? (pmask[k] ? 0 : 1) : (pmask[k] ? 1 : 0);
                 }
 
-                var pr = strengthParams(isBg);
+                var pr = radiusParams(isBg);
 
                 dustScratchesAsync(pbuf, pw, ph, pr.r, pr.t, pregion, function (pres) {
                     try {
@@ -1261,11 +1207,11 @@
                         $('btnAutoProd').disabled = false;
 
                         hasResult = true;
-                        $('secOut').style.display = '';
+                        $('stageTools').style.display = '';
                         setStep(3);
                         $('autoInfo').textContent = (isBg ? '背景修完' : '产品修完') + '，用时 ' +
                             (ms > 2000 ? (ms / 1000).toFixed(1) + 's' : ms + 'ms') +
-                            '。不够干净就换「强力」再点一次。';
+                            '。不够干净就把力度调大，再点一次。';
                     } catch (err2) { fail(err2); }
                 }, function (pct) {
                     $('busyTxt').textContent = (isBg ? '正在净背景' : '正在净产品') + ' ' + Math.round(pct * 100) + '%';
@@ -1526,9 +1472,12 @@
         hasResult = false;
         $('stage').style.display = 'none';
         $('empty').style.display = '';
-        $('secBrush').style.display = 'none';
-        $('secAct').style.display = 'none';
-        $('secOut').style.display = 'none';
+        $('secAutoBg').style.display = 'none';
+        $('secAutoProd').style.display = 'none';
+        $('secMask').style.display = 'none';
+        $('secReset').style.display = 'none';
+        $('stageTools').style.display = 'none';
+        $('cvPreview').style.display = 'none';
         $('file').value = '';
         setStep(1);
     });
@@ -1545,7 +1494,6 @@
     setStep(1);
 
     // 初始笔刷预览
-    updateBrushPreview();
 })();
 </script>
 </body>
