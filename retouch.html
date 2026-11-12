@@ -1219,14 +1219,47 @@
         }
 
         if (seq !== previewSeq) return;
+
+        // 预览只放大"改了的部分"贴回原图，产品区保持原图清晰度
+        // （直接放大 600px 缩略图会让整个产品糊掉）
+        var dc = document.createElement('canvas');
+        dc.width = pw; dc.height = ph;
+        var dctx = dc.getContext('2d', { willReadFrequently: true });
+        var dim = dctx.createImageData(pw, ph);
+        for (var pd2 = 0; pd2 < pw * ph; pd2++) {
+            var qd = pd2 * 4;
+            dim.data[qd]     = clamp8(out[qd]     - pd[qd]     + 128);
+            dim.data[qd + 1] = clamp8(out[qd + 1] - pd[qd + 1] + 128);
+            dim.data[qd + 2] = clamp8(out[qd + 2] - pd[qd + 2] + 128);
+            dim.data[qd + 3] = 255;
+        }
+        dctx.putImageData(dim, 0, 0);
+
+        var uc = document.createElement('canvas');
+        uc.width = w; uc.height = h;
+        var uctx = uc.getContext('2d', { willReadFrequently: true });
+        uctx.imageSmoothingEnabled = true;
+        uctx.imageSmoothingQuality = 'high';
+        uctx.drawImage(dc, 0, 0, w, h);
+        var dd = uctx.getImageData(0, 0, w, h).data;
+
         var pv = $('cvPreview');
-        pv.width = pw; pv.height = ph;
+        if (pv.width !== w || pv.height !== h) { pv.width = w; pv.height = h; }
         var pctx = pv.getContext('2d');
-        var im = pctx.createImageData(pw, ph);
-        im.data.set(out);
-        pctx.putImageData(im, 0, 0);
+        var pim = pctx.createImageData(w, h);
+        var od = originalData.data;
+        for (var pp = 0; pp < w * h; pp++) {
+            var q4 = pp * 4;
+            pim.data[q4]     = clamp8(od[q4]     + dd[q4]     - 128);
+            pim.data[q4 + 1] = clamp8(od[q4 + 1] + dd[q4 + 1] - 128);
+            pim.data[q4 + 2] = clamp8(od[q4 + 2] + dd[q4 + 2] - 128);
+            pim.data[q4 + 3] = 255;
+        }
+        pctx.putImageData(pim, 0, 0);
         pv.style.display = 'block';
     }
+
+    function clamp8(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
 
     function onSlide(isBg) {
         var val = isBg ? $('slBg').value : $('slProd').value;
