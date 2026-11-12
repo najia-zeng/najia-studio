@@ -216,6 +216,11 @@
             <div class="hint" id="autoInfo">产品以外的区域用大半径修，产品本身用小半径修，互不干扰。</div>
         </div>
 
+        <div class="sec" id="secManualToggle" style="display:none;">
+            <button class="btn btn-ghost" id="btnManual">一键修不掉的，手动补一下 →</button>
+            <div class="hint" style="margin-top:8px;">大块杂物、淡反光、整片阴影，这些得涂。</div>
+        </div>
+
         <div class="sec" id="secBrush" style="display:none;">
             <div class="sec-t">笔刷大小 <b id="brushVal">40</b></div>
             <div class="brush-row">
@@ -368,8 +373,10 @@
         $('empty').style.display = 'none';
         $('stage').style.display = 'block';
         $('secAuto').style.display = '';
-        $('secBrush').style.display = '';
-        $('secAct').style.display = '';
+        $('secManualToggle').style.display = '';
+        $('secBrush').style.display = 'none';
+        $('secAct').style.display = 'none';
+        $('btnManual').textContent = '一键修不掉的，手动补一下 →';
         $('secOut').style.display = 'none';
 
         fitStage();
@@ -584,6 +591,13 @@
     /* ---------------- 修补核心 ---------------- */
 
     /* ---------------- 一键修事件 ---------------- */
+
+    $('btnManual').addEventListener('click', function () {
+        var closed = $('secBrush').style.display === 'none';
+        $('secBrush').style.display = closed ? '' : 'none';
+        $('secAct').style.display = closed ? '' : 'none';
+        this.textContent = closed ? '收起手动修补 ↑' : '一键修不掉的，手动补一下 →';
+    });
 
     $('btnAutoBg').addEventListener('click', function () { runAuto(true); });
     $('btnAutoProd').addEventListener('click', function () { runAuto(false); });
