@@ -923,12 +923,12 @@
 
     function detectProduct(data, w, h) {
         var rowBg = bgRows(data, w, h);
-        var clean = denoise(rawMask(data, w, h, rowBg, 22), w, h);
+        var clean = denoise(rawMask(data, w, h, rowBg, 30), w, h);
 
         // 4. 先把小凹口填掉、小凸起削掉，轮廓才贴合产品
-        var sm = openMask(closeMask(clean, w, h, 4), w, h, 2);
+        var sm = openMask(closeMask(clean, w, h, 3), w, h, 2);
         // 5. 再给产品边缘留一圈保护带
-        return dilate(sm, w, h, 10);
+        return dilate(sm, w, h, 5);
     }
 
     // 只保留最大连通域，去掉背景上被误判的孤立点
