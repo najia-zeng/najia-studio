@@ -230,7 +230,7 @@
             <div class="sec-t">背景</div>
             <div class="sld">
                 <span class="sld-l">力度</span>
-                <input type="range" id="slBg" min="0" max="30" value="15" step="1" disabled>
+                <input type="range" id="slBg" min="0" max="30" value="0" step="1" disabled>
                 <b class="sld-v" id="slBgVal">—</b>
             </div>
             <div class="hint">修产品以外的部分。拖到 0 就是不修背景。</div>
@@ -240,7 +240,7 @@
             <div class="sec-t">产品</div>
             <div class="sld">
                 <span class="sld-l">力度</span>
-                <input type="range" id="slProd" min="0" max="8" value="2" step="1" disabled>
+                <input type="range" id="slProd" min="0" max="8" value="0" step="1" disabled>
                 <b class="sld-v" id="slProdVal">—</b>
             </div>
             <div class="hint">修产品表面。开太大产品会糊，拖到 0 就是不修。</div>
@@ -424,7 +424,6 @@
                 $('autoInfo').style.display = '';
                 $('autoInfo').textContent = '青色这块是产品，其余都能修。分得不对就在产品上点一下。';
                 showRegion(2200);
-                doPreview();
             }
         }, 40);
     }
@@ -1157,6 +1156,13 @@
     // 拖滑块的快速预览：缩到 600px，背景和产品一起算，秒出
     function doPreview() {
         if (!imgW || !prodMask || !origCanvas) return;
+        if (parseInt($('slBg').value, 10) <= 0 && parseInt($('slProd').value, 10) <= 0) {
+            // 两个力度都是 0，没什么可预览的，直接回到原图
+            previewSeq++;
+            previewShown = false;
+            $('cvPreview').style.display = 'none';
+            return;
+        }
         var seq = ++previewSeq;
         var w = imgW, h = imgH;
         var pscale = Math.min(1, 600 / Math.max(w, h));
