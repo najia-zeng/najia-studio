@@ -961,7 +961,7 @@
 
     // 产品 mask 里被产品整个围住的区域（比如线圈中间那块背景）也得能修。
     // 从图像四边往里灌水，灌不到的空洞如果面积够大，说明那是背景、不是产品细节，挖出来。
-    function openHoles(mask, w, h) {
+    function openHoles(mask, w, h, data, rowBg) {
         var n = w * h;
         var seen = new Uint8Array(n);
         var stack = new Int32Array(n);
@@ -985,25 +985,38 @@
             if (py > 0 && !mask[p - w] && !seen[p - w]) { seen[p - w] = 1; stack[sp++] = p - w; }
             if (py < h - 1 && !mask[p + w] && !seen[p + w]) { seen[p + w] = 1; stack[sp++] = p + w; }
         }
-        var minA = Math.max(300, Math.round(n * 0.004));
+        var maskTotal = 0;
+        for (var mt = 0; mt < n; mt++) if (mask[mt]) maskTotal++;
+        // 孔洞大小看它相对产品总面积的比例：线圈中间那种大空腔才是真背景
+        var minA = Math.max(300, Math.round(maskTotal * 0.25));
         var comp = new Int32Array(n);
         var cid = 0;
         for (var i = 0; i < n; i++) {
             if (mask[i] || seen[i] || comp[i]) continue;
             cid++;
-            var q = 0, cnt = 0;
+            var q = 0, cnt = 0, sr = 0, sg = 0, sb = 0;
+            var ry = Math.floor(i / w);
             stack[q++] = i; comp[i] = cid;
             while (q > 0) {
                 var t = stack[--q]; cnt++;
+                if (data) { var tq = t * 4; sr += data[tq]; sg += data[tq + 1]; sb += data[tq + 2]; }
                 var tx = t % w, ty = (t - tx) / w;
                 if (tx > 0 && !mask[t - 1] && !seen[t - 1] && !comp[t - 1]) { comp[t - 1] = cid; stack[q++] = t - 1; }
                 if (tx < w - 1 && !mask[t + 1] && !seen[t + 1] && !comp[t + 1]) { comp[t + 1] = cid; stack[q++] = t + 1; }
                 if (ty > 0 && !mask[t - w] && !seen[t - w] && !comp[t - w]) { comp[t - w] = cid; stack[q++] = t - w; }
                 if (ty < h - 1 && !mask[t + w] && !seen[t + w] && !comp[t + w]) { comp[t + w] = cid; stack[q++] = t + w; }
             }
-            if (cnt >= minA) {
-                for (var j = 0; j < n; j++) if (comp[j] === cid) out[j] = 0;
+            // 孔洞分三种：小洞直接算产品（不值得为它冒险修）；
+            // 大洞再看颜色——像背景的是线圈围出来的真空，挖出来修；
+            // 不像背景的是半透明产品内部，必须留作产品，不然整片被当背景修
+            var isRealBg = cnt >= minA;
+            if (isRealBg && data && rowBg) {
+                var bb = rowBg[Math.min(h - 1, Math.max(0, ry))];
+                var dr = Math.abs(sr / cnt - bb[0]) + Math.abs(sg / cnt - bb[1]) + Math.abs(sb / cnt - bb[2]);
+                if (dr > 16) isRealBg = false;
             }
+            var fillVal = isRealBg ? 0 : 1;
+            for (var j = 0; j < n; j++) if (comp[j] === cid) out[j] = fillVal;
         }
         return out;
     }
@@ -1012,13 +1025,16 @@
     // 成片出现、且颜色贴着背景的，还回背景，不然那块的瑕疵永远修不到。
     function unmaskLikeBg(mask, data, w, h, rowBg, tol) {
         var n = w * h;
+        // 产品内部深处一律不改判：浅色、半透明产品整片颜色都贴近背景，
+        // 不加这层保护会被当成误判的背景整块削掉，产品边缘就出现啃边
+        var deep = erodeMask(mask, w, h, 12);
         var like = new Uint8Array(n);
         for (var y = 0; y < h; y++) {
             var b = rowBg[y];
             var base = y * w;
             for (var x = 0; x < w; x++) {
                 var i = base + x;
-                if (!mask[i]) continue;
+                if (!mask[i] || deep[i]) continue;
                 var q = i * 4;
                 var d = Math.abs(data[q] - b[0]) + Math.abs(data[q + 1] - b[1]) + Math.abs(data[q + 2] - b[2]);
                 if (d < tol) like[i] = 1;
@@ -1081,17 +1097,17 @@
 
     function detectProduct(data, w, h) {
         var rowBg = bgRows(data, w, h);
-        var clean = denoise(keepBigBlobs(rawMask(data, w, h, rowBg, 30), w, h, 0.1), w, h);
+        var clean = denoise(keepBigBlobs(rawMask(data, w, h, rowBg, 22), w, h, 0.1), w, h);
 
         // 4. 先把小凹口填掉、小凸起削掉，轮廓才贴合产品
         // 先开运算把贴在一起的线缆缝削开，再小闭运算补回凹口；反过来会把缝糊死
-        var sm = closeMask(openMask(clean, w, h, 2), w, h, 1);
+        var sm = smoothMask(closeMask(openMask(clean, w, h, 2), w, h, 1), w, h, 3);
         // 5. 再给产品边缘留一圈保护带
         // 6. 产品围起来的背景挖出来，不然线圈中间的瑕疵永远修不掉
         // 7. 颜色贴着背景的成片误判还回背景
         var withGuard = dilate(sm, w, h, 3);
-        var noBg = unmaskLikeBg(withGuard, data, w, h, rowBg, 45);
-        return openHoles(noBg, w, h);
+        var noBg = unmaskLikeBg(withGuard, data, w, h, rowBg, 18);
+        return fillSolidBody(openHoles(noBg, w, h, data, rowBg), w, h);
     }
 
     // 只保留最大连通域，去掉背景上被误判的孤立点
@@ -1115,6 +1131,95 @@
         var inv2 = new Uint8Array(w * h);
         for (var k = 0; k < w * h; k++) inv2[k] = e[k] ? 0 : 1;
         return dilate(inv2, w, h, r);          // 再膨胀回来
+    }
+
+    // 半透明/浅色产品（磨砂瓶、亚克力、玻璃）：内部颜色和背景几乎一样，
+    // 靠颜色永远分不干净，只能靠形状——整体是个"实心块"就按行填满；
+    // 线圈那种"环形"结构填充率低，保持原样不填。
+    function fillSolidBody(mask, w, h) {
+        var n = w * h;
+        var comp = new Int32Array(n);
+        var stack = new Int32Array(n);
+        var best = 0, bestArea = 0, cid = 0;
+        var x, y, q, t;
+        for (var i = 0; i < n; i++) {
+            if (!mask[i] || comp[i]) continue;
+            cid++;
+            var area = 0;
+            q = 0; stack[q++] = i; comp[i] = cid;
+            while (q > 0) {
+                t = stack[--q]; area++;
+                x = t % w; y = (t - x) / w;
+                if (x > 0 && mask[t - 1] && !comp[t - 1]) { comp[t - 1] = cid; stack[q++] = t - 1; }
+                if (x < w - 1 && mask[t + 1] && !comp[t + 1]) { comp[t + 1] = cid; stack[q++] = t + 1; }
+                if (y > 0 && mask[t - w] && !comp[t - w]) { comp[t - w] = cid; stack[q++] = t - w; }
+                if (y < h - 1 && mask[t + w] && !comp[t + w]) { comp[t + w] = cid; stack[q++] = t + w; }
+            }
+            if (area > bestArea) { bestArea = area; best = cid; }
+        }
+        if (!best) return mask;
+        // 必须是"一整块实体"才填。线圈那种被分成几段的，最大段占比低，不能填
+        var maskTotal2 = 0;
+        for (var m2 = 0; m2 < n; m2++) if (mask[m2]) maskTotal2++;
+        if (bestArea / maskTotal2 < 0.7) return mask;
+        var minX = w, maxX = -1, minY = h, maxY = -1;
+        for (var k = 0; k < n; k++) {
+            if (comp[k] !== best) continue;
+            x = k % w; y = (k - x) / w;
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+        }
+        var bw = maxX - minX + 1, bh = maxY - minY + 1;
+        if (bw < 8 || bh < 8) return mask;
+        if (bestArea / (bw * bh) < 0.6) return mask;   // 环形/镂空结构，不填
+        var out = new Uint8Array(mask);
+        for (var yy = minY; yy <= maxY; yy++) {
+            var L = -1, R = -1;
+            for (var xx = minX; xx <= maxX; xx++) {
+                if (comp[yy * w + xx] === best) { if (L < 0) L = xx; R = xx; }
+            }
+            if (L < 0) continue;
+            for (var xf = L; xf <= R; xf++) out[yy * w + xf] = 1;
+        }
+        return out;
+    }
+
+    // 多数投票平滑：把轮廓上凸出来/凹进去的小方块抹平（投影误判常见）
+    function smoothMask(mask, w, h, r) {
+        var W = w + 1;
+        var S = new Float64Array(W * (h + 1));
+        for (var y = 0; y < h; y++) {
+            var rowSum = 0;
+            for (var x = 0; x < w; x++) {
+                rowSum += mask[y * w + x];
+                S[(y + 1) * W + (x + 1)] = S[y * W + (x + 1)] + rowSum;
+            }
+        }
+        var out = new Uint8Array(w * h);
+        for (var y2 = 0; y2 < h; y2++) {
+            var y0 = y2 - r < 0 ? 0 : y2 - r;
+            var y1 = y2 + r >= h ? h - 1 : y2 + r;
+            for (var x2 = 0; x2 < w; x2++) {
+                var x0 = x2 - r < 0 ? 0 : x2 - r;
+                var x1 = x2 + r >= w ? w - 1 : x2 + r;
+                var sum = S[(y1 + 1) * W + (x1 + 1)] - S[y0 * W + (x1 + 1)] - S[(y1 + 1) * W + x0] + S[y0 * W + x0];
+                var cnt = (y1 - y0 + 1) * (x1 - x0 + 1);
+                out[y2 * w + x2] = sum / cnt >= 0.5 ? 1 : 0;
+            }
+        }
+        return out;
+    }
+
+    // 腐蚀：把产品往里收，用来判断哪些是产品内部深处
+    function erodeMask(mask, w, h, px) {
+        var inv = new Uint8Array(w * h);
+        for (var i = 0; i < w * h; i++) inv[i] = mask[i] ? 0 : 1;
+        var d = dilate(inv, w, h, px);
+        var out = new Uint8Array(w * h);
+        for (var k = 0; k < w * h; k++) out[k] = d[k] ? 0 : 1;
+        return out;
     }
 
     // 膨胀，给产品边缘留保护带
@@ -1795,7 +1900,16 @@
                 var softB = null;
 
                 function doProd() {
-                    if (prodR <= 0) return finish();
+                    if (prodR <= 0) {
+                        // 产品力度为 0 时产品必须一个像素都不动：
+                        // 背景那一步的柔化会顺着羽化带渗进产品，这里强制还原原图
+                        for (var pi0 = 0; pi0 < pw * ph; pi0++) {
+                            if (!pmask[pi0]) continue;
+                            var q0 = pi0 * 3;
+                            acc[q0] = pd[pi0 * 4]; acc[q0 + 1] = pd[pi0 * 4 + 1]; acc[q0 + 2] = pd[pi0 * 4 + 2];
+                        }
+                        return finish();
+                    }
                     $('busyTxt').textContent = '正在修产品…';
                     var reg = new Uint8Array(pw * ph);
                     for (var k = 0; k < pw * ph; k++) reg[k] = pmask[k] ? 1 : 0;
