@@ -907,36 +907,10 @@
         var rowBg = bgRows(data, w, h);
         var clean = denoise(rawMask(data, w, h, rowBg, 30), w, h);
 
-        // 4. 可分离膨胀 6px，给产品边缘留保护带
-        var DIL = 6, span = DIL * 2 + 1;
-        var tmpB = new Uint8Array(w * h);
-        var run;
-        for (var y3 = 0; y3 < h; y3++) {
-            run = 0;
-            for (var x3 = 0; x3 < w; x3++) {
-                if (clean[y3 * w + x3]) run = span;
-                if (run > 0) { tmpB[y3 * w + x3] = 1; run--; }
-            }
-            run = 0;
-            for (var x4 = w - 1; x4 >= 0; x4--) {
-                if (clean[y3 * w + x4]) run = span;
-                if (run > 0) { tmpB[y3 * w + x4] = 1; run--; }
-            }
-        }
-        var out = new Uint8Array(w * h);
-        for (var x5 = 0; x5 < w; x5++) {
-            run = 0;
-            for (var y4 = 0; y4 < h; y4++) {
-                if (tmpB[y4 * w + x5]) run = span;
-                if (run > 0) { out[y4 * w + x5] = 1; run--; }
-            }
-            run = 0;
-            for (var y5 = h - 1; y5 >= 0; y5--) {
-                if (tmpB[y5 * w + x5]) run = span;
-                if (run > 0) { out[y5 * w + x5] = 1; run--; }
-            }
-        }
-        return out;
+        // 4. 先把小凹口填掉、小凸起削掉，轮廓才贴合产品
+        var sm = openMask(closeMask(clean, w, h, 3), w, h, 2);
+        // 5. 再给产品边缘留一圈保护带
+        return dilate(sm, w, h, 5);
     }
 
     // 只保留最大连通域，去掉背景上被误判的孤立点
@@ -950,6 +924,16 @@
         var out = new Uint8Array(w * h);
         for (var k = 0; k < w * h; k++) out[k] = e[k] ? 0 : 1;
         return out;
+    }
+
+    // 开运算：削掉轮廓上凸出去的小毛刺
+    function openMask(mask, w, h, r) {
+        var inv = new Uint8Array(w * h);
+        for (var i = 0; i < w * h; i++) inv[i] = mask[i] ? 0 : 1;
+        var e = dilate(inv, w, h, r);          // 腐蚀
+        var inv2 = new Uint8Array(w * h);
+        for (var k = 0; k < w * h; k++) inv2[k] = e[k] ? 0 : 1;
+        return dilate(inv2, w, h, r);          // 再膨胀回来
     }
 
     // 膨胀，给产品边缘留保护带
