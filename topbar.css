@@ -34,7 +34,7 @@
   font-size:14px;color:#9a94b8;margin-top:2px;display:block;
 }
 #ns-topbar .tagline{
-  font-size:14.5px;color:#6a6483;white-space:nowrap;
+  font-size:18.5px;color:#000;white-space:nowrap;font-weight:600;
   padding-left:14px;border-left:1px solid #e6e2f5;margin-left:2px;
 }
 
