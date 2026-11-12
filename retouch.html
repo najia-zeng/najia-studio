@@ -1150,7 +1150,8 @@
             return { r: Math.max(1, Math.round(r * sc)), t: Math.round(r * 1.2) };
         }
         var r2 = parseInt($('slProd').value, 10);
-        return { r: Math.max(1, Math.round(r2 * sc)), t: 8 + r2 * 2 };
+        // 阈值压低：只有真跟周围很接近的才平均，产品边缘和纹理不被抹掉
+        return { r: Math.max(1, Math.round(r2 * sc)), t: Math.round(4 + r2 * 1.5) };
     }
 
     // 拖滑块的快速预览：缩到 600px，背景和产品一起算，秒出
