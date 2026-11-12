@@ -1049,7 +1049,7 @@
     /* ---------------- 蒙尘与划痕 ---------------- */
 
     // 单方向选择性平滑：只平均跟中心颜色接近的像素，离群的不参与
-    function dsPass(src, dst, w, h, radius, threshold, horizontal, region, y0, y1) {
+    function dsPass(src, dst, w, h, radius, threshold, horizontal, region, y0, y1, keepDetail) {
         var r = radius;
         if (y0 === undefined) y0 = 0;
         if (y1 === undefined) y1 = h;
@@ -1067,6 +1067,7 @@
                 var flo = 999, fhi = -999;                    // 不接近那批的亮度范围
                 var an = 0;
                 for (var d = -r; d <= r; d++) {
+                    if (d === 0) continue;   // 中心自己不算邻居，不然"孤立点"判不出来
                     var nx = horizontal ? x + d : x;
                     var ny = horizontal ? y : y + d;
                     if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
@@ -1086,9 +1087,21 @@
                 var fSpread = fn > 0 ? (fhi - flo) : 999;
 
                 if (n >= an * 0.6) {
-                    // 中心跟多数邻居相近 → 正常像素，只跟同类平均，保住纹理
-                    dst[q] = sr / n; dst[q + 1] = sg / n; dst[q + 2] = sb / n;
-                } else if (n <= an * 0.35 && fn > 0 && fSpread <= threshold * 4) {
+                    if (keepDetail) {
+                        // 产品区：正常像素原样保留，只清孤立脏点，纹理一点不动
+                        dst[q] = cr; dst[q + 1] = cg; dst[q + 2] = cb;
+                    } else {
+                        // 背景区：只跟同类平均，保住渐变和纹理
+                        dst[q] = sr / n; dst[q + 1] = sg / n; dst[q + 2] = sb / n;
+                    }
+                } else if (keepDetail) {
+                    // 产品区：绝大多数邻居都跟中心不像、邻居之间又干净一致 → 中心是孤立浮尘
+                    if (fn > 0 && fn >= an * 0.7 && fSpread <= threshold * (2 + r * 0.5)) {
+                        dst[q] = fr / fn; dst[q + 1] = fg / fn; dst[q + 2] = fb / fn;
+                    } else {
+                        dst[q] = cr; dst[q + 1] = cg; dst[q + 2] = cb;
+                    }
+                } else if (n <= an * 0.3 && fn > 0 && fSpread <= threshold * 2) {
                     // 中心是少数派、多数派内部干净一致 → 中心是脏点，用干净邻居盖掉
                     dst[q] = fr / fn; dst[q + 1] = fg / fn; dst[q + 2] = fb / fn;
                 } else {
@@ -1100,16 +1113,16 @@
     }
 
     // 先横后纵，O(r) 而不是 O(r^2)
-    function dustScratches(src, w, h, radius, threshold, region) {
+    function dustScratches(src, w, h, radius, threshold, region, keepDetail) {
         var tmp = new Float32Array(src.length);
         var dst = new Float32Array(src.length);
-        dsPass(src, tmp, w, h, radius, threshold, true, region);
-        dsPass(tmp, dst, w, h, radius, threshold, false, region);
+        dsPass(src, tmp, w, h, radius, threshold, true, region, 0, h, keepDetail);
+        dsPass(tmp, dst, w, h, radius, threshold, false, region, 0, h, keepDetail);
         return dst;
     }
 
     // 分块跑，每 40ms 让出主线程，大图不卡死、能报进度
-    function dustScratchesAsync(src, w, h, radius, threshold, region, done, prog) {
+    function dustScratchesAsync(src, w, h, radius, threshold, region, done, prog, keepDetail) {
         var tmp = new Float32Array(src.length);
         var dst = new Float32Array(src.length);
         var CHUNK = Math.max(32, Math.min(256, Math.ceil(h / 16)));
@@ -1124,9 +1137,9 @@
                 var y0 = cur - base;
                 var y1 = Math.min(h, y0 + CHUNK);
                 if (horiz) {
-                    dsPass(src, tmp, w, h, radius, threshold, true, region, y0, y1);
+                    dsPass(src, tmp, w, h, radius, threshold, true, region, y0, y1, keepDetail);
                 } else {
-                    dsPass(tmp, dst, w, h, radius, threshold, false, region, y0, y1);
+                    dsPass(tmp, dst, w, h, radius, threshold, false, region, y0, y1, keepDetail);
                 }
                 cur = base + y1;
                 if (performance.now() - t0 > 40) break;
@@ -1149,8 +1162,10 @@
             return { r: Math.max(1, Math.round(r * sc)), t: Math.round(r * 1.2) };
         }
         var r2 = parseInt($('slProd').value, 10);
-        // 阈值压低：只有真跟周围很接近的才平均，产品边缘和纹理不被抹掉
-        return { r: Math.max(1, Math.round(r2 * sc)), t: Math.round(4 + r2 * 1.5) };
+        // 窗口至少 5×5：太小判不准"孤立点"，会把纹理当脏点
+        var rr = Math.max(1, Math.round(r2 * sc));
+        if (rr < 2) rr = 2;
+        return { r: rr, t: Math.round(4 + r2 * 1.5) };
     }
 
     // 拖滑块的快速预览：缩到 600px，背景和产品一起算，秒出
@@ -1222,7 +1237,7 @@
             var regP = new Uint8Array(pw * ph);
             for (var k2 = 0; k2 < pw * ph; k2++) regP[k2] = pmask[k2] ? 1 : 0;
             var prP = radiusParams(false, pscale);
-            var resP = dustScratches(floatBuf(), pw, ph, prP.r, prP.t, regP);
+            var resP = dustScratches(floatBuf(), pw, ph, prP.r, prP.t, regP, true);
             var softP = softB ? null : softRegionEdge(regP, pw, ph, Math.max(1, Math.round(6 * pscale)));
             for (var p2 = 0; p2 < pw * ph; p2++) {
                 var a2 = softP ? softP[p2] : (1 - softB[p2]);
@@ -1388,7 +1403,7 @@
                         } catch (e2) { fail(e2); }
                     }, function (pct) {
                         $('busyTxt').textContent = '正在修产品 ' + Math.round(pct * 100) + '%';
-                    });
+                    }, true);
                 }
 
                 function doBg() {
