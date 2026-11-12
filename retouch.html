@@ -928,7 +928,7 @@
         // 4. 先把小凹口填掉、小凸起削掉，轮廓才贴合产品
         var sm = openMask(closeMask(clean, w, h, 4), w, h, 2);
         // 5. 再给产品边缘留一圈保护带
-        return dilate(sm, w, h, 6);
+        return dilate(sm, w, h, 10);
     }
 
     // 只保留最大连通域，去掉背景上被误判的孤立点
@@ -1160,6 +1160,27 @@
         }
     }
 
+    // 模糊前把产品区用同行最近的背景色填掉：不然产品的颜色会被糊进背景，边缘起一圈光
+    function fillOutside(buf, w, h, region) {
+        var tmp = new Float32Array(buf);
+        for (var y = 0; y < h; y++) {
+            var row = y * w;
+            var lq = -1;
+            for (var x = 0; x < w; x++) {
+                var i = row + x;
+                if (region[i]) { lq = i * 3; }
+                else if (lq >= 0) { tmp[i * 3] = tmp[lq]; tmp[i * 3 + 1] = tmp[lq + 1]; tmp[i * 3 + 2] = tmp[lq + 2]; }
+            }
+            var rq = -1;
+            for (var x2 = w - 1; x2 >= 0; x2--) {
+                var i2 = row + x2;
+                if (region[i2]) { rq = i2 * 3; }
+                else if (rq >= 0 && lq < 0) { tmp[i2 * 3] = tmp[rq]; tmp[i2 * 3 + 1] = tmp[rq + 1]; tmp[i2 * 3 + 2] = tmp[rq + 2]; }
+            }
+        }
+        return tmp;
+    }
+
     function gaussApprox(src, w, h, r) {
         var a = new Float32Array(src);
         var b = new Float32Array(src.length);
@@ -1248,8 +1269,10 @@
         }
         var seq = ++previewSeq;
         var w = imgW, h = imgH;
-        // 预览尽量按原尺寸算：缩得太狠再放大回去，脏点周围会出现一圈假影
-        var pscale = Math.min(1, 1400 / Math.max(w, h));
+        // 预览尽量按原尺寸算：缩得太狠再放大回去，背景会起雾、脏点周围出现假影
+        var bgNow = parseInt($('slBg').value, 10);
+        var pvCap = bgNow > 6 ? 3000 : 1400;
+        var pscale = Math.min(1, pvCap / Math.max(w, h));
         var pw = Math.max(1, Math.round(w * pscale));
         var ph = Math.max(1, Math.round(h * pscale));
 
@@ -1289,17 +1312,25 @@
         if (bgR > 0) {
             var prB = radiusParams(true, pscale);
             // 半径越大，越不能让产品边缘的亮像素卷进背景平均，否则产品会被描一圈光
-            var guardB = Math.max(1, Math.round(Math.max(prB.r, prB.blurR) * 1.1));
+            var guardB = Math.max(2, Math.round(Math.max(prB.r, prB.blurR) * 0.35));
             var keepB = dilate(pmask, pw, ph, guardB);
             var regB = new Uint8Array(pw * ph);
             for (var k = 0; k < pw * ph; k++) regB[k] = keepB[k] ? 0 : 1;
             var resB;
             if (prB.blurA > 0) {
                 // 大力度直接整片模糊：大半径 D&S 会在每个脏点周围留下环状伪影
-                var baseB = floatBuf();
-                var blB = gaussApprox(baseB, pw, ph, prB.blurR);
+                var origB = floatBuf();
+                var blB = gaussApprox(fillOutside(origB, pw, ph, regB), pw, ph, prB.blurR);
                 var ia = 1 - prB.blurA;
-                for (var bi = 0; bi < baseB.length; bi++) baseB[bi] = baseB[bi] * ia + blB[bi] * prB.blurA;
+                var baseB = new Float32Array(origB.length);
+                for (var bi = 0; bi < origB.length; bi++) baseB[bi] = origB[bi] * ia + blB[bi] * prB.blurA;
+                // 产品区一律还原：模糊是给背景用的，产品一根线都不能动
+                for (var pi = 0; pi < pw * ph; pi++) {
+                    if (!regB[pi]) {
+                        var q3 = pi * 3;
+                        baseB[q3] = origB[q3]; baseB[q3 + 1] = origB[q3 + 1]; baseB[q3 + 2] = origB[q3 + 2];
+                    }
+                }
                 resB = baseB;
             } else {
                 resB = dustScratches(floatBuf(), pw, ph, prB.r, prB.t, regB);
@@ -1416,9 +1447,10 @@
                 var t0 = performance.now();
                 var w = imgW, h = imgH;
                 // 半径越大越吃算力，背景力度拉很高时把处理尺寸压下来
+                // 背景走整片柔化时全分辨率算：先缩小再放大，背景会糊出一层雾
                 var maxProc = MAXPROC;
-                if (bgR > 28) maxProc = 1200;
-                else if (bgR > 18) maxProc = 1600;
+                if (bgR > 6) maxProc = 3000;
+                else if (bgR > 0) maxProc = 1800;
                 var pscale = Math.min(1, maxProc / Math.max(w, h));
                 var pw = Math.max(1, Math.round(w * pscale));
                 var ph = Math.max(1, Math.round(h * pscale));
@@ -1496,7 +1528,7 @@
                     if (bgR <= 0) return doProd();
                     $('busyTxt').textContent = '正在修背景…';
                     var pr = radiusParams(true, pscale);
-                    var guardB = Math.max(1, Math.round(Math.max(pr.r, pr.blurR) * 1.1));
+                    var guardB = Math.max(2, Math.round(Math.max(pr.r, pr.blurR) * 0.35));
                     var keepB = dilate(pmask, pw, ph, guardB);
                     var reg = new Uint8Array(pw * ph);
                     for (var k = 0; k < pw * ph; k++) reg[k] = keepB[k] ? 0 : 1;
@@ -1511,10 +1543,17 @@
                         // 大力度直接整片模糊，不做 D&S，避免环状伪影
                         setTimeout(function () {
                             try {
-                                var base = inputBuf();
-                                var bl = gaussApprox(base, pw, ph, pr.blurR);
+                                var origA = inputBuf();
+                                var bl = gaussApprox(fillOutside(origA, pw, ph, reg), pw, ph, pr.blurR);
                                 var ia = 1 - pr.blurA;
-                                for (var bi = 0; bi < base.length; bi++) base[bi] = base[bi] * ia + bl[bi] * pr.blurA;
+                                var base = new Float32Array(origA.length);
+                                for (var bi = 0; bi < origA.length; bi++) base[bi] = origA[bi] * ia + bl[bi] * pr.blurA;
+                                for (var pi = 0; pi < pw * ph; pi++) {
+                                    if (!reg[pi]) {
+                                        var q3 = pi * 3;
+                                        base[q3] = origA[q3]; base[q3 + 1] = origA[q3 + 1]; base[q3 + 2] = origA[q3 + 2];
+                                    }
+                                }
                                 bgDone(base);
                             } catch (e0) { fail(e0); }
                         }, 0);
