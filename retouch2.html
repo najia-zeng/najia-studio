@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>产品图修补 · NaStudio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="topbar.css">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+        --bg: #f7f7fb; --panel: #ffffff; --panel-2: #fafaff;
+        --border: #e7e7f0; --text: #1b1b2f; --text-sec: #7b7b93;
+        --accent: #6b5ce7; --accent-h: #5a4bd6;
+        --grad: linear-gradient(135deg, #6b5ce7 0%, #4a7cf7 100%);
+        --danger: #e05c5c; --ok: #10a06a;
+        --radius: 16px; --radius-s: 12px;
+    }
+    body {
+        font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text); background: var(--bg);
+        height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+    }
+
+    /* 顶栏：复用全站 topbar，白底 */
+    #ns-topbar { flex-shrink: 0; background: #fff; }
+
+    /* 页面标题条：跟全站其它工具页同一套视觉语言 */
+    .pg-hdr {
+        flex-shrink: 0; height: 76px; display: flex; align-items: center; gap: 20px;
+        padding: 0 32px; position: relative;
+        background: linear-gradient(100deg, #ffffff 0%, #fbfaff 42%, #f2efff 100%);
+        border-bottom: 1px solid var(--border);
+    }
+    .pg-hdr::after {
+        content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+        background: var(--grad); opacity: .5;
+    }
+    .pg-hd-l { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .pg-title {
+        font-size: 22px; font-weight: 750; letter-spacing: -.5px; line-height: 1.15;
+        background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .pg-sub { font-size: 12.5px; color: var(--text-sec); }
+    .pg-tag {
+        margin-left: auto; flex-shrink: 0; display: flex; align-items: center; gap: 7px;
+        font-size: 12.5px; color: #6b5ce7; background: rgba(107,92,231,.08);
+        border: 1px solid rgba(107,92,231,.18); border-radius: 999px;
+        padding: 7px 15px; font-weight: 500;
+    }
+    .pg-tag i { width: 6px; height: 6px; border-radius: 50%; background: var(--grad); display: block; }
+
+    .work { flex: 1; display: flex; min-height: 0; }
+
+    /* ---------- 侧栏 ---------- */
+    .side {
+        width: 320px; flex-shrink: 0; background: var(--panel);
+        border-right: 1px solid var(--border);
+        display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .side-hd { padding: 20px 20px 14px; border-bottom: 1px solid var(--border); }
+    .side-title {
+        font-size: 20px; font-weight: 700; letter-spacing: -.4px;
+        background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .side-sub { font-size: 12px; color: var(--text-sec); margin-top: 5px; line-height: 1.6; }
+
+    .sec { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .sec:first-child { padding-top: 18px; }
+    .sec-t { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -.2px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .sec-t b { color: var(--text); font-weight: 600; }
+
+    .seg { display: flex; gap: 6px; margin-bottom: 10px; }
+    .seg-b { flex: 1; padding: 7px 0; font-size: 12.5px; border: 1px solid var(--border);
+             background: var(--panel-2); border-radius: 9px; cursor: pointer;
+             color: var(--text-sec); font-family: inherit; transition: .15s; }
+    .seg-b:hover { border-color: #cfc9f0; color: var(--text); }
+    .seg-b.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+    .chk { display: flex; align-items: center; gap: 8px; font-size: 12.5px;
+           color: var(--text-sec); margin-top: 11px; cursor: pointer; user-select: none; }
+    .chk input { width: 14px; height: 14px; accent-color: var(--accent); cursor: pointer; }
+    .badge { font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 600; }
+    .badge.ok { background: rgba(16,160,106,.12); color: var(--ok); }
+    .badge.warn { background: rgba(224,92,92,.12); color: var(--danger); }
+
+    /* 上传区 */
+    .drop {
+        border: 1.5px dashed var(--border); border-radius: var(--radius);
+        padding: 26px 16px; text-align: center; cursor: pointer;
+        transition: all .18s; background: var(--panel-2);
+    }
+    .drop:hover, .drop.over { border-color: var(--accent); background: rgba(107,92,231,.08); }
+    .drop-ico { font-size: 26px; opacity: .5; margin-bottom: 8px; }
+    .drop-t { font-size: 13px; font-weight: 500; }
+    .drop-s { font-size: 11.5px; color: var(--text-sec); margin-top: 5px; line-height: 1.6; }
+
+    /* 笔刷 */
+    .brush-row { display: flex; align-items: center; gap: 12px; }
+    .brush-preview {
+        width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+        background: rgba(224,92,92,.28); border: 1px solid rgba(224,92,92,.55);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .brush-dot { border-radius: 50%; background: rgba(224,92,92,.85); }
+    input[type=range] {
+        flex: 1; -webkit-appearance: none; appearance: none;
+        height: 4px; border-radius: 2px; background: var(--border); outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+        background: var(--grad); cursor: pointer; border: 2px solid var(--panel);
+        box-shadow: 0 2px 6px rgba(107,92,231,.28);
+    }
+    input[type=range]::-moz-range-thumb {
+        width: 14px; height: 14px; border-radius: 50%; background: #6b5ce7;
+        cursor: pointer; border: 2px solid var(--panel);
+    }
+
+    /* 按钮 */
+    .btn {
+        width: 100%; padding: 11px 16px; border-radius: 10px; border: 1px solid var(--border);
+        background: var(--panel-2); color: var(--text); font-size: 13px; font-weight: 500;
+        font-family: inherit; cursor: pointer; transition: all .15s;
+        display: flex; align-items: center; justify-content: center; gap: 7px;
+    }
+    .btn:hover:not(:disabled) { background: #f2f0fc; border-color: #cfc9f0; }
+    .btn:disabled { opacity: .38; cursor: not-allowed; }
+    .btn-main { background: var(--grad); border-color: transparent; color: #fff; font-weight: 600; }
+    .btn-main:hover:not(:disabled) { filter: brightness(1.12); background: var(--grad); }
+    .btn-main:disabled { background: #f3f2f8; color: #b8b5cc; border-color: #e7e7f0; opacity: 1; }
+    .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-row .btn { flex: 1; }
+
+    .hint { font-size: 11.5px; color: var(--text-sec); line-height: 1.65; margin-top: 10px; }
+    .hint b { color: #5a5872; font-weight: 500; }
+
+    /* ---------- 画布区 ---------- */
+    .stage-wrap {
+        flex: 1; min-width: 0; position: relative; overflow: hidden;
+        box-shadow: inset 0 1px 0 var(--border);
+        display: flex; align-items: center; justify-content: center;
+        background:
+            linear-gradient(45deg, #f2f1f9 25%, transparent 25%, transparent 75%, #f2f1f9 75%) 0 0/22px 22px,
+            linear-gradient(45deg, #f2f1f9 25%, transparent 25%, transparent 75%, #f2f1f9 75%) 11px 11px/22px 22px,
+            #faf9fd;
+    }
+    .stage-inner { display: flex; flex-direction: column; align-items: center; max-width: 100%; max-height: 100%; }
+    .stage { position: relative; line-height: 0; box-shadow: 0 6px 26px rgba(60,50,120,.12); }
+    .stage canvas { display: block; }
+    #cvPreview { position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+        pointer-events: none; display: none; }
+    .stage-tools { display: flex; gap: 8px; justify-content: center; padding: 14px 0 18px; }
+    .stage-tools .btn { width: auto; flex: none; padding: 9px 24px; }
+
+    /* 力度滑块 */
+    .sec.off .sld, .sec.off .hint { opacity: .38; }
+    .sld { display: flex; align-items: center; gap: 11px; margin-bottom: 12px; }
+    .sld-l { font-size: 12px; color: var(--text-sec); flex: none; }
+    .sld-v { font-size: 12.5px; color: var(--text); font-weight: 600; min-width: 22px; text-align: right; }
+    .sld input[type=range] {
+        flex: 1; -webkit-appearance: none; appearance: none;
+        height: 4px; border-radius: 3px; background: var(--panel-2); outline: none; cursor: pointer;
+    }
+    .sld input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+        background: var(--accent); cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(107,92,231,.35);
+    }
+    .sld input[type=range]::-moz-range-thumb {
+        width: 16px; height: 16px; border-radius: 50%;
+        background: var(--accent); cursor: pointer; border: none;
+    }
+    #cvMask {
+        position: absolute; left: 0; top: 0; pointer-events: none;
+    }
+    #cvCursor {
+        position: absolute; border-radius: 50%; pointer-events: none;
+        border: 1px solid rgba(0,0,0,.35);
+        background: rgba(224,92,92,.16);
+        transform: translate(-50%, -50%); display: none;
+    }
+
+    /* 空态 */
+    .empty {
+        text-align: center; color: var(--text-sec); padding: 40px;
+    }
+    .empty-ico { font-size: 44px; opacity: .34; margin-bottom: 16px; }
+    .empty-t { font-size: 15px; color: #8a87a8; margin-bottom: 7px; }
+    .empty-s { font-size: 12.5px; line-height: 1.7; }
+
+    /* 处理中遮罩 */
+    .busy {
+        position: absolute; inset: 0; background: rgba(255,255,255,.86);
+        display: none; align-items: center; justify-content: center; flex-direction: column;
+        gap: 14px; z-index: 20; backdrop-filter: blur(3px);
+    }
+    .busy.on { display: flex; }
+    .spinner {
+        width: 34px; height: 34px; border: 3px solid rgba(107,92,231,.25);
+        border-top-color: var(--accent); border-radius: 50%;
+        animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .busy-t { font-size: 13px; color: #7b7b93; }
+
+    /* 对比提示 */
+    .cmp-badge {
+        position: absolute; left: 50%; top: 16px; transform: translateX(-50%);
+        background: rgba(0,0,0,.72); color: #fff; font-size: 12px;
+        padding: 6px 14px; border-radius: 999px; display: none; z-index: 15;
+        border: 1px solid rgba(255,255,255,.14);
+    }
+    .cmp-badge.on { display: block; }
+
+    /* 步骤提示 */
+    .steps { display: flex; gap: 6px; margin-bottom: 12px; }
+    .step {
+        flex: 1; text-align: center; font-size: 11px; padding: 6px 4px;
+        border-radius: 7px; background: var(--panel-2); color: var(--text-sec);
+        border: 1px solid transparent; transition: all .2s;
+    }
+    .step.on { background: rgba(107,92,231,.10); color: #6b5ce7; border-color: rgba(107,92,231,.35); font-weight: 600; }
+    .step.done { color: var(--ok); }
+
+    /* 移动端 */
+    @media (max-width: 860px) {
+        body { height: auto; overflow: auto; }
+        .work { flex-direction: column; }
+        .side { width: 100%; max-height: none; border-right: none; border-bottom: 1px solid var(--border); }
+        .stage-wrap { min-height: 58vh; }
+        .pg-hdr { height: auto; padding: 13px 18px 14px; flex-wrap: wrap; gap: 9px; }
+        .pg-title { font-size: 19px; }
+        .pg-sub { font-size: 11.5px; line-height: 1.45; }
+        .pg-tag { margin-left: 0; padding: 5px 12px; font-size: 11.5px; }
+    }
+</style>
+</head>
+<body>
+
+<div id="ns-topbar"></div>
+
+<div class="pg-hdr">
+    <div class="pg-hd-l">
+        <div class="pg-title">产品图修瑕疵</div>
+        <div class="pg-sub">擦掉多余的倒影、背景杂物和产品表面浮尘，产品本身不变</div>
+    </div>
+    <div class="pg-tag"><i></i>本地处理 · 图片不上传服务器</div>
+</div>
+
+<div class="work">
+    <!-- ============ 侧栏 ============ -->
+    <aside class="side">
+        <div class="sec">
+            <div class="steps">
+                <div class="step on" id="st1">1 上传</div>
+                <div class="step" id="st2">2 修补</div>
+                <div class="step" id="st3">3 下载</div>
+            </div>
+            <div class="drop" id="drop">
+                <div class="drop-ico">🖼</div>
+                <div class="drop-t">点击上传 · 拖进来 · 粘贴</div>
+                <div class="drop-s">支持 JPG / PNG，建议不超过 4000px</div>
+            </div>
+            <input type="file" id="file" accept="image/*" hidden>
+        </div>
+
+        <div class="sec off" id="secBg">
+            <div class="sec-t">背景</div>
+            <div class="sld">
+                <span class="sld-l">力度</span>
+                <input type="range" id="slBg" min="0" max="50" value="0" step="1" disabled>
+                <b class="sld-v" id="slBgVal">—</b>
+            </div>
+            <div class="hint">小力度清灰尘杂物，拉大了整片背景会柔下来。瑕疵多就直接拉大，拖到 0 是不修。</div>
+        </div>
+
+        <div class="sec off" id="secProd">
+            <div class="sec-t">产品</div>
+            <div class="sld">
+                <span class="sld-l">力度</span>
+                <input type="range" id="slProd" min="0" max="6" value="0" step="1" disabled>
+                <b class="sld-v" id="slProdVal">—</b>
+            </div>
+            <div class="hint">只清产品表面的浮尘小点，纹理和边缘不动。拖到 0 是不修。</div>
+        </div>
+
+        <div class="sec">
+            <button class="btn btn-main" id="btnApply" disabled>确定</button>
+            <div class="hint" id="autoInfo" style="display:none;"></div>
+        </div>
+
+    </aside>
+
+    <!-- ============ 画布 ============ -->
+    <div class="stage-wrap" id="stageWrap">
+        <div class="empty" id="empty">
+            <div class="empty-ico">🖼</div>
+            <div class="empty-t">先上传一张产品图</div>
+            <div class="empty-s">涂掉想删的东西，点一下就好<br>产品部分不会被改动</div>
+        </div>
+
+        <div class="stage-inner">
+            <div class="stage" id="stage" style="display:none;">
+                <canvas id="cvBase"></canvas>
+                <canvas id="cvPreview"></canvas>
+                <canvas id="cvMask"></canvas>
+                <div id="cvCursor"></div>
+            </div>
+            <div class="stage-tools" id="stageTools" style="display:none;">
+                <button class="btn" id="btnCmp">按住看原图</button>
+                <button class="btn btn-main" id="btnDl">下载</button>
+            </div>
+        </div>
+
+        <div class="cmp-badge" id="cmpBadge">原图</div>
+
+        <div class="busy" id="busy">
+            <div class="spinner"></div>
+            <div class="busy-t" id="busyTxt">正在修补…</div>
+        </div>
+    </div>
+</div>
+
+<script src="topbar.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var $ = function (id) { return document.getElementById(id); };
+
+    var cvBase = $('cvBase'), cvMask = $('cvMask'), cvCursor = $('cvCursor');
+    var ctxBase = cvBase.getContext('2d', { willReadFrequently: true });
+    var ctxMask = cvMask.getContext('2d', { willReadFrequently: true });
+
+    var imgW = 0, imgH = 0;
+    var strokes = [];          // 涂抹轨迹，用于撤销重绘
+    var curStroke = null;
+    var drawing = false;
+    var brushSize = 40;
+    var originalData = null;   // 修补前的像素备份，用于"按住看原图"
+    var origCanvas = null;     // 原图离屏画布，每次调力度都从它重算，不叠加上一次
+    var hasResult = false;
+    var prodMask = null;       // 产品识别结果，1 = 产品
+    var maskOn = false;        // 是否显示产品分界
+    var userPicked = false;    // 用户是否手动点过产品
+    var previewTimer = null;   // 拖滑块时的预览节流
+    var previewSeq = 0;
+    var previewShown = false;  // 预览层当前是否盖在画布上
+
+    /* ---------------- 上传 ---------------- */
+
+    $('drop').addEventListener('click', function () { $('file').click(); });
+    $('file').addEventListener('change', function (e) {
+        if (e.target.files && e.target.files[0]) loadFile(e.target.files[0]);
+    });
+
+    ['dragenter', 'dragover'].forEach(function (ev) {
+        $('drop').addEventListener(ev, function (e) { e.preventDefault(); $('drop').classList.add('over'); });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+        $('drop').addEventListener(ev, function (e) { e.preventDefault(); $('drop').classList.remove('over'); });
+    });
+    $('drop').addEventListener('drop', function (e) {
+        var f = e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) loadFile(f);
+    });
+
+    // 粘贴上传
+    document.addEventListener('paste', function (e) {
+        var items = e.clipboardData && e.clipboardData.items;
+        if (!items) return;
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') === 0) {
+                loadFile(items[i].getAsFile());
+                break;
+            }
+        }
+    });
+
+    function loadFile(file) {
+        if (!file || file.type.indexOf('image') !== 0) return;
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            var img = new Image();
+            img.onload = function () { setupImage(img); };
+            img.onerror = function () { alert('图片读不出来，换一张试试'); };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function setupImage(img) {
+        imgW = img.naturalWidth;
+        imgH = img.naturalHeight;
+
+        // 超大图先缩到 2400px 以内，浮点缓冲吃内存，再大移动端会崩
+        var MAX = 2400;
+        var scale = 1;
+        if (Math.max(imgW, imgH) > MAX) scale = MAX / Math.max(imgW, imgH);
+        imgW = Math.round(imgW * scale);
+        imgH = Math.round(imgH * scale);
+
+        cvBase.width = imgW; cvBase.height = imgH;
+        cvMask.width = imgW; cvMask.height = imgH;
+
+        ctxBase.clearRect(0, 0, imgW, imgH);
+        ctxBase.drawImage(img, 0, 0, imgW, imgH);
+        ctxMask.clearRect(0, 0, imgW, imgH);
+
+        strokes = [];
+        originalData = ctxBase.getImageData(0, 0, imgW, imgH);
+        origCanvas = document.createElement('canvas');
+        origCanvas.width = imgW;
+        origCanvas.height = imgH;
+        origCanvas.getContext('2d').drawImage(cvBase, 0, 0);
+        hasResult = false;
+        prodMask = null;
+        maskOn = false;
+        userPicked = false;
+
+        $('empty').style.display = 'none';
+        $('stage').style.display = 'block';
+        $('autoInfo').style.display = 'none';
+        $('stageTools').style.display = '';
+
+        fitStage();
+        requestAnimationFrame(fitStage);
+        setStep(2);
+
+        // 自动识别产品：识别完才允许调力度
+        $('btnApply').disabled = true;
+        $('slBg').disabled = true;
+        $('slProd').disabled = true;
+
+        setTimeout(function () {
+            var d = ctxBase.getImageData(0, 0, imgW, imgH).data;
+            prodMask = keepLargest(detectProduct(d, imgW, imgH), imgW, imgH);
+
+            var n = 0;
+            for (var i = 0; i < imgW * imgH; i++) if (prodMask[i]) n++;
+            var pct = n / (imgW * imgH);
+
+            $('btnApply').disabled = false;
+            $('slBg').disabled = false;
+            $('slProd').disabled = false;
+            $('secBg').classList.remove('off');
+            $('secProd').classList.remove('off');
+            $('slBgVal').textContent = $('slBg').value;
+            $('slProdVal').textContent = $('slProd').value;
+
+            if (pct < 0.005 || pct > 0.92) {
+                // 没识别出来，或者几乎整幅都是产品
+                $('autoInfo').textContent = '背景和产品颜色太接近，自动分不干净。在产品上点一下，我按你点的来。';
+                $('autoInfo').style.display = '';
+                prodMask = null;
+                $('btnApply').disabled = true;
+                $('slBg').disabled = true;
+                $('slProd').disabled = true;
+                $('secBg').classList.add('off');
+                $('secProd').classList.add('off');
+            } else {
+                $('autoInfo').style.display = '';
+                $('autoInfo').textContent = '青色这块是产品，其余都能修。分得不对就在产品上点一下。';
+                showRegion(2200);
+            }
+        }, 40);
+    }
+
+    // 画布自适应容器
+    function fitStage() {
+        if (!imgW) return;
+        var wrap = $('stageWrap');
+        var pad = 48;
+        var maxW = wrap.clientWidth - pad;
+        var maxH = wrap.clientHeight - pad;
+        var r = Math.min(maxW / imgW, maxH / imgH, 1);
+        var dw = Math.round(imgW * r), dh = Math.round(imgH * r);
+        cvBase.style.width = dw + 'px'; cvBase.style.height = dh + 'px';
+        cvMask.style.width = dw + 'px'; cvMask.style.height = dh + 'px';
+        $('stage').style.width = dw + 'px';
+        $('stage').style.height = dh + 'px';
+    }
+    window.addEventListener('resize', fitStage);
+
+    /* ---------------- 涂抹 ---------------- */
+
+    function pos(e) {
+        var r = cvMask.getBoundingClientRect();
+        var cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+        var cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+        return {
+            x: cx / r.width * imgW,
+            y: cy / r.height * imgH,
+            dx: cx, dy: cy
+        };
+    }
+
+    function startStroke(e) {
+        if (!imgW) return;
+        e.preventDefault();
+        drawing = true;
+        var p = pos(e);
+        curStroke = { size: brushSize, pts: [{ x: p.x, y: p.y }] };
+        drawDot(ctxMask, p.x, p.y, brushSize);
+    }
+
+    function moveStroke(e) {
+        var p = pos(e);
+        // 光标圈
+        var r = cvMask.getBoundingClientRect();
+        var dispR = brushSize / imgW * r.width;
+        cvCursor.style.display = 'block';
+        cvCursor.style.width = (dispR * 2) + 'px';
+        cvCursor.style.height = (dispR * 2) + 'px';
+        cvCursor.style.left = p.dx + 'px';
+        cvCursor.style.top = p.dy + 'px';
+
+        if (!drawing || !curStroke) return;
+        e.preventDefault();
+        var last = curStroke.pts[curStroke.pts.length - 1];
+        curStroke.pts.push({ x: p.x, y: p.y });
+        // 两点之间连线，避免快速移动断开
+        drawLine(ctxMask, last.x, last.y, p.x, p.y, brushSize);
+    }
+
+    function endStroke() {
+        if (!drawing) return;
+        drawing = false;
+        if (curStroke && curStroke.pts.length) strokes.push(curStroke);
+        curStroke = null;
+    }
+
+    function drawDot(ctx, x, y, r) {
+        ctx.beginPath();
+        ctx.arc(x, y, r / 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(224,92,92,0.55)';
+        ctx.fill();
+    }
+
+    function drawLine(ctx, x1, y1, x2, y2, r) {
+        ctx.strokeStyle = 'rgba(224,92,92,0.55)';
+        ctx.lineWidth = r;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+    }
+
+    function redrawMask() {
+        ctxMask.clearRect(0, 0, imgW, imgH);
+        strokes.forEach(function (s) {
+            if (s.pts.length === 1) {
+                drawDot(ctxMask, s.pts[0].x, s.pts[0].y, s.size);
+            } else {
+                for (var i = 1; i < s.pts.length; i++) {
+                    drawLine(ctxMask, s.pts[i - 1].x, s.pts[i - 1].y, s.pts[i].x, s.pts[i].y, s.size);
+                }
+            }
+        });
+    }
+
+    /* ---------------- 撤销 / 清除 ---------------- */
+
+    // 确定：按当前两个力度全分辨率跑一遍
+    $('btnApply').addEventListener('click', applyAll);
+
+    // 拖滑块实时预览，背景和产品一起算
+    $('slBg').addEventListener('input', function () { onSlide(true); });
+    $('slProd').addEventListener('input', function () { onSlide(false); });
+
+    // 分区不准时，在图上点一下产品，就认这一块（可以点多次，越点越全）
+    cvBase.addEventListener('click', function (e) {
+        if (!imgW || !ctxBase) return;
+        var rect = cvBase.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        var x = Math.round((e.clientX - rect.left) / rect.width * imgW);
+        var y = Math.round((e.clientY - rect.top) / rect.height * imgH);
+        if (x < 0 || x >= imgW || y < 0 || y >= imgH) return;
+
+        var d = ctxBase.getImageData(0, 0, imgW, imgH).data;
+        var g = pickRegion(d, imgW, imgH, x, y);
+        if (!g) {
+            $('autoInfo').style.display = '';
+            $('autoInfo').textContent = '这一下点在背景上了，往产品身上点。';
+            return;
+        }
+
+        var n = 0;
+        for (var i = 0; i < imgW * imgH; i++) if (g[i]) n++;
+        if (n < 60) {
+            $('autoInfo').style.display = '';
+            $('autoInfo').textContent = '这一下没点到东西，往产品上再点一次。';
+            return;
+        }
+
+        var grown = dilate(closeMask(g, imgW, imgH, 6), imgW, imgH, 6);
+        if (!userPicked) {
+            // 第一次点：以你点的为准，把自动识别的结果整个换掉
+            prodMask = new Uint8Array(imgW * imgH);
+            userPicked = true;
+        }
+        if (!prodMask) prodMask = new Uint8Array(imgW * imgH);
+        for (var k = 0; k < imgW * imgH; k++) if (grown[k]) prodMask[k] = 1;
+
+        $('btnApply').disabled = false;
+        $('slBg').disabled = false;
+        $('slProd').disabled = false;
+
+        var pct = 0;
+        for (var j = 0; j < imgW * imgH; j++) if (prodMask[j]) pct++;
+        $('autoInfo').style.display = '';
+        $('autoInfo').textContent = '已把点中的这块认成产品（占画面 ' + (pct / (imgW * imgH) * 100).toFixed(0) + '%）。有漏就在漏的地方再点一下。';
+        showRegion(0);
+        doPreview();
+    });
+
+    // 显示产品轮廓
+
+    function inpaint() {
+        var w = imgW, h = imgH;
+        // 本次修补前的快照，羽化混合只跟"这一版"混合，不受更早的修补影响
+        var before = ctxBase.getImageData(0, 0, w, h);
+        var md = ctxMask.getImageData(0, 0, w, h).data;
+
+        // 1. 建 mask + 包围盒
+        var mask = new Uint8Array(w * h);
+        var count = 0, minX = w, minY = h, maxX = 0, maxY = 0;
+        for (var i = 0; i < w * h; i++) {
+            if (md[i * 4 + 3] > 28) {
+                mask[i] = 1; count++;
+                var x = i % w, y = (i / w) | 0;
+                if (x < minX) minX = x; if (x > maxX) maxX = x;
+                if (y < minY) minY = y; if (y > maxY) maxY = y;
+            }
+        }
+        if (!count) return 0;
+
+        // 产品保护：涂抹边缘擦到产品时，把那几个像素摘出去不修，免得把产品啃掉
+        count = protectProduct(before.data, w, h, mask);
+        if (!count) return -1;   // 涂的全是产品，没东西可修
+
+        // 2. 转浮点缓冲：全程在浮点上算，避免 8 位截断累积出黑斑
+        var buf = new Float32Array(w * h * 3);
+        for (var k = 0; k < w * h; k++) {
+            buf[k * 3]     = before.data[k * 4];
+            buf[k * 3 + 1] = before.data[k * 4 + 1];
+            buf[k * 3 + 2] = before.data[k * 4 + 2];
+        }
+
+        // 3. 逐行渐变填充（主）：背景多是上暗下亮的柔光渐变，
+        //    按行取左右两侧背景色插值，比局部邻域平均准得多
+        var filled = rowGradientFill(buf, w, h, mask, minX, minY, maxX, maxY);
+
+        // 4. BFS 补漏：逐行填不到的地方（涂太宽、上下不通）用它兜底
+        bfsFill(buf, w, h, mask, filled);
+
+        // 5. 轻量松弛：只把接缝揉顺，不做大幅推拉
+        relaxSmooth(buf, w, h, mask, minX, minY, maxX, maxY, 8);
+
+        // 6. 边缘羽化 + 写回
+        var soft = blurMask(mask, w, h, 5, minX, minY, maxX, maxY);
+        for (var p = 0; p < w * h; p++) {
+            var a = soft[p];
+            var src = p * 4;
+            if (a > 0.01) {
+                for (var c = 0; c < 3; c++) {
+                    buf[p * 3 + c] = before.data[src + c] * (1 - a) + buf[p * 3 + c] * a;
+                }
+            }
+            before.data[src]     = buf[p * 3];
+            before.data[src + 1] = buf[p * 3 + 1];
+            before.data[src + 2] = buf[p * 3 + 2];
+        }
+
+        ctxBase.putImageData(before, 0, 0);
+        return count;
+    }
+
+    // 逐行渐变填充：每行从涂抹区左右两侧各取一段背景，剔除离群色后线性插值
+    function rowGradientFill(buf, w, h, mask, minX, minY, maxX, maxY) {
+        var filled = new Uint8Array(w * h);
+        var SPAN = 60;
+        var rowBg = estimateRowBg(buf, w, h, mask);
+
+        for (var y = minY; y <= maxY; y++) {
+            var row = y * w;
+            var has = false;
+            for (var x = minX; x <= maxX; x++) {
+                if (mask[row + x]) { has = true; break; }
+            }
+            if (!has) continue;
+
+            var L = sampleRowSide(buf, w, h, mask, y, minX, -1, SPAN, rowBg);
+            var R = sampleRowSide(buf, w, h, mask, y, maxX, 1, SPAN, rowBg);
+
+            for (var x2 = minX; x2 <= maxX; x2++) {
+                var i = row + x2;
+                if (!mask[i]) continue;
+                var q = i * 3;
+
+                if (L && R) {
+                    var t = (x2 - L.x) / Math.max(1e-6, R.x - L.x);
+                    t = t < 0 ? 0 : t > 1 ? 1 : t;
+                    buf[q]     = L.c[0] * (1 - t) + R.c[0] * t;
+                    buf[q + 1] = L.c[1] * (1 - t) + R.c[1] * t;
+                    buf[q + 2] = L.c[2] * (1 - t) + R.c[2] * t;
+                    filled[i] = 1;
+                } else if (L) {
+                    buf[q] = L.c[0]; buf[q + 1] = L.c[1]; buf[q + 2] = L.c[2];
+                    filled[i] = 1;
+                } else if (R) {
+                    buf[q] = R.c[0]; buf[q + 1] = R.c[1]; buf[q + 2] = R.c[2];
+                    filled[i] = 1;
+                }
+            }
+        }
+        return filled;
+    }
+
+    // 从某一行的一侧取样，用中位数 ± 3×MAD 剔除产品等离群色
+    function sampleRowSide(buf, w, h, mask, y, startX, dir, span, rowBg) {
+        var idx = [];
+        var x = startX + dir;
+        while (idx.length < span && x >= 0 && x < w) {
+            if (!mask[y * w + x]) idx.push(x);
+            x += dir;
+        }
+        if (idx.length < 4) return null;
+
+        var r = [], g = [], b = [];
+        for (var k = 0; k < idx.length; k++) {
+            var q = (y * w + idx[k]) * 3;
+            r.push(buf[q]); g.push(buf[q + 1]); b.push(buf[q + 2]);
+        }
+        var mr = med(r), mg = med(g), mb = med(b);
+        var madR = med(r.map(function (v) { return Math.abs(v - mr); })) * 1.4826 + 1e-6;
+        var madG = med(g.map(function (v) { return Math.abs(v - mg); })) * 1.4826 + 1e-6;
+        var madB = med(b.map(function (v) { return Math.abs(v - mb); })) * 1.4826 + 1e-6;
+
+        var sr = 0, sg = 0, sb = 0, n = 0, sx = 0;
+        for (var k2 = 0; k2 < idx.length; k2++) {
+            if (Math.abs(r[k2] - mr) > 3 * madR) continue;
+            if (Math.abs(g[k2] - mg) > 3 * madG) continue;
+            if (Math.abs(b[k2] - mb) > 3 * madB) continue;
+            sr += r[k2]; sg += g[k2]; sb += b[k2];
+            sx += idx[k2]; n++;
+        }
+        if (n < 3) return { c: [mr, mg, mb], x: startX };
+
+        var avg = [sr / n, sg / n, sb / n];
+
+        // 第二道闸：跟本行背景基准比，差太远说明取到产品了，这一侧作废
+        if (rowBg) {
+            var br = rowBg[y * 3], bg2 = rowBg[y * 3 + 1], bb = rowBg[y * 3 + 2];
+            var dist = Math.max(
+                Math.abs(avg[0] - br),
+                Math.abs(avg[1] - bg2),
+                Math.abs(avg[2] - bb)
+            );
+            if (dist > 45) return null;
+        }
+
+        return { c: avg, x: sx / n };
+    }
+
+    // 逐行背景基准：从图像左右边缘条带取中位数，得到每一行"干净背景长什么样"
+    // 有了这个基准，才知道采样到的颜色是不是产品
+    function estimateRowBg(buf, w, h, mask) {
+        var EDGE = 24;
+        var rowBg = new Float32Array(h * 3);
+        var lastGood = null;
+
+        for (var y = 0; y < h; y++) {
+            var rs = [], gs = [], bs = [];
+            for (var x = 0; x < EDGE; x++) {
+                var iL = y * w + x;
+                var iR = y * w + (w - 1 - x);
+                if (!mask[iL]) { rs.push(buf[iL * 3]); gs.push(buf[iL * 3 + 1]); bs.push(buf[iL * 3 + 2]); }
+                if (!mask[iR]) { rs.push(buf[iR * 3]); gs.push(buf[iR * 3 + 1]); bs.push(buf[iR * 3 + 2]); }
+            }
+            if (rs.length >= 4) {
+                rowBg[y * 3]     = med(rs);
+                rowBg[y * 3 + 1] = med(gs);
+                rowBg[y * 3 + 2] = med(bs);
+                lastGood = [rowBg[y * 3], rowBg[y * 3 + 1], rowBg[y * 3 + 2]];
+            } else if (lastGood) {
+                rowBg[y * 3]     = lastGood[0];
+                rowBg[y * 3 + 1] = lastGood[1];
+                rowBg[y * 3 + 2] = lastGood[2];
+            }
+        }
+        return rowBg;
+    }
+
+    // 产品保护：涂抹区边缘带（R 邻域内有非 mask 像素的那一圈）里，
+    // 颜色跟本行背景差太远的，判定为擦到的产品，从 mask 里摘掉，原样保留。
+    // 涂抹区内部不动，所以深色杂物照修。
+    function protectProduct(data, w, h, mask) {
+        var rowBg = estimateRowBg2(data, w, h, mask);
+        var R = 3;
+        var keep = new Uint8Array(w * h);
+
+        for (var y = 0; y < h; y++) {
+            for (var x = 0; x < w; x++) {
+                var i = y * w + x;
+                if (!mask[i]) continue;
+
+                var edge = false;
+                for (var dy = -R; dy <= R && !edge; dy++) {
+                    var yy = y + dy;
+                    if (yy < 0 || yy >= h) { edge = true; break; }
+                    for (var dx = -R; dx <= R; dx++) {
+                        var xx = x + dx;
+                        if (xx < 0 || xx >= w) { edge = true; break; }
+                        if (!mask[yy * w + xx]) { edge = true; break; }
+                    }
+                }
+                if (!edge) { keep[i] = 1; continue; }
+
+                var q = i * 4;
+                var d = Math.max(
+                    Math.abs(data[q] - rowBg[y * 3]),
+                    Math.abs(data[q + 1] - rowBg[y * 3 + 1]),
+                    Math.abs(data[q + 2] - rowBg[y * 3 + 2])
+                );
+                if (d <= 55) keep[i] = 1;
+            }
+        }
+
+        var n = 0;
+        for (var k = 0; k < w * h; k++) {
+            mask[k] = keep[k];
+            if (keep[k]) n++;
+        }
+        return n;
+    }
+
+    // 同 estimateRowBg，但吃 Uint8ClampedArray（给 protectProduct 用）
+    function estimateRowBg2(data, w, h, mask) {
+        var EDGE = 24;
+        var rowBg = new Float32Array(h * 3);
+        var lastGood = null;
+        for (var y = 0; y < h; y++) {
+            var rs = [], gs = [], bs = [];
+            for (var x = 0; x < EDGE; x++) {
+                var iL = y * w + x, iR = y * w + (w - 1 - x);
+                if (!mask[iL]) { rs.push(data[iL * 4]); gs.push(data[iL * 4 + 1]); bs.push(data[iL * 4 + 2]); }
+                if (!mask[iR]) { rs.push(data[iR * 4]); gs.push(data[iR * 4 + 1]); bs.push(data[iR * 4 + 2]); }
+            }
+            if (rs.length >= 4) {
+                rowBg[y * 3] = med(rs); rowBg[y * 3 + 1] = med(gs); rowBg[y * 3 + 2] = med(bs);
+                lastGood = [rowBg[y * 3], rowBg[y * 3 + 1], rowBg[y * 3 + 2]];
+            } else if (lastGood) {
+                rowBg[y * 3] = lastGood[0]; rowBg[y * 3 + 1] = lastGood[1]; rowBg[y * 3 + 2] = lastGood[2];
+            }
+        }
+        return rowBg;
+    }
+
+    /* ---------------- 自动识别产品 ---------------- */
+
+    // 每行的背景基准色（左右边缘取样求中位数）
+    function bgRows(data, w, h) {
+        var EDGE = Math.max(6, Math.min(24, Math.round(w * 0.03)));
+        var rowBg = new Float32Array(h * 3);
+        var tmpA = new Float32Array(EDGE * 2);
+
+        for (var y = 0; y < h; y++) {
+            var base = y * w * 4;
+            for (var c = 0; c < 3; c++) {
+                var n = 0;
+                for (var x = 0; x < EDGE; x++) {
+                    tmpA[n++] = data[base + x * 4 + c];
+                    tmpA[n++] = data[base + (w - 1 - x) * 4 + c];
+                }
+                var arr = Array.prototype.slice.call(tmpA, 0, n).sort(function (p, q) { return p - q; });
+                var m = n >> 1;
+                rowBg[y * 3 + c] = n % 2 ? arr[m] : (arr[m - 1] + arr[m]) / 2;
+            }
+        }
+        // 某行取不到就用上一行兜底
+        for (var y1 = 1; y1 < h; y1++) {
+            if (rowBg[y1 * 3] === 0 && rowBg[y1 * 3 + 1] === 0) {
+                rowBg[y1 * 3] = rowBg[(y1 - 1) * 3];
+                rowBg[y1 * 3 + 1] = rowBg[(y1 - 1) * 3 + 1];
+                rowBg[y1 * 3 + 2] = rowBg[(y1 - 1) * 3 + 2];
+            }
+        }
+
+        return rowBg;
+    }
+
+    // 跟背景基准比，差异大的算前景
+    function rawMask(data, w, h, rowBg, thr) {
+        var raw = new Uint8Array(w * h);
+        for (var i = 0; i < w * h; i++) {
+            var q = i * 4, yy = (i / w) | 0;
+            var d = Math.abs(data[q] - rowBg[yy * 3]);
+            var d2 = Math.abs(data[q + 1] - rowBg[yy * 3 + 1]);
+            var d3 = Math.abs(data[q + 2] - rowBg[yy * 3 + 2]);
+            if (d > thr || d2 > thr || d3 > thr) raw[i] = 1;
+        }
+        return raw;
+    }
+
+    // 去孤立噪点：3x3 里至少 4 个前景才算
+    function denoise(raw, w, h) {
+        var clean = new Uint8Array(w * h);
+        for (var y = 1; y < h - 1; y++) {
+            for (var x = 1; x < w - 1; x++) {
+                var idx = y * w + x;
+                if (!raw[idx]) continue;
+                var cnt = 0;
+                for (var dy = -1; dy <= 1; dy++) {
+                    for (var dx = -1; dx <= 1; dx++) {
+                        if (raw[(y + dy) * w + (x + dx)]) cnt++;
+                    }
+                }
+                if (cnt >= 4) clean[idx] = 1;
+            }
+        }
+        return clean;
+    }
+
+    // 取包含某个点的连通域
+    function regionAt(mask, w, h, sx, sy) {
+        var out = new Uint8Array(w * h);
+        var si = sy * w + sx;
+        if (!mask[si]) return out;
+        var st = new Int32Array(w * h);
+        var sp = 0;
+        out[si] = 1; st[sp++] = si;
+        while (sp) {
+            var p = st[--sp];
+            var x = p % w, y = (p / w) | 0;
+            if (x > 0 && mask[p - 1] && !out[p - 1]) { out[p - 1] = 1; st[sp++] = p - 1; }
+            if (x < w - 1 && mask[p + 1] && !out[p + 1]) { out[p + 1] = 1; st[sp++] = p + 1; }
+            if (y > 0 && mask[p - w] && !out[p - w]) { out[p - w] = 1; st[sp++] = p - w; }
+            if (y < h - 1 && mask[p + w] && !out[p + w]) { out[p + w] = 1; st[sp++] = p + w; }
+        }
+        return out;
+    }
+
+    // 点中的是哪块前景，就取那一整块
+    function pickRegion(data, w, h, sx, sy) {
+        var rowBg = bgRows(data, w, h);
+        var tries = [24, 30, 40, 55];
+        for (var ti = 0; ti < tries.length; ti++) {
+            var raw = denoise(rawMask(data, w, h, rowBg, tries[ti]), w, h);
+            if (!raw[sy * w + sx]) continue;    // 这一档下点的地方算背景，放一档再试
+            var reg = regionAt(raw, w, h, sx, sy);
+            var cnt = 0;
+            for (var i = 0; i < w * h; i++) if (reg[i]) cnt++;
+            if (cnt / (w * h) > 0.7) continue;  // 大到快整幅了，这档不可信
+            return reg;
+        }
+        return null;
+    }
+
+    // 产品 mask 里被产品整个围住的区域（比如线圈中间那块背景）也得能修。
+    // 从图像四边往里灌水，灌不到的空洞如果面积够大，说明那是背景、不是产品细节，挖出来。
+    function openHoles(mask, w, h) {
+        var n = w * h;
+        var seen = new Uint8Array(n);
+        var stack = new Int32Array(n);
+        var out = new Uint8Array(mask);
+        var sp = 0, x, y, b;
+        for (x = 0; x < w; x++) {
+            if (!mask[x] && !seen[x]) { seen[x] = 1; stack[sp++] = x; }
+            b = (h - 1) * w + x;
+            if (!mask[b] && !seen[b]) { seen[b] = 1; stack[sp++] = b; }
+        }
+        for (y = 0; y < h; y++) {
+            var l = y * w, r = y * w + w - 1;
+            if (!mask[l] && !seen[l]) { seen[l] = 1; stack[sp++] = l; }
+            if (!mask[r] && !seen[r]) { seen[r] = 1; stack[sp++] = r; }
+        }
+        while (sp > 0) {
+            var p = stack[--sp];
+            var px = p % w, py = (p - px) / w;
+            if (px > 0 && !mask[p - 1] && !seen[p - 1]) { seen[p - 1] = 1; stack[sp++] = p - 1; }
+            if (px < w - 1 && !mask[p + 1] && !seen[p + 1]) { seen[p + 1] = 1; stack[sp++] = p + 1; }
+            if (py > 0 && !mask[p - w] && !seen[p - w]) { seen[p - w] = 1; stack[sp++] = p - w; }
+            if (py < h - 1 && !mask[p + w] && !seen[p + w]) { seen[p + w] = 1; stack[sp++] = p + w; }
+        }
+        var minA = Math.max(300, Math.round(n * 0.004));
+        var comp = new Int32Array(n);
+        var cid = 0;
+        for (var i = 0; i < n; i++) {
+            if (mask[i] || seen[i] || comp[i]) continue;
+            cid++;
+            var q = 0, cnt = 0;
+            stack[q++] = i; comp[i] = cid;
+            while (q > 0) {
+                var t = stack[--q]; cnt++;
+                var tx = t % w, ty = (t - tx) / w;
+                if (tx > 0 && !mask[t - 1] && !seen[t - 1] && !comp[t - 1]) { comp[t - 1] = cid; stack[q++] = t - 1; }
+                if (tx < w - 1 && !mask[t + 1] && !seen[t + 1] && !comp[t + 1]) { comp[t + 1] = cid; stack[q++] = t + 1; }
+                if (ty > 0 && !mask[t - w] && !seen[t - w] && !comp[t - w]) { comp[t - w] = cid; stack[q++] = t - w; }
+                if (ty < h - 1 && !mask[t + w] && !seen[t + w] && !comp[t + w]) { comp[t + w] = cid; stack[q++] = t + w; }
+            }
+            if (cnt >= minA) {
+                for (var j = 0; j < n; j++) if (comp[j] === cid) out[j] = 0;
+            }
+        }
+        return out;
+    }
+
+    // 有些块颜色跟背景一模一样，却被判成产品（浅色产品边上的浅色背景最容易这样）。
+    // 成片出现、且颜色贴着背景的，还回背景，不然那块的瑕疵永远修不到。
+    function unmaskLikeBg(mask, data, w, h, rowBg, tol) {
+        var n = w * h;
+        var like = new Uint8Array(n);
+        for (var y = 0; y < h; y++) {
+            var b = rowBg[y];
+            var base = y * w;
+            for (var x = 0; x < w; x++) {
+                var i = base + x;
+                if (!mask[i]) continue;
+                var q = i * 4;
+                var d = Math.abs(data[q] - b[0]) + Math.abs(data[q + 1] - b[1]) + Math.abs(data[q + 2] - b[2]);
+                if (d < tol) like[i] = 1;
+            }
+        }
+        var out = new Uint8Array(mask);
+        for (var y2 = 1; y2 < h - 1; y2++) {
+            var base2 = y2 * w;
+            for (var x2 = 1; x2 < w - 1; x2++) {
+                var i2 = base2 + x2;
+                if (!like[i2]) continue;
+                var c = 0;
+                if (like[i2 - 1]) c++;
+                if (like[i2 + 1]) c++;
+                if (like[i2 - w]) c++;
+                if (like[i2 + w]) c++;
+                if (like[i2 - w - 1]) c++;
+                if (like[i2 - w + 1]) c++;
+                if (like[i2 + w - 1]) c++;
+                if (like[i2 + w + 1]) c++;
+                if (c >= 6) out[i2] = 0;
+            }
+        }
+        return out;
+    }
+
+    // 只留成片的大块：水渍、投影这些孤立块颜色也偏离背景，但它们不是产品
+    function keepBigBlobs(mask, w, h, minRatio) {
+        var n = w * h;
+        var total = 0, i;
+        for (i = 0; i < n; i++) if (mask[i]) total++;
+        if (total === 0) return mask;
+        var comp = new Int32Array(n);
+        var stack = new Int32Array(n);
+        var sizes = [0];
+        var cid = 0, s;
+        for (s = 0; s < n; s++) {
+            if (!mask[s] || comp[s]) continue;
+            cid++;
+            var q = 0, cnt = 0;
+            stack[q++] = s; comp[s] = cid;
+            while (q > 0) {
+                var t = stack[--q]; cnt++;
+                var tx = t % w, ty = (t - tx) / w;
+                if (tx > 0 && mask[t - 1] && !comp[t - 1]) { comp[t - 1] = cid; stack[q++] = t - 1; }
+                if (tx < w - 1 && mask[t + 1] && !comp[t + 1]) { comp[t + 1] = cid; stack[q++] = t + 1; }
+                if (ty > 0 && mask[t - w] && !comp[t - w]) { comp[t - w] = cid; stack[q++] = t - w; }
+                if (ty < h - 1 && mask[t + w] && !comp[t + w]) { comp[t + w] = cid; stack[q++] = t + w; }
+            }
+            sizes[cid] = cnt;
+        }
+        var keep = new Uint8Array(n);
+        var minS = Math.max(500, Math.round(total * minRatio));
+        for (i = 0; i < n; i++) {
+            var c = comp[i];
+            if (c && sizes[c] >= minS) keep[i] = 1;
+        }
+        return keep;
+    }
+
+    function detectProduct(data, w, h) {
+        var rowBg = bgRows(data, w, h);
+        var clean = denoise(keepBigBlobs(rawMask(data, w, h, rowBg, 30), w, h, 0.1), w, h);
+
+        // 4. 先把小凹口填掉、小凸起削掉，轮廓才贴合产品
+        // 先开运算把贴在一起的线缆缝削开，再小闭运算补回凹口；反过来会把缝糊死
+        var sm = closeMask(openMask(clean, w, h, 2), w, h, 1);
+        // 5. 再给产品边缘留一圈保护带
+        // 6. 产品围起来的背景挖出来，不然线圈中间的瑕疵永远修不掉
+        // 7. 颜色贴着背景的成片误判还回背景
+        var withGuard = dilate(sm, w, h, 3);
+        var noBg = unmaskLikeBg(withGuard, data, w, h, rowBg, 45);
+        return openHoles(noBg, w, h);
+    }
+
+    // 只保留最大连通域，去掉背景上被误判的孤立点
+    // 闭运算：把挨在一起的断段连起来，又不会跨过大片背景（电线绕圈也不会把环内填掉）
+    function closeMask(mask, w, h, r) {
+        var d = dilate(mask, w, h, r);
+        // 腐蚀（反向膨胀）
+        var inv = new Uint8Array(w * h);
+        for (var i = 0; i < w * h; i++) inv[i] = d[i] ? 0 : 1;
+        var e = dilate(inv, w, h, r);
+        var out = new Uint8Array(w * h);
+        for (var k = 0; k < w * h; k++) out[k] = e[k] ? 0 : 1;
+        return out;
+    }
+
+    // 开运算：削掉轮廓上凸出去的小毛刺
+    function openMask(mask, w, h, r) {
+        var inv = new Uint8Array(w * h);
+        for (var i = 0; i < w * h; i++) inv[i] = mask[i] ? 0 : 1;
+        var e = dilate(inv, w, h, r);          // 腐蚀
+        var inv2 = new Uint8Array(w * h);
+        for (var k = 0; k < w * h; k++) inv2[k] = e[k] ? 0 : 1;
+        return dilate(inv2, w, h, r);          // 再膨胀回来
+    }
+
+    // 膨胀，给产品边缘留保护带
+    function dilate(mask, w, h, px) {
+        var span = px * 2 + 1;
+        var tmp = new Uint8Array(w * h);
+        var out = new Uint8Array(w * h);
+        var run, x, y;
+        for (y = 0; y < h; y++) {
+            run = 0;
+            for (x = 0; x < w; x++) { if (mask[y * w + x]) run = span; if (run > 0) { tmp[y * w + x] = 1; run--; } }
+            run = 0;
+            for (x = w - 1; x >= 0; x--) { if (mask[y * w + x]) run = span; if (run > 0) { tmp[y * w + x] = 1; run--; } }
+        }
+        for (x = 0; x < w; x++) {
+            run = 0;
+            for (y = 0; y < h; y++) { if (tmp[y * w + x]) run = span; if (run > 0) { out[y * w + x] = 1; run--; } }
+            run = 0;
+            for (y = h - 1; y >= 0; y--) { if (tmp[y * w + x]) run = span; if (run > 0) { out[y * w + x] = 1; run--; } }
+        }
+        return out;
+    }
+
+    // 把认出来的产品区画出来：青色边 + 淡淡填充，让人一眼看到分界
+    var regionTimer = null;
+    function showRegion(ms) {
+        if (!imgW || !prodMask) return;
+        var w = imgW, h = imgH;
+        var od = ctxMask.createImageData(w, h);
+        var dd = od.data;
+        for (var y = 0; y < h; y++) {
+            for (var x = 0; x < w; x++) {
+                var i = y * w + x;
+                if (!prodMask[i]) continue;
+                var q = i * 4;
+                var edge = (x === 0 || y === 0 || x === w - 1 || y === h - 1 ||
+                    !prodMask[i - 1] || !prodMask[i + 1] || !prodMask[i - w] || !prodMask[i + w]);
+                if (edge) {
+                    dd[q] = 90; dd[q + 1] = 235; dd[q + 2] = 235; dd[q + 3] = 255;
+                    if (x + 1 < w) { var q2 = (i + 1) * 4; dd[q2] = 90; dd[q2 + 1] = 235; dd[q2 + 2] = 235; dd[q2 + 3] = 255; }
+                    if (y + 1 < h) { var q3 = (i + w) * 4; dd[q3] = 90; dd[q3 + 1] = 235; dd[q3 + 2] = 235; dd[q3 + 3] = 255; }
+                } else {
+                    dd[q] = 90; dd[q + 1] = 235; dd[q + 2] = 235; dd[q + 3] = 26;
+                }
+            }
+        }
+        ctxMask.clearRect(0, 0, w, h);
+        ctxMask.putImageData(od, 0, 0);
+        if (regionTimer) { clearTimeout(regionTimer); regionTimer = null; }
+        if (ms > 0) regionTimer = setTimeout(clearRegion, ms);
+    }
+
+    function clearRegion() {
+        if (regionTimer) { clearTimeout(regionTimer); regionTimer = null; }
+        if (!imgW) return;
+        ctxMask.clearRect(0, 0, imgW, imgH);
+    }
+
+    function keepLargest(mask, w, h) {
+        var seen = new Uint8Array(w * h);
+        var queue = new Int32Array(w * h);
+        var bestStart = -1, bestSize = 0;
+
+        for (var i = 0; i < w * h; i++) {
+            if (!mask[i] || seen[i]) continue;
+            var head = 0, tail = 0;
+            queue[tail++] = i; seen[i] = 1;
+            var size = 0;
+            while (head < tail) {
+                var p = queue[head++]; size++;
+                var x = p % w, y = (p / w) | 0;
+                if (x > 0 && mask[p - 1] && !seen[p - 1]) { seen[p - 1] = 1; queue[tail++] = p - 1; }
+                if (x < w - 1 && mask[p + 1] && !seen[p + 1]) { seen[p + 1] = 1; queue[tail++] = p + 1; }
+                if (y > 0 && mask[p - w] && !seen[p - w]) { seen[p - w] = 1; queue[tail++] = p - w; }
+                if (y < h - 1 && mask[p + w] && !seen[p + w]) { seen[p + w] = 1; queue[tail++] = p + w; }
+            }
+            if (size > bestSize) { bestSize = size; bestStart = i; }
+        }
+
+        var out = new Uint8Array(w * h);
+        if (bestStart < 0) return out;
+        var h2 = 0, t2 = 0;
+        queue[t2++] = bestStart; out[bestStart] = 1;
+        while (h2 < t2) {
+            var p2 = queue[h2++];
+            var x2 = p2 % w, y2 = (p2 / w) | 0;
+            if (x2 > 0 && mask[p2 - 1] && !out[p2 - 1]) { out[p2 - 1] = 1; queue[t2++] = p2 - 1; }
+            if (x2 < w - 1 && mask[p2 + 1] && !out[p2 + 1]) { out[p2 + 1] = 1; queue[t2++] = p2 + 1; }
+            if (y2 > 0 && mask[p2 - w] && !out[p2 - w]) { out[p2 - w] = 1; queue[t2++] = p2 - w; }
+            if (y2 < h - 1 && mask[p2 + w] && !out[p2 + w]) { out[p2 + w] = 1; queue[t2++] = p2 + w; }
+        }
+        return out;
+    }
+
+    /* ---------------- 蒙尘与划痕 ---------------- */
+
+    // 单方向选择性平滑：只平均跟中心颜色接近的像素，离群的不参与
+    function dsPass(src, dst, w, h, radius, threshold, horizontal, region, y0, y1, keepDetail) {
+        var r = radius;
+        if (y0 === undefined) y0 = 0;
+        if (y1 === undefined) y1 = h;
+        for (var y = y0; y < y1; y++) {
+            for (var x = 0; x < w; x++) {
+                var i = y * w + x;
+                var q = i * 3;
+                if (region && !region[i]) {
+                    dst[q] = src[q]; dst[q + 1] = src[q + 1]; dst[q + 2] = src[q + 2];
+                    continue;
+                }
+                var cr = src[q], cg = src[q + 1], cb = src[q + 2];
+                var sr = 0, sg = 0, sb = 0, n = 0;          // 跟中心接近的邻居
+                var fr = 0, fg = 0, fb = 0, fn = 0;          // 跟中心不接近的邻居
+                var flo = 999, fhi = -999;                    // 不接近那批的亮度范围
+                var an = 0;
+                for (var d = -r; d <= r; d++) {
+                    if (d === 0) continue;   // 中心自己不算邻居，不然"孤立点"判不出来
+                    var nx = horizontal ? x + d : x;
+                    var ny = horizontal ? y : y + d;
+                    if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                    var j = (ny * w + nx) * 3;
+                    an++;
+                    if (Math.abs(src[j] - cr) < threshold &&
+                        Math.abs(src[j + 1] - cg) < threshold &&
+                        Math.abs(src[j + 2] - cb) < threshold) {
+                        sr += src[j]; sg += src[j + 1]; sb += src[j + 2]; n++;
+                    } else {
+                        fr += src[j]; fg += src[j + 1]; fb += src[j + 2]; fn++;
+                        var lum = (src[j] + src[j + 1] + src[j + 2]) / 3;
+                        if (lum < flo) flo = lum;
+                        if (lum > fhi) fhi = lum;
+                    }
+                }
+                var fSpread = fn > 0 ? (fhi - flo) : 999;
+
+                if (n >= an * 0.6) {
+                    if (keepDetail) {
+                        // 产品区：正常像素原样保留，只清孤立脏点，纹理一点不动
+                        dst[q] = cr; dst[q + 1] = cg; dst[q + 2] = cb;
+                    } else {
+                        // 背景区：只跟同类平均，保住渐变和纹理
+                        dst[q] = sr / n; dst[q + 1] = sg / n; dst[q + 2] = sb / n;
+                    }
+                } else if (keepDetail) {
+                    // 产品区：绝大多数邻居都跟中心不像、邻居之间又干净一致 → 中心是孤立浮尘
+                    if (fn > 0 && fn >= an * 0.7 && fSpread <= threshold * (2 + r * 0.5)) {
+                        dst[q] = fr / fn; dst[q + 1] = fg / fn; dst[q + 2] = fb / fn;
+                    } else {
+                        dst[q] = cr; dst[q + 1] = cg; dst[q + 2] = cb;
+                    }
+                } else if (n <= an * 0.3 && fn > 0 && fSpread <= threshold * 2) {
+                    // 中心是少数派、多数派内部干净一致 → 中心是脏点，用干净邻居盖掉
+                    dst[q] = fr / fn; dst[q + 1] = fg / fn; dst[q + 2] = fb / fn;
+                } else {
+                    // 势均力敌的多色交界 → 保留中心，别乱混
+                    dst[q] = cr; dst[q + 1] = cg; dst[q + 2] = cb;
+                }
+            }
+        }
+    }
+
+    // 先横后纵，O(r) 而不是 O(r^2)
+    // 三次 box 模糊近似高斯：给背景做"整片柔化"，比大半径 D&S 快也不会出环状伪影
+    function boxH(src, dst, w, h, r) {
+        var inv = 1 / (r * 2 + 1);
+        for (var y = 0; y < h; y++) {
+            var row = y * w * 3;
+            var ar = 0, ag = 0, ab = 0;
+            for (var k = -r; k <= r; k++) {
+                var kx = k < 0 ? 0 : k >= w ? w - 1 : k;
+                var q0 = row + kx * 3;
+                ar += src[q0]; ag += src[q0 + 1]; ab += src[q0 + 2];
+            }
+            for (var x = 0; x < w; x++) {
+                var o = row + x * 3;
+                dst[o] = ar * inv; dst[o + 1] = ag * inv; dst[o + 2] = ab * inv;
+                var xa = x - r; if (xa < 0) xa = 0;
+                var xb = x + r + 1; if (xb >= w) xb = w - 1;
+                var qa = row + xa * 3, qb = row + xb * 3;
+                ar += src[qb] - src[qa];
+                ag += src[qb + 1] - src[qa + 1];
+                ab += src[qb + 2] - src[qa + 2];
+            }
+        }
+    }
+
+    function boxV(src, dst, w, h, r) {
+        var inv = 1 / (r * 2 + 1);
+        for (var x = 0; x < w; x++) {
+            var col = x * 3;
+            var ar = 0, ag = 0, ab = 0;
+            for (var k = -r; k <= r; k++) {
+                var ky = k < 0 ? 0 : k >= h ? h - 1 : k;
+                var q0 = ky * w * 3 + col;
+                ar += src[q0]; ag += src[q0 + 1]; ab += src[q0 + 2];
+            }
+            for (var y = 0; y < h; y++) {
+                var o = y * w * 3 + col;
+                dst[o] = ar * inv; dst[o + 1] = ag * inv; dst[o + 2] = ab * inv;
+                var ya = y - r; if (ya < 0) ya = 0;
+                var yb = y + r + 1; if (yb >= h) yb = h - 1;
+                var qa = ya * w * 3 + col, qb = yb * w * 3 + col;
+                ar += src[qb] - src[qa];
+                ag += src[qb + 1] - src[qa + 1];
+                ab += src[qb + 2] - src[qa + 2];
+            }
+        }
+    }
+
+    // 模糊前把产品区用同行最近的背景色填掉：不然产品的颜色会被糊进背景，边缘起一圈光
+    function fillOutside(buf, w, h, region) {
+        var tmp = new Float32Array(buf);
+        for (var y = 0; y < h; y++) {
+            var row = y * w;
+            var lq = -1;
+            for (var x = 0; x < w; x++) {
+                var i = row + x;
+                if (region[i]) { lq = i * 3; }
+                else if (lq >= 0) { tmp[i * 3] = tmp[lq]; tmp[i * 3 + 1] = tmp[lq + 1]; tmp[i * 3 + 2] = tmp[lq + 2]; }
+            }
+            var rq = -1;
+            for (var x2 = w - 1; x2 >= 0; x2--) {
+                var i2 = row + x2;
+                if (region[i2]) { rq = i2 * 3; }
+                else if (rq >= 0 && lq < 0) { tmp[i2 * 3] = tmp[rq]; tmp[i2 * 3 + 1] = tmp[rq + 1]; tmp[i2 * 3 + 2] = tmp[rq + 2]; }
+            }
+        }
+        return tmp;
+    }
+
+    // 网格上的可分离最大/最小值，用来做形态学
+    function gridMax(src, dst, sw, sh, r) {
+        var tmp = new Float32Array(src.length);
+        for (var y = 0; y < sh; y++) {
+            for (var x = 0; x < sw; x++) {
+                var xa = x - r < 0 ? 0 : x - r;
+                var xb = x + r >= sw ? sw - 1 : x + r;
+                var m0 = -1e9, m1 = -1e9, m2 = -1e9;
+                for (var xx = xa; xx <= xb; xx++) {
+                    var q = (y * sw + xx) * 3;
+                    if (src[q] > m0) m0 = src[q];
+                    if (src[q + 1] > m1) m1 = src[q + 1];
+                    if (src[q + 2] > m2) m2 = src[q + 2];
+                }
+                var o = (y * sw + x) * 3;
+                tmp[o] = m0; tmp[o + 1] = m1; tmp[o + 2] = m2;
+            }
+        }
+        for (var x2 = 0; x2 < sw; x2++) {
+            for (var y2 = 0; y2 < sh; y2++) {
+                var ya = y2 - r < 0 ? 0 : y2 - r;
+                var yb = y2 + r >= sh ? sh - 1 : y2 + r;
+                var n0 = -1e9, n1 = -1e9, n2 = -1e9;
+                for (var yy = ya; yy <= yb; yy++) {
+                    var q2 = (yy * sw + x2) * 3;
+                    if (tmp[q2] > n0) n0 = tmp[q2];
+                    if (tmp[q2 + 1] > n1) n1 = tmp[q2 + 1];
+                    if (tmp[q2 + 2] > n2) n2 = tmp[q2 + 2];
+                }
+                var o2 = (y2 * sw + x2) * 3;
+                dst[o2] = n0; dst[o2 + 1] = n1; dst[o2 + 2] = n2;
+            }
+        }
+    }
+
+    function gridMin(src, dst, sw, sh, r) {
+        var tmp = new Float32Array(src.length);
+        for (var y = 0; y < sh; y++) {
+            for (var x = 0; x < sw; x++) {
+                var xa = x - r < 0 ? 0 : x - r;
+                var xb = x + r >= sw ? sw - 1 : x + r;
+                var m0 = 1e9, m1 = 1e9, m2 = 1e9;
+                for (var xx = xa; xx <= xb; xx++) {
+                    var q = (y * sw + xx) * 3;
+                    if (src[q] < m0) m0 = src[q];
+                    if (src[q + 1] < m1) m1 = src[q + 1];
+                    if (src[q + 2] < m2) m2 = src[q + 2];
+                }
+                var o = (y * sw + x) * 3;
+                tmp[o] = m0; tmp[o + 1] = m1; tmp[o + 2] = m2;
+            }
+        }
+        for (var x2 = 0; x2 < sw; x2++) {
+            for (var y2 = 0; y2 < sh; y2++) {
+                var ya = y2 - r < 0 ? 0 : y2 - r;
+                var yb = y2 + r >= sh ? sh - 1 : y2 + r;
+                var n0 = 1e9, n1 = 1e9, n2 = 1e9;
+                for (var yy = ya; yy <= yb; yy++) {
+                    var q2 = (yy * sw + x2) * 3;
+                    if (tmp[q2] < n0) n0 = tmp[q2];
+                    if (tmp[q2 + 1] < n1) n1 = tmp[q2 + 1];
+                    if (tmp[q2 + 2] < n2) n2 = tmp[q2 + 2];
+                }
+                var o2 = (y2 * sw + x2) * 3;
+                dst[o2] = n0; dst[o2 + 1] = n1; dst[o2 + 2] = n2;
+            }
+        }
+    }
+
+    // 低频重建：缩成小网格 → 网格上闭运算填暗斑、开运算压亮斑 → 放大回来
+    // 水渍、投影这种大面积暗斑，光靠模糊只会变柔和、不会消失；必须从周围背景"推"过来填
+    function lowFreq(buf, w, h, factor) {
+        var sw = Math.max(3, Math.round(w / factor));
+        var sh = Math.max(3, Math.round(h / factor));
+        var small = new Float32Array(sw * sh * 3);
+        for (var sy = 0; sy < sh; sy++) {
+            var y0 = Math.floor(sy * h / sh);
+            var y1 = Math.max(y0 + 1, Math.floor((sy + 1) * h / sh));
+            if (y1 > h) y1 = h;
+            for (var sx = 0; sx < sw; sx++) {
+                var x0 = Math.floor(sx * w / sw);
+                var x1 = Math.max(x0 + 1, Math.floor((sx + 1) * w / sw));
+                if (x1 > w) x1 = w;
+                var ar = 0, ag = 0, ab = 0, cnt = 0;
+                for (var yy = y0; yy < y1; yy++) {
+                    var rowq = yy * w * 3;
+                    for (var xx = x0; xx < x1; xx++) {
+                        var q = rowq + xx * 3;
+                        ar += buf[q]; ag += buf[q + 1]; ab += buf[q + 2]; cnt++;
+                    }
+                }
+                var o = (sy * sw + sx) * 3;
+                small[o] = ar / cnt; small[o + 1] = ag / cnt; small[o + 2] = ab / cnt;
+            }
+        }
+        // 形态学半径跟着网格走：网格越粗，一次运算能填掉的斑越大
+        var gr = Math.max(2, Math.round(Math.min(sw, sh) / 9));
+        var a = small;
+        var b = new Float32Array(a.length);
+        // 闭运算 ×2：把暗斑整片填平
+        for (var cp = 0; cp < 2; cp++) {
+            gridMax(a, b, sw, sh, gr);
+            gridMin(b, a, sw, sh, gr);
+        }
+        // 开运算 ×2：把亮斑压掉
+        for (var op = 0; op < 2; op++) {
+            gridMin(a, b, sw, sh, gr);
+            gridMax(b, a, sw, sh, gr);
+        }
+        var out = new Float32Array(buf.length);
+        for (var y = 0; y < h; y++) {
+            var fy = (y + 0.5) * sh / h - 0.5;
+            var yi0 = Math.floor(fy); if (yi0 < 0) yi0 = 0;
+            var yi1 = yi0 + 1 >= sh ? sh - 1 : yi0 + 1;
+            var wy = fy - yi0; if (wy < 0) wy = 0; if (wy > 1) wy = 1;
+            var r0 = yi0 * sw * 3, r1 = yi1 * sw * 3;
+            var orow = y * w * 3;
+            for (var x = 0; x < w; x++) {
+                var fx = (x + 0.5) * sw / w - 0.5;
+                var xi0 = Math.floor(fx); if (xi0 < 0) xi0 = 0;
+                var xi1 = xi0 + 1 >= sw ? sw - 1 : xi0 + 1;
+                var wx = fx - xi0; if (wx < 0) wx = 0; if (wx > 1) wx = 1;
+                var a0 = r0 + xi0 * 3, a1 = r0 + xi1 * 3;
+                var b0 = r1 + xi0 * 3, b1 = r1 + xi1 * 3;
+                var o2 = orow + x * 3;
+                for (var c = 0; c < 3; c++) {
+                    var top = a[a0 + c] * (1 - wx) + a[a1 + c] * wx;
+                    var bot = a[b0 + c] * (1 - wx) + a[b1 + c] * wx;
+                    out[o2 + c] = top * (1 - wy) + bot * wy;
+                }
+            }
+        }
+        return out;
+    }
+
+    function gaussApprox(src, w, h, r) {
+        var a = new Float32Array(src);
+        var b = new Float32Array(src.length);
+        for (var pass = 0; pass < 3; pass++) {
+            boxH(a, b, w, h, r);
+            boxV(b, a, w, h, r);
+        }
+        return a;
+    }
+
+    function dustScratches(src, w, h, radius, threshold, region, keepDetail) {
+        var tmp = new Float32Array(src.length);
+        var dst = new Float32Array(src.length);
+        dsPass(src, tmp, w, h, radius, threshold, true, region, 0, h, keepDetail);
+        dsPass(tmp, dst, w, h, radius, threshold, false, region, 0, h, keepDetail);
+        return dst;
+    }
+
+    // 分块跑，每 40ms 让出主线程，大图不卡死、能报进度
+    function dustScratchesAsync(src, w, h, radius, threshold, region, done, prog, keepDetail) {
+        var tmp = new Float32Array(src.length);
+        var dst = new Float32Array(src.length);
+        var CHUNK = Math.max(32, Math.min(256, Math.ceil(h / 16)));
+        var total = h * 2;
+        var cur = 0;
+
+        function step() {
+            var t0 = performance.now();
+            while (cur < total) {
+                var horiz = cur < h;
+                var base = horiz ? 0 : h;
+                var y0 = cur - base;
+                var y1 = Math.min(h, y0 + CHUNK);
+                if (horiz) {
+                    dsPass(src, tmp, w, h, radius, threshold, true, region, y0, y1, keepDetail);
+                } else {
+                    dsPass(tmp, dst, w, h, radius, threshold, false, region, y0, y1, keepDetail);
+                }
+                cur = base + y1;
+                if (performance.now() - t0 > 40) break;
+            }
+            if (prog) prog(cur / total);
+            if (cur < total) {
+                setTimeout(step, 0);
+            } else {
+                done(dst);
+            }
+        }
+        step();
+    }
+
+    // 滑块值 → 半径和阈值（半径越大，阈值也跟着放大，不然大半径会糊）
+    function radiusParams(isBg, scale) {
+        var sc = scale === undefined ? 1 : scale;
+        if (isBg) {
+            var r = parseInt($('slBg').value, 10);
+            // D&S 负责去掉点状瑕疵（半径封顶 20，再大算不动）
+            var dsR = Math.min(12, Math.max(1, Math.round(r * sc)));
+            // 力度 10 以上开始叠加整片柔化：D&S 抹不掉大片水渍、投影这种低频痕迹
+            var blurA = (r - 10) / 35;
+            if (blurA < 0) blurA = 0;
+            if (blurA > 1) blurA = 1;
+            return {
+                r: dsR,
+                t: Math.round(dsR * 1.2),
+                blurR: Math.max(1, Math.round(r * 0.85 * sc)),
+                blurF: 12 + (r / 50) * 22,
+                blurA: blurA
+            };
+        }
+        var r2 = parseInt($('slProd').value, 10);
+        var rr = Math.max(1, Math.round(r2 * sc));
+        if (rr < 2) rr = 2;
+        return { r: rr, t: 8 + r2 * 2 };
+    }
+
+    // 拖滑块的快速预览：缩到 600px，背景和产品一起算，秒出
+    function doPreview() {
+        if (!imgW || !prodMask || !origCanvas) return;
+        if (parseInt($('slBg').value, 10) <= 0 && parseInt($('slProd').value, 10) <= 0) {
+            // 两个力度都是 0，没什么可预览的，直接回到原图
+            previewSeq++;
+            previewShown = false;
+            $('cvPreview').style.display = 'none';
+            return;
+        }
+        var seq = ++previewSeq;
+        var w = imgW, h = imgH;
+        // 预览尽量按原尺寸算：缩得太狠再放大回去，背景会起雾、脏点周围出现假影
+        var bgNow = parseInt($('slBg').value, 10);
+        var pvCap = bgNow > 6 ? 3000 : 1400;
+        var pscale = Math.min(1, pvCap / Math.max(w, h));
+        var pw = Math.max(1, Math.round(w * pscale));
+        var ph = Math.max(1, Math.round(h * pscale));
+
+        var c1 = document.createElement('canvas');
+        c1.width = pw; c1.height = ph;
+        var x1 = c1.getContext('2d', { willReadFrequently: true });
+        x1.drawImage(origCanvas, 0, 0, pw, ph);
+        var pd = x1.getImageData(0, 0, pw, ph).data;
+
+        var pmask = new Uint8Array(pw * ph);
+        for (var yy = 0; yy < ph; yy++) {
+            var sy = Math.min(h - 1, Math.round(yy / pscale));
+            var off = sy * w;
+            for (var xx = 0; xx < pw; xx++) {
+                pmask[yy * pw + xx] = prodMask[off + Math.min(w - 1, Math.round(xx / pscale))];
+            }
+        }
+
+        var bgR = parseInt($('slBg').value, 10);
+        var prodR = parseInt($('slProd').value, 10);
+
+        var out = new Uint8ClampedArray(pd.length);
+        for (var p0 = 0; p0 < pw * ph; p0++) {
+            var q0 = p0 * 4;
+            out[q0] = pd[q0]; out[q0 + 1] = pd[q0 + 1]; out[q0 + 2] = pd[q0 + 2]; out[q0 + 3] = 255;
+        }
+
+        function floatBuf() {
+            var b = new Float32Array(pw * ph * 3);
+            for (var i = 0; i < pw * ph; i++) {
+                b[i * 3] = pd[i * 4]; b[i * 3 + 1] = pd[i * 4 + 1]; b[i * 3 + 2] = pd[i * 4 + 2];
+            }
+            return b;
+        }
+
+        var softB = null;
+        if (bgR > 0) {
+            var prB = radiusParams(true, pscale);
+            // 半径越大，越不能让产品边缘的亮像素卷进背景平均，否则产品会被描一圈光
+            var guardB = 1;
+            var keepB = dilate(pmask, pw, ph, guardB);
+            var regB = new Uint8Array(pw * ph);
+            for (var k = 0; k < pw * ph; k++) regB[k] = keepB[k] ? 0 : 1;
+            var origB = floatBuf();
+            var resB = dustScratches(origB, pw, ph, prB.r, prB.t, regB);
+            if (prB.blurA > 0) {
+                // D&S 抹不掉的低频痕迹（水渍、投影、整片不匀）靠整片柔化吃掉
+                var filledB = fillOutside(resB, pw, ph, regB);
+                var blB = lowFreq(filledB, pw, ph, prB.blurF);
+                var ia = 1 - prB.blurA;
+                for (var bi = 0; bi < resB.length; bi++) resB[bi] = resB[bi] * ia + blB[bi] * prB.blurA;
+                // 产品区一律还原：柔化只给背景用
+                for (var pi2 = 0; pi2 < pw * ph; pi2++) {
+                    if (!regB[pi2]) {
+                        var q3b = pi2 * 3;
+                        resB[q3b] = origB[q3b]; resB[q3b + 1] = origB[q3b + 1]; resB[q3b + 2] = origB[q3b + 2];
+                    }
+                }
+            }
+            softB = softRegionEdge(regB, pw, ph, guardB);
+            for (var p1 = 0; p1 < pw * ph; p1++) {
+                var a1 = softB[p1];
+                // 靠近产品的过渡带也要修得动，不然会留一圈深色描边
+                if (a1 > 0.001) a1 = Math.pow(a1, 0.35);
+                if (a1 <= 0.001) continue;
+                var q1 = p1 * 4, s1 = p1 * 3;
+                out[q1]     = out[q1]     * (1 - a1) + resB[s1]     * a1;
+                out[q1 + 1] = out[q1 + 1] * (1 - a1) + resB[s1 + 1] * a1;
+                out[q1 + 2] = out[q1 + 2] * (1 - a1) + resB[s1 + 2] * a1;
+            }
+        }
+
+        if (prodR > 0) {
+            var regP = new Uint8Array(pw * ph);
+            for (var k2 = 0; k2 < pw * ph; k2++) regP[k2] = pmask[k2] ? 1 : 0;
+            var prP = radiusParams(false, pscale);
+            var resP = dustScratches(floatBuf(), pw, ph, prP.r, prP.t, regP, true);
+            var softP = softB ? null : softRegionEdge(regP, pw, ph, Math.max(1, Math.round(6 * pscale)));
+            for (var p2 = 0; p2 < pw * ph; p2++) {
+                var a2 = softP ? softP[p2] : (1 - softB[p2]);
+                if (a2 <= 0.001) continue;
+                var q2 = p2 * 4, s2 = p2 * 3;
+                out[q2]     = out[q2]     * (1 - a2) + resP[s2]     * a2;
+                out[q2 + 1] = out[q2 + 1] * (1 - a2) + resP[s2 + 1] * a2;
+                out[q2 + 2] = out[q2 + 2] * (1 - a2) + resP[s2 + 2] * a2;
+            }
+        }
+
+        if (seq !== previewSeq) return;
+
+        // 预览只放大"改了的部分"贴回原图，产品区保持原图清晰度
+        // （直接放大 600px 缩略图会让整个产品糊掉）
+        var dc = document.createElement('canvas');
+        dc.width = pw; dc.height = ph;
+        var dctx = dc.getContext('2d', { willReadFrequently: true });
+        var dim = dctx.createImageData(pw, ph);
+        for (var pd2 = 0; pd2 < pw * ph; pd2++) {
+            var qd = pd2 * 4;
+            dim.data[qd]     = clamp8(out[qd]     - pd[qd]     + 128);
+            dim.data[qd + 1] = clamp8(out[qd + 1] - pd[qd + 1] + 128);
+            dim.data[qd + 2] = clamp8(out[qd + 2] - pd[qd + 2] + 128);
+            dim.data[qd + 3] = 255;
+        }
+        dctx.putImageData(dim, 0, 0);
+
+        var uc = document.createElement('canvas');
+        uc.width = w; uc.height = h;
+        var uctx = uc.getContext('2d', { willReadFrequently: true });
+        uctx.imageSmoothingEnabled = true;
+        uctx.imageSmoothingQuality = 'high';
+        uctx.drawImage(dc, 0, 0, w, h);
+        var dd = uctx.getImageData(0, 0, w, h).data;
+
+        var pv = $('cvPreview');
+        if (pv.width !== w || pv.height !== h) { pv.width = w; pv.height = h; }
+        var pctx = pv.getContext('2d');
+        var pim = pctx.createImageData(w, h);
+        var od = originalData.data;
+        for (var pp = 0; pp < w * h; pp++) {
+            var q4 = pp * 4;
+            pim.data[q4]     = clamp8(od[q4]     + dd[q4]     - 128);
+            pim.data[q4 + 1] = clamp8(od[q4 + 1] + dd[q4 + 1] - 128);
+            pim.data[q4 + 2] = clamp8(od[q4 + 2] + dd[q4 + 2] - 128);
+            pim.data[q4 + 3] = 255;
+        }
+        pctx.putImageData(pim, 0, 0);
+        pv.style.display = 'block';
+        previewShown = true;
+    }
+
+    function clamp8(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
+
+    function onSlide(isBg) {
+        var val = isBg ? $('slBg').value : $('slProd').value;
+        $(isBg ? 'slBgVal' : 'slProdVal').textContent = val;
+        if (previewTimer) clearTimeout(previewTimer);
+        previewTimer = setTimeout(doPreview, 90);
+    }
+
+    /* ---------------- 确定：按当前力度全分辨率跑一遍 ---------------- */
+
+    var MAXPROC = 2000;   // 算的时候最长边上限：大图缩着算，算完放大混合，省内存也不卡
+
+    function applyAll() {
+        if (!imgW || !prodMask || !origCanvas) return;
+        var bgR = parseInt($('slBg').value, 10);
+        var prodR = parseInt($('slProd').value, 10);
+        if (bgR <= 0 && prodR <= 0) {
+            $('autoInfo').style.display = '';
+            $('autoInfo').textContent = '两个力度都是 0，没东西要修。';
+            return;
+        }
+
+        clearRegion();
+        previewSeq++;
+        previewShown = false;
+        $('cvPreview').style.display = 'none';
+        $('busyTxt').textContent = '正在修…';
+        $('busy').classList.add('on');
+        $('btnApply').disabled = true;
+
+        function fail(err) {
+            $('busy').classList.remove('on');
+            $('btnApply').disabled = false;
+            $('autoInfo').style.display = '';
+            $('autoInfo').textContent = '出错了：' + err.message;
+        }
+
+        setTimeout(function () {
+            try {
+                var t0 = performance.now();
+                var w = imgW, h = imgH;
+                // 半径越大越吃算力，背景力度拉很高时把处理尺寸压下来
+                // 背景走整片柔化时全分辨率算：先缩小再放大，背景会糊出一层雾
+                var maxProc = MAXPROC;
+                if (bgR > 6) maxProc = 3000;
+                else if (bgR > 0) maxProc = 1800;
+                var pscale = Math.min(1, maxProc / Math.max(w, h));
+                var pw = Math.max(1, Math.round(w * pscale));
+                var ph = Math.max(1, Math.round(h * pscale));
+
+                var c1 = document.createElement('canvas');
+                c1.width = pw; c1.height = ph;
+                var x1 = c1.getContext('2d', { willReadFrequently: true });
+                x1.drawImage(origCanvas, 0, 0, pw, ph);
+                var pd = x1.getImageData(0, 0, pw, ph).data;
+
+                var pmask = new Uint8Array(pw * ph);
+                for (var yy = 0; yy < ph; yy++) {
+                    var sy = Math.min(h - 1, Math.round(yy / pscale));
+                    var off = sy * w;
+                    for (var xx = 0; xx < pw; xx++) {
+                        pmask[yy * pw + xx] = prodMask[off + Math.min(w - 1, Math.round(xx / pscale))];
+                    }
+                }
+
+                var acc = new Float32Array(pw * ph * 3);
+                for (var i = 0; i < pw * ph; i++) {
+                    acc[i * 3] = pd[i * 4]; acc[i * 3 + 1] = pd[i * 4 + 1]; acc[i * 3 + 2] = pd[i * 4 + 2];
+                }
+
+                function inputBuf() {
+                    var b = new Float32Array(pw * ph * 3);
+                    for (var i2 = 0; i2 < pw * ph; i2++) {
+                        b[i2 * 3] = pd[i2 * 4]; b[i2 * 3 + 1] = pd[i2 * 4 + 1]; b[i2 * 3 + 2] = pd[i2 * 4 + 2];
+                    }
+                    return b;
+                }
+
+                function mixIn(res, soft) {
+                    for (var p = 0; p < pw * ph; p++) {
+                        var a = soft[p];
+                        if (a > 0.001) a = Math.pow(a, 0.35);
+                        if (a <= 0.001) continue;
+                        var q = p * 3;
+                        acc[q]     = acc[q]     * (1 - a) + res[q]     * a;
+                        acc[q + 1] = acc[q + 1] * (1 - a) + res[q + 1] * a;
+                        acc[q + 2] = acc[q + 2] * (1 - a) + res[q + 2] * a;
+                    }
+                }
+
+                var softB = null;
+
+                function doProd() {
+                    if (prodR <= 0) return finish();
+                    $('busyTxt').textContent = '正在修产品…';
+                    var reg = new Uint8Array(pw * ph);
+                    for (var k = 0; k < pw * ph; k++) reg[k] = pmask[k] ? 1 : 0;
+                    var pr = radiusParams(false, pscale);
+                    dustScratchesAsync(inputBuf(), pw, ph, pr.r, pr.t, reg, function (res) {
+                        try {
+                            if (softB) {
+                                for (var p = 0; p < pw * ph; p++) {
+                                    var a = 1 - softB[p];
+                                    if (a <= 0.001) continue;
+                                    var q = p * 3;
+                                    acc[q]     = acc[q]     * (1 - a) + res[q]     * a;
+                                    acc[q + 1] = acc[q + 1] * (1 - a) + res[q + 1] * a;
+                                    acc[q + 2] = acc[q + 2] * (1 - a) + res[q + 2] * a;
+                                }
+                            } else {
+                                var sp = softRegionEdge(reg, pw, ph, Math.max(1, Math.round(6 * pscale)));
+                                mixIn(res, sp);
+                            }
+                            finish();
+                        } catch (e2) { fail(e2); }
+                    }, function (pct) {
+                        $('busyTxt').textContent = '正在修产品 ' + Math.round(pct * 100) + '%';
+                    }, true);
+                }
+
+                function doBg() {
+                    if (bgR <= 0) return doProd();
+                    $('busyTxt').textContent = '正在修背景…';
+                    var pr = radiusParams(true, pscale);
+                    var guardB = 1;
+                    var keepB = dilate(pmask, pw, ph, guardB);
+                    var reg = new Uint8Array(pw * ph);
+                    for (var k = 0; k < pw * ph; k++) reg[k] = keepB[k] ? 0 : 1;
+                    function bgDone(res) {
+                        try {
+                            softB = softRegionEdge(reg, pw, ph, guardB);
+                            mixIn(res, softB);
+                            doProd();
+                        } catch (e1) { fail(e1); }
+                    }
+                    var origA = inputBuf();
+                    dustScratchesAsync(origA, pw, ph, pr.r, pr.t, reg, function (res) {
+                        try {
+                            if (pr.blurA > 0) {
+                                $('busyTxt').textContent = '正在柔化背景…';
+                                setTimeout(function () {
+                                    try {
+                                        var filledA = fillOutside(res, pw, ph, reg);
+                                        var bl = lowFreq(filledA, pw, ph, pr.blurF);
+                                        var ia = 1 - pr.blurA;
+                                        for (var bi = 0; bi < res.length; bi++) res[bi] = res[bi] * ia + bl[bi] * pr.blurA;
+                                        for (var pi = 0; pi < pw * ph; pi++) {
+                                            if (!reg[pi]) {
+                                                var q3 = pi * 3;
+                                                res[q3] = origA[q3]; res[q3 + 1] = origA[q3 + 1]; res[q3 + 2] = origA[q3 + 2];
+                                            }
+                                        }
+                                        bgDone(res);
+                                    } catch (e4) { fail(e4); }
+                                }, 0);
+                            } else {
+                                bgDone(res);
+                            }
+                        } catch (e3) { fail(e3); }
+                    }, function (pct) {
+                        $('busyTxt').textContent = '正在修背景 ' + Math.round(pct * 100) + '%';
+                    });
+                }
+
+                function finish() {
+                    var c2 = document.createElement('canvas');
+                    c2.width = pw; c2.height = ph;
+                    var x2 = c2.getContext('2d', { willReadFrequently: true });
+                    var rim = x2.createImageData(pw, ph);
+                    for (var p = 0; p < pw * ph; p++) {
+                        rim.data[p * 4]     = acc[p * 3];
+                        rim.data[p * 4 + 1] = acc[p * 3 + 1];
+                        rim.data[p * 4 + 2] = acc[p * 3 + 2];
+                        rim.data[p * 4 + 3] = 255;
+                    }
+                    x2.putImageData(rim, 0, 0);
+
+                    var outData;
+                    if (pscale < 1) {
+                        var c3 = document.createElement('canvas');
+                        c3.width = w; c3.height = h;
+                        var x3 = c3.getContext('2d', { willReadFrequently: true });
+                        x3.imageSmoothingEnabled = true;
+                        x3.imageSmoothingQuality = 'high';
+                        x3.drawImage(c2, 0, 0, w, h);
+                        outData = x3.getImageData(0, 0, w, h);
+                    } else {
+                        outData = ctxBase.createImageData(w, h);
+                        outData.data.set(rim.data);
+                    }
+
+                    ctxBase.putImageData(outData, 0, 0);
+
+                    var ms = Math.round(performance.now() - t0);
+                    $('busy').classList.remove('on');
+                    $('btnApply').disabled = false;
+                    hasResult = true;
+                    $('stageTools').style.display = '';
+                    setStep(3);
+                    $('autoInfo').style.display = '';
+                    $('autoInfo').textContent = '修好了，用时 ' +
+                        (ms > 2000 ? (ms / 1000).toFixed(1) + 's' : ms + 'ms') +
+                        '。不满意就再调力度，图会从原图重算一遍。';
+                }
+
+                doBg();
+            } catch (err) { fail(err); }
+        }, 30);
+    }
+
+    // 区域边缘做 6px 线性过渡，避免修补区和原图硬切
+    function softRegionEdge(region, w, h, radius) {
+        // 两遍方框模糊近似
+        var a = new Float32Array(w * h);
+        for (var i = 0; i < w * h; i++) a[i] = region[i] ? 1 : 0;
+        var b = new Float32Array(w * h);
+        var r = radius;
+
+        for (var pass = 0; pass < 2; pass++) {
+            // 横向
+            for (var y = 0; y < h; y++) {
+                var sum = 0, cnt = 0;
+                for (var x = -r; x < w; x++) {
+                    if (x + r < w && x + r >= 0) { sum += a[y * w + x + r]; cnt++; }
+                    if (x - r - 1 >= 0) { sum -= a[y * w + x - r - 1]; cnt--; }
+                    if (x >= 0 && x < w) b[y * w + x] = cnt > 0 ? sum / cnt : 0;
+                }
+            }
+            // 纵向
+            for (var x2 = 0; x2 < w; x2++) {
+                var sum2 = 0, cnt2 = 0;
+                for (var y2 = -r; y2 < h; y2++) {
+                    if (y2 + r < h && y2 + r >= 0) { sum2 += b[(y2 + r) * w + x2]; cnt2++; }
+                    if (y2 - r - 1 >= 0) { sum2 -= b[(y2 - r - 1) * w + x2]; cnt2--; }
+                    if (y2 >= 0 && y2 < h) a[y2 * w + x2] = cnt2 > 0 ? sum2 / cnt2 : 0;
+                }
+            }
+        }
+        return a;
+    }
+
+    /* ---------------- 产品轮廓显示 ---------------- */
+
+    function drawMaskOverlay() {
+        if (!imgW || !prodMask) return;
+        var w = imgW, h = imgH;
+
+        if (!maskOn) {
+            ctxMask.clearRect(0, 0, w, h);
+            redrawMask();
+            return;
+        }
+
+        // 描边：产品区边界画一条青色线
+        var od = ctxMask.createImageData(w, h);
+        for (var y = 1; y < h - 1; y++) {
+            for (var x = 1; x < w - 1; x++) {
+                var i = y * w + x;
+                if (!prodMask[i]) continue;
+                // 四邻域有背景 → 边界
+                if (!prodMask[i - 1] || !prodMask[i + 1] || !prodMask[i - w] || !prodMask[i + w]) {
+                    var q = i * 4;
+                    od.data[q] = 80; od.data[q + 1] = 220; od.data[q + 2] = 220;
+                    od.data[q + 3] = 210;
+                }
+            }
+        }
+        ctxMask.clearRect(0, 0, w, h);
+        ctxMask.putImageData(od, 0, 0);
+        redrawMask();
+    }
+
+    function med(arr) {
+        var a = arr.slice().sort(function (p, q) { return p - q; });
+        var m = a.length >> 1;
+        return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+    }
+
+    // BFS 补漏：逐行填不到的像素，从已确定的边缘往里推
+    function bfsFill(buf, w, h, mask, filled) {
+        var known = new Uint8Array(w * h);
+        var todo = 0;
+        for (var i = 0; i < w * h; i++) {
+            if (!mask[i] || filled[i]) known[i] = 1;
+            else todo++;
+        }
+        if (!todo) return;
+
+        var queue = [];
+        var qh = 0;
+        var hasKnownNb = function (x, y) {
+            for (var dy = -1; dy <= 1; dy++) {
+                for (var dx = -1; dx <= 1; dx++) {
+                    if (!dx && !dy) continue;
+                    var nx = x + dx, ny = y + dy;
+                    if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+                    if (known[ny * w + nx]) return true;
+                }
+            }
+            return false;
+        };
+        for (var y = 0; y < h; y++) {
+            for (var x2 = 0; x2 < w; x2++) {
+                var j = y * w + x2;
+                if (mask[j] && !known[j] && hasKnownNb(x2, y)) queue.push(j);
+            }
+        }
+
+        var guard = 0, guardMax = w * h * 3;
+        while (qh < queue.length && guard++ < guardMax) {
+            var ci = queue[qh++];
+            if (known[ci]) continue;
+            var cx = ci % w, cy = (ci / w) | 0;
+
+            var sr = 0, sg = 0, sb = 0, ws = 0;
+            for (var dy = -1; dy <= 1; dy++) {
+                for (var dx = -1; dx <= 1; dx++) {
+                    if (!dx && !dy) continue;
+                    var nx = cx + dx, ny = cy + dy;
+                    if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+                    var nj = ny * w + nx;
+                    if (!known[nj]) continue;
+                    var wg = (dx && dy) ? 0.7071 : 1;
+                    var nq = nj * 3;
+                    sr += buf[nq] * wg; sg += buf[nq + 1] * wg; sb += buf[nq + 2] * wg;
+                    ws += wg;
+                }
+            }
+            if (!ws) continue;
+            var cq = ci * 3;
+            buf[cq] = sr / ws; buf[cq + 1] = sg / ws; buf[cq + 2] = sb / ws;
+            known[ci] = 1;
+
+            for (var dy2 = -1; dy2 <= 1; dy2++) {
+                for (var dx2 = -1; dx2 <= 1; dx2++) {
+                    if (!dx2 && !dy2) continue;
+                    var mx = cx + dx2, my = cy + dy2;
+                    if (mx < 0 || my < 0 || mx >= w || my >= h) continue;
+                    var mj = my * w + mx;
+                    if (mask[mj] && !known[mj]) queue.push(mj);
+                }
+            }
+        }
+    }
+
+    // 轻量松弛：omega=0.5 的 Gauss-Seidel，只求接缝顺滑，不做大幅推拉
+    function relaxSmooth(buf, w, h, mask, minX, minY, maxX, maxY, iters) {
+        for (var it = 0; it < iters; it++) {
+            var flip = (it & 1) === 1;
+            var yStart = flip ? maxY : minY;
+            var yEnd = flip ? minY - 1 : maxY + 1;
+            var yStep = flip ? -1 : 1;
+            var xStart = flip ? maxX : minX;
+            var xEnd = flip ? minX - 1 : maxX + 1;
+            var xStep = flip ? -1 : 1;
+
+            for (var y = yStart; y !== yEnd; y += yStep) {
+                var row = y * w;
+                for (var x = xStart; x !== xEnd; x += xStep) {
+                    var i = row + x;
+                    if (!mask[i]) continue;
+                    var sr = 0, sg = 0, sb = 0, n = 0, q;
+                    if (x > 0) { q = (i - 1) * 3; sr += buf[q]; sg += buf[q + 1]; sb += buf[q + 2]; n++; }
+                    if (x < w - 1) { q = (i + 1) * 3; sr += buf[q]; sg += buf[q + 1]; sb += buf[q + 2]; n++; }
+                    if (y > 0) { q = (i - w) * 3; sr += buf[q]; sg += buf[q + 1]; sb += buf[q + 2]; n++; }
+                    if (y < h - 1) { q = (i + w) * 3; sr += buf[q]; sg += buf[q + 1]; sb += buf[q + 2]; n++; }
+                    if (!n) continue;
+                    var p = i * 3;
+                    buf[p]     = (sr / n + buf[p]) / 2;
+                    buf[p + 1] = (sg / n + buf[p + 1]) / 2;
+                    buf[p + 2] = (sb / n + buf[p + 2]) / 2;
+                }
+            }
+        }
+    }
+
+    // mask 模糊成 0-1 的权重图，用于边缘羽化
+    // 只在涂抹区域的包围盒里算，整图遍历会卡死
+    function blurMask(mask, w, h, radius, minX, minY, maxX, maxY) {
+        var out = new Float32Array(w * h);
+        var ex0 = Math.max(0, minX - radius * 2), ey0 = Math.max(0, minY - radius * 2);
+        var ex1 = Math.min(w - 1, maxX + radius * 2), ey1 = Math.min(h - 1, maxY + radius * 2);
+
+        for (var y = ey0; y <= ey1; y++) {
+            for (var x = ex0; x <= ex1; x++) {
+                out[y * w + x] = mask[y * w + x] ? 1 : 0;
+            }
+        }
+
+        for (var pass = 0; pass < 2; pass++) {
+            var tmp = new Float32Array(w * h);
+            for (var y2 = ey0; y2 <= ey1; y2++) {
+                for (var x2 = ex0; x2 <= ex1; x2++) {
+                    var sum = 0, n = 0;
+                    for (var dx = -radius; dx <= radius; dx++) {
+                        var nx = x2 + dx;
+                        if (nx < 0 || nx >= w) continue;
+                        sum += out[y2 * w + nx]; n++;
+                    }
+                    tmp[y2 * w + x2] = sum / n;
+                }
+            }
+            for (var x3 = ex0; x3 <= ex1; x3++) {
+                for (var y3 = ey0; y3 <= ey1; y3++) {
+                    var sum2 = 0, n2 = 0;
+                    for (var dy = -radius; dy <= radius; dy++) {
+                        var ny = y3 + dy;
+                        if (ny < 0 || ny >= h) continue;
+                        sum2 += tmp[ny * w + x3]; n2++;
+                    }
+                    out[y3 * w + x3] = sum2 / n2;
+                }
+            }
+        }
+        return out;
+    }
+
+    /* ---------------- 对比 / 下载 / 重置 ---------------- */
+
+    var cmpOn = false;
+    function showCmp(on) {
+        if (!originalData) return;
+        cmpOn = on;
+        $('cmpBadge').classList.toggle('on', on);
+        if (on) {
+            // 看原图时把预览层收起来，不然盖着看不到
+            $('cvPreview').style.display = 'none';
+            ctxBase.putImageData(originalData, 0, 0);
+        } else {
+            // 还原成修补后的图：重跑一次不现实，直接存一份修补结果
+            if (resultData) ctxBase.putImageData(resultData, 0, 0);
+            if (previewShown) $('cvPreview').style.display = 'block';
+        }
+    }
+    var resultData = null;
+
+    $('btnCmp').addEventListener('mousedown', function () { showCmp(true); });
+    $('btnCmp').addEventListener('mouseup', function () { showCmp(false); });
+    $('btnCmp').addEventListener('mouseleave', function () { if (cmpOn) showCmp(false); });
+    $('btnCmp').addEventListener('touchstart', function (e) { e.preventDefault(); showCmp(true); }, { passive: false });
+    $('btnCmp').addEventListener('touchend', function (e) { e.preventDefault(); showCmp(false); }, { passive: false });
+
+    // 每次修补后存一份结果，供对比切回
+    var _putImageData = ctxBase.putImageData.bind(ctxBase);
+    ctxBase.putImageData = function (d, x, y) {
+        _putImageData(d, x, y);
+        if (d !== originalData) resultData = d;
+    };
+
+    $('btnDl').addEventListener('click', function () {
+        if (!imgW) return;
+        if (previewShown) {
+            $('autoInfo').style.display = '';
+            $('autoInfo').textContent = '现在看到的是预览，先点上面的「确定」再下载，出来的才是当前效果。';
+            return;
+        }
+        var a = document.createElement('a');
+        a.download = 'retouch-' + Date.now() + '.png';
+        a.href = cvBase.toDataURL('image/png');
+        a.click();
+    });
+
+
+    /* ---------------- 步骤条 ---------------- */
+
+    function setStep(n) {
+        for (var i = 1; i <= 3; i++) {
+            var el = $('st' + i);
+            if (!el) continue;
+            el.className = 'step' + (i < n ? ' done' : i === n ? ' on' : '');
+        }
+    }
+    setStep(1);
+
+    // 初始笔刷预览
+})();
+</script>
+</body>
+</html>
