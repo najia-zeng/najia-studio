@@ -1236,25 +1236,15 @@
     function radiusParams(isBg, scale) {
         var sc = scale === undefined ? 1 : scale;
         if (isBg) {
+            // 回到 13:26 版本：背景纯 D&S，半径跟力度走，阈值跟着放大
             var r = parseInt($('slBg').value, 10);
-            // 小力度只去尘，大力度开始整片柔化：力度 7 起 blurA 从 0 慢慢加上去
-            var rr = Math.max(1, Math.round(r * 0.5 * sc));
-            var blurA = (r - 6) / 44;
-            if (blurA < 0) blurA = 0;
-            if (blurA > 0.99) blurA = 0.99;
-            return {
-                r: rr,
-                // 阈值跟着实际半径走，太大就会把不同颜色混成一团杂色
-                t: Math.max(3, Math.round(rr * 1.5)),
-                blurR: Math.max(1, Math.round(r * 0.6 * sc)),
-                blurA: blurA
-            };
+            return { r: Math.max(1, Math.round(r * sc)), t: Math.round(r * 1.2) };
         }
+        // 产品也是 13:26 版本的公式，窗口至少 5×5
         var r2 = parseInt($('slProd').value, 10);
-        // 窗口至少 5×5：太小判不准"孤立点"，会把纹理当脏点
         var rr = Math.max(1, Math.round(r2 * sc));
         if (rr < 2) rr = 2;
-        return { r: rr, t: Math.round(4 + r2 * 1.5) };
+        return { r: rr, t: 8 + r2 * 2 };
     }
 
     // 拖滑块的快速预览：缩到 600px，背景和产品一起算，秒出
@@ -1312,29 +1302,11 @@
         if (bgR > 0) {
             var prB = radiusParams(true, pscale);
             // 半径越大，越不能让产品边缘的亮像素卷进背景平均，否则产品会被描一圈光
-            var guardB = Math.max(2, Math.round(Math.max(prB.r, prB.blurR) * 0.35));
+            var guardB = Math.max(2, Math.round(prB.r * 0.35));
             var keepB = dilate(pmask, pw, ph, guardB);
             var regB = new Uint8Array(pw * ph);
             for (var k = 0; k < pw * ph; k++) regB[k] = keepB[k] ? 0 : 1;
-            var resB;
-            if (prB.blurA > 0) {
-                // 大力度直接整片模糊：大半径 D&S 会在每个脏点周围留下环状伪影
-                var origB = floatBuf();
-                var blB = gaussApprox(fillOutside(origB, pw, ph, regB), pw, ph, prB.blurR);
-                var ia = 1 - prB.blurA;
-                var baseB = new Float32Array(origB.length);
-                for (var bi = 0; bi < origB.length; bi++) baseB[bi] = origB[bi] * ia + blB[bi] * prB.blurA;
-                // 产品区一律还原：模糊是给背景用的，产品一根线都不能动
-                for (var pi = 0; pi < pw * ph; pi++) {
-                    if (!regB[pi]) {
-                        var q3 = pi * 3;
-                        baseB[q3] = origB[q3]; baseB[q3 + 1] = origB[q3 + 1]; baseB[q3 + 2] = origB[q3 + 2];
-                    }
-                }
-                resB = baseB;
-            } else {
-                resB = dustScratches(floatBuf(), pw, ph, prB.r, prB.t, regB);
-            }
+            var resB = dustScratches(floatBuf(), pw, ph, prB.r, prB.t, regB);
             softB = softRegionEdge(regB, pw, ph, guardB);
             for (var p1 = 0; p1 < pw * ph; p1++) {
                 var a1 = softB[p1];
@@ -1350,7 +1322,7 @@
             var regP = new Uint8Array(pw * ph);
             for (var k2 = 0; k2 < pw * ph; k2++) regP[k2] = pmask[k2] ? 1 : 0;
             var prP = radiusParams(false, pscale);
-            var resP = dustScratches(floatBuf(), pw, ph, prP.r, prP.t, regP, true);
+            var resP = dustScratches(floatBuf(), pw, ph, prP.r, prP.t, regP);
             var softP = softB ? null : softRegionEdge(regP, pw, ph, Math.max(1, Math.round(6 * pscale)));
             for (var p2 = 0; p2 < pw * ph; p2++) {
                 var a2 = softP ? softP[p2] : (1 - softB[p2]);
@@ -1521,14 +1493,14 @@
                         } catch (e2) { fail(e2); }
                     }, function (pct) {
                         $('busyTxt').textContent = '正在修产品 ' + Math.round(pct * 100) + '%';
-                    }, true);
+                    });
                 }
 
                 function doBg() {
                     if (bgR <= 0) return doProd();
                     $('busyTxt').textContent = '正在修背景…';
                     var pr = radiusParams(true, pscale);
-                    var guardB = Math.max(2, Math.round(Math.max(pr.r, pr.blurR) * 0.35));
+                    var guardB = Math.max(2, Math.round(pr.r * 0.35));
                     var keepB = dilate(pmask, pw, ph, guardB);
                     var reg = new Uint8Array(pw * ph);
                     for (var k = 0; k < pw * ph; k++) reg[k] = keepB[k] ? 0 : 1;
@@ -1539,29 +1511,9 @@
                             doProd();
                         } catch (e1) { fail(e1); }
                     }
-                    if (pr.blurA > 0) {
-                        // 大力度直接整片模糊，不做 D&S，避免环状伪影
-                        setTimeout(function () {
-                            try {
-                                var origA = inputBuf();
-                                var bl = gaussApprox(fillOutside(origA, pw, ph, reg), pw, ph, pr.blurR);
-                                var ia = 1 - pr.blurA;
-                                var base = new Float32Array(origA.length);
-                                for (var bi = 0; bi < origA.length; bi++) base[bi] = origA[bi] * ia + bl[bi] * pr.blurA;
-                                for (var pi = 0; pi < pw * ph; pi++) {
-                                    if (!reg[pi]) {
-                                        var q3 = pi * 3;
-                                        base[q3] = origA[q3]; base[q3 + 1] = origA[q3 + 1]; base[q3 + 2] = origA[q3 + 2];
-                                    }
-                                }
-                                bgDone(base);
-                            } catch (e0) { fail(e0); }
-                        }, 0);
-                    } else {
-                        dustScratchesAsync(inputBuf(), pw, ph, pr.r, pr.t, reg, bgDone, function (pct) {
-                            $('busyTxt').textContent = '正在修背景 ' + Math.round(pct * 100) + '%';
-                        });
-                    }
+                    dustScratchesAsync(inputBuf(), pw, ph, pr.r, pr.t, reg, bgDone, function (pct) {
+                        $('busyTxt').textContent = '正在修背景 ' + Math.round(pct * 100) + '%';
+                    });
                 }
 
                 function finish() {
