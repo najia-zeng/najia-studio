@@ -99,6 +99,7 @@
     .btn:disabled { opacity: .38; cursor: not-allowed; }
     .btn-main { background: var(--grad); border-color: transparent; color: #fff; font-weight: 600; }
     .btn-main:hover:not(:disabled) { filter: brightness(1.12); background: var(--grad); }
+    .btn-main:disabled { background: #23232c; color: #5f5f70; border-color: #2b2b36; opacity: 1; }
     .btn-row { display: flex; gap: 8px; margin-top: 10px; }
     .btn-row .btn { flex: 1; }
 
@@ -123,6 +124,7 @@
     .stage-tools .btn { width: auto; flex: none; padding: 9px 24px; }
 
     /* 力度滑块 */
+    .sec.off .sld, .sec.off .hint { opacity: .38; }
     .sld { display: flex; align-items: center; gap: 11px; margin-bottom: 12px; }
     .sld-l { font-size: 12px; color: var(--text-sec); flex: none; }
     .sld-v { font-size: 12.5px; color: var(--text); font-weight: 600; min-width: 22px; text-align: right; }
@@ -224,22 +226,22 @@
             <input type="file" id="file" accept="image/*" hidden>
         </div>
 
-        <div class="sec">
+        <div class="sec off" id="secBg">
             <div class="sec-t">背景</div>
             <div class="sld">
                 <span class="sld-l">力度</span>
                 <input type="range" id="slBg" min="0" max="30" value="15" step="1" disabled>
-                <b class="sld-v" id="slBgVal">15</b>
+                <b class="sld-v" id="slBgVal">—</b>
             </div>
             <div class="hint">修产品以外的部分。拖到 0 就是不修背景。</div>
         </div>
 
-        <div class="sec">
+        <div class="sec off" id="secProd">
             <div class="sec-t">产品</div>
             <div class="sld">
                 <span class="sld-l">力度</span>
                 <input type="range" id="slProd" min="0" max="8" value="2" step="1" disabled>
-                <b class="sld-v" id="slProdVal">2</b>
+                <b class="sld-v" id="slProdVal">—</b>
             </div>
             <div class="hint">修产品表面。开太大产品会糊，拖到 0 就是不修。</div>
         </div>
@@ -402,6 +404,10 @@
             $('btnApply').disabled = false;
             $('slBg').disabled = false;
             $('slProd').disabled = false;
+            $('secBg').classList.remove('off');
+            $('secProd').classList.remove('off');
+            $('slBgVal').textContent = $('slBg').value;
+            $('slProdVal').textContent = $('slProd').value;
 
             if (pct < 0.005 || pct > 0.92) {
                 // 没识别出来，或者几乎整幅都是产品
@@ -411,6 +417,8 @@
                 $('btnApply').disabled = true;
                 $('slBg').disabled = true;
                 $('slProd').disabled = true;
+                $('secBg').classList.add('off');
+                $('secProd').classList.add('off');
             } else {
                 $('autoInfo').style.display = '';
                 $('autoInfo').textContent = '青色这块是产品，其余都能修。分得不对就在产品上点一下。';
