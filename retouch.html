@@ -32,32 +32,44 @@
     }
 
     #ns-topbar { flex-shrink: 0; background: #fff; }
+    /* 桌面端整页不滚动：画布自己在内部滚，工具条始终可见 */
+    @media (min-width: 901px) { body { height: 100vh; overflow: hidden; } }
 
-    main.content { flex: 1; width: 100%; max-width: 1240px; margin: 0 auto; padding: 26px 40px 56px; }
+    main.content { flex: 1 1 auto; min-height: 0; width: 100%; max-width: none; margin: 0; padding: 0;
+                   display: flex; flex-direction: column; }
 
     /* ===== 页头 ===== */
-    .hero { text-align: center; padding: 8px 0 24px; }
-    .hero h1 { margin: 0 0 9px; font-size: 44px; font-weight: 800; line-height: 1.22; letter-spacing: -.8px; }
+    .hero { text-align: center; padding: 14px 30px 12px; background: #fff; border-bottom: 1px solid var(--line); }
+    .hero h1 { margin: 0 0 7px; font-size: 32px; font-weight: 800; line-height: 1.22; letter-spacing: -.6px; }
     .hero h1 em { font-style: normal; color: var(--blue); }
-    .hero-note { margin: 0; font-size: 16px; color: #56526e; font-weight: 550; line-height: 1.7; }
+    .hero-note { margin: 0; font-size: 14.5px; color: #56526e; font-weight: 550; line-height: 1.65; }
     .hero-note b { color: var(--green); }
 
     /* ===== 工作区 ===== */
-    .work { display: grid; grid-template-columns: 300px 1fr; gap: 22px; align-items: stretch; }
+    /* 左栏贴边 + 右侧画布铺满剩余宽度，不留卡片缝 */
+    .work { display: grid; grid-template-columns: 300px 1fr; gap: 0; align-items: stretch;
+            flex: 1 1 auto; min-height: 0; }
     .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--rad); }
 
     /* ---------- 画布面板 ---------- */
     .stage-card {
         display: flex; flex-direction: column;
-        height: clamp(700px, 76vh, 780px);
-        background: #fff; border: 1px solid var(--line);
-        border-radius: var(--rad); overflow: hidden;
+        height: auto; min-height: 0;
+        background: #fff; border: none; border-radius: 0; overflow: hidden;
     }
     .stage-wrap {
         position: relative; flex: 1 1 auto; min-height: 0;
         display: flex; align-items: center; justify-content: center;
-        padding: 18px; background: #fbfaff;
+        padding: 0; background: #fbfaff;
+        overflow: hidden;
     }
+    /* 画布内滚动条：细一点，别抢图片的视线 */
+    .stage-wrap::-webkit-scrollbar { width: 10px; }
+    .stage-wrap::-webkit-scrollbar-track { background: transparent; }
+    .stage-wrap::-webkit-scrollbar-thumb {
+        background: #d6d1ea; border-radius: 8px; border: 3px solid #fff;
+    }
+    .stage-wrap::-webkit-scrollbar-thumb:hover { background: #c2bbe0; }
     /* 有图之后才铺棋盘格（纯 CSS 判断，不动脚本） */
     .stage-card:has(#stage[style*="block"]) .stage-wrap {
         background-color: #fff;
@@ -69,7 +81,7 @@
         background-size: 22px 22px;
         background-position: 0 0, 0 11px, 11px -11px, -11px 0;
     }
-    .stage-inner { display: flex; flex-direction: column; align-items: center; max-width: 100%; max-height: 100%; }
+    .stage-inner { display: flex; flex-direction: column; align-items: center; width: 100%; }
     .stage { position: relative; line-height: 0; box-shadow: 0 8px 28px rgba(45,35,110,.12); }
     .stage canvas { display: block; }
     #cvPreview { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; display: none; }
@@ -82,14 +94,16 @@
 
     /* ---------- 侧栏卡片 ---------- */
     .side {
-        background: var(--card); border: 1px solid var(--line); border-radius: var(--rad);
-        display: flex; flex-direction: column; overflow: hidden;
+        background: var(--card); border: none; border-right: 1px solid var(--line); border-radius: 0;
+        display: flex; flex-direction: column; overflow-y: auto;
     }
+    .side::-webkit-scrollbar { width: 8px; }
+    .side::-webkit-scrollbar-thumb { background: #e2ddf0; border-radius: 8px; border: 2px solid #fff; }
     .side-hd { padding: 20px 20px 14px; border-bottom: 1px solid #f0f0f5; }
     .side-title { font-size: 17px; font-weight: 750; letter-spacing: -.3px; }
     .side-sub { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.6; }
 
-    .sec { padding: 15px 18px; border-bottom: 1px solid #f0f0f5; }
+    .sec { padding: 13px 20px; border-bottom: 1px solid #f0f0f5; }
     .sec:last-child { border-bottom: none; margin-top: auto; border-top: 1px solid #f0f0f5; }
     .sec-t { font-size: 13px; font-weight: 750; color: var(--ink); letter-spacing: .2px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
     .sec-t b { color: var(--ink); font-weight: 650; }
@@ -110,7 +124,7 @@
     /* 上传区 */
     .drop {
         border: 2px dashed #d8d0fb; border-radius: 14px;
-        padding: 20px 14px; text-align: center; cursor: pointer;
+        padding: 16px 12px; text-align: center; cursor: pointer;
         transition: all .18s; background: #fbfaff;
     }
     .drop:hover, .drop.over { border-color: var(--blue); background: #f6f3ff; }
@@ -176,7 +190,7 @@
     .btn-row { display: flex; gap: 8px; margin-top: 10px; }
     .btn-row .btn { flex: 1; }
 
-    .hint { font-size: 11.5px; color: #a5a1bb; line-height: 1.65; margin-top: 7px; }
+    .hint { font-size: 11px; color: #a5a1bb; line-height: 1.6; margin-top: 6px; }
     .hint b { color: #56526e; font-weight: 650; }
 
     /* 掩膜与光标（位置由脚本控制，不能动） */
@@ -190,10 +204,10 @@
 
     /* 空态 */
     .empty {
-        flex: 1; align-self: stretch;
+        position: absolute; inset: 0;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         text-align: center; color: #8a86a3; padding: 30px 20px;
-        border: 2px dashed #e9e5f8; border-radius: 14px; background: #fff;
+        border: none; border-radius: 0; background: transparent;
     }
     .empty-ico { font-size: 40px; opacity: .4; margin-bottom: 14px; }
     .empty-t { font-size: 16px; font-weight: 750; color: #56526e; margin-bottom: 7px; }
@@ -224,7 +238,7 @@
     .cmp-badge.on { display: block; }
 
     /* 步骤提示 */
-    .steps { display: flex; gap: 7px; margin-bottom: 11px; }
+    .steps { display: flex; gap: 7px; margin-bottom: 9px; }
     .step {
         flex: 1; text-align: center; font-size: 11.5px; padding: 7px 4px; font-weight: 650;
         border-radius: 9px; background: #fbfaff; color: #8a86a3;
@@ -234,30 +248,34 @@
     .step.done { color: var(--green); border-color: rgba(13,154,114,.3); background: rgba(13,154,114,.07); }
 
     /* 底部说明 */
+    /* 说明条贴在左栏底部，不再占画布高度 */
     .tips {
-        margin-top: 18px; padding: 16px 20px; background: #fff;
-        border: 1px solid var(--line); border-radius: 14px;
-        font-size: 12.5px; color: var(--muted); line-height: 1.9;
+        margin-top: auto;
+        padding: 10px 20px 13px; background: #fbfaff;
+        border-top: 1px solid #f0f0f5;
+        font-size: 10.5px; color: #9a95b0; line-height: 1.55;
     }
-    .tips .row { display: flex; gap: 9px; }
+    .tips .row { display: flex; gap: 6px; }
+    .tips .row + .row { margin-top: 4px; }
     .tips .n { color: var(--blue); font-weight: 750; flex-shrink: 0; }
     .tips b { color: var(--ink); }
 
     /* 移动端 */
     @media (max-width: 900px) {
-        main.content { padding: 18px 16px 44px; }
-        .hero { padding: 4px 0 18px; }
-        .hero h1 { font-size: 32px; }
-        .hero-note { font-size: 14.5px; }
-        .work { grid-template-columns: 1fr; gap: 16px; }
-        .stage-card { height: 52vh; min-height: 320px; }
-        .stage-wrap { padding: 12px; }
+        main.content { padding: 0; }
+        .hero { padding: 14px 16px 12px; }
+        .hero h1 { font-size: 26px; }
+        .hero-note { font-size: 13px; }
+        .work { grid-template-columns: 1fr; gap: 0; min-height: 0; align-items: start; }
+        .stage-card { height: 62vh; min-height: 320px; }
+        .stage-wrap { padding: 0; }
         .stage-tools { height: 56px; }
-        .work { align-items: start; }
-        .stage-tools { padding: 12px 0 2px; }
-        .side { border-radius: var(--rad); }
+        .sec { padding: 14px 16px; }
+        .side { border-radius: 0; border-right: none; border-bottom: 1px solid var(--line); }
+        .tips { padding: 12px 16px 16px; font-size: 11px; }
     }
-</style>
+
+    </style>
 </head>
 <body>
 
@@ -314,6 +332,12 @@
                 <div class="hint" id="autoInfo" style="display:none;"></div>
             </div>
 
+        <div class="tips">
+            <div class="row"><span class="n">1</span><span><b>红色笔刷涂过的地方才会修</b>，没涂的区域一个像素都不动。涂完点「确定」。</span></div>
+            <div class="row"><span class="n">2</span><span><b>产品本体不会被改动</b>：只清背景杂物和产品表面的浮尘小点，纹理和边缘保留。</span></div>
+            <div class="row"><span class="n">3</span><span><b>力度拖到 0 就是不修</b>。全程在本机计算，图片不会上传服务器。</span></div>
+        </div>
+
         </aside>
 
         <!-- ============ 画布 ============ -->
@@ -350,11 +374,6 @@
 
     </div>
 
-    <div class="tips">
-        <div class="row"><span class="n">1</span><span><b>红色笔刷涂过的地方才会修</b>，没涂的区域一个像素都不动。涂完点「确定」。</span></div>
-        <div class="row"><span class="n">2</span><span><b>产品本体不会被改动</b>：只清背景杂物和产品表面的浮尘小点，纹理和边缘保留。</span></div>
-        <div class="row"><span class="n">3</span><span><b>力度拖到 0 就是不修</b>。全程在本机计算，图片不会上传服务器。</span></div>
-    </div>
 
 </main>
 
@@ -507,9 +526,10 @@
     function fitStage() {
         if (!imgW) return;
         var wrap = $('stageWrap');
-        var pad = 48;
+        var pad = 36;
         var maxW = wrap.clientWidth - pad;
         var maxH = wrap.clientHeight - pad;
+        // 等比缩放到「整张图都装得下」：宽和高取更小的那个比例
         var r = Math.min(maxW / imgW, maxH / imgH, 1);
         var dw = Math.round(imgW * r), dh = Math.round(imgH * r);
         cvBase.style.width = dw + 'px'; cvBase.style.height = dh + 'px';
@@ -1174,6 +1194,52 @@
         return out;
     }
 
+    // 保护区内一律权重 0，出了保护区再按「离边缘的距离」慢慢升到 1。
+    // 不用模糊遮罩做过渡：模糊的过渡在边界上正好是 0.5，等于贴着产品镶一圈背景色（白边/刻痕感）。
+    function softOutward(mask, w, h, feather) {
+        var n = w * h, INF = 1e6;
+        var d = new Float32Array(n);
+        var i, x, y, v;
+        for (i = 0; i < n; i++) d[i] = mask[i] ? 0 : INF;
+        for (y = 0; y < h; y++) {
+            for (x = 0; x < w; x++) {
+                i = y * w + x;
+                if (d[i] === 0) continue;
+                v = d[i];
+                if (x > 0 && d[i - 1] + 1 < v) v = d[i - 1] + 1;
+                if (y > 0) {
+                    if (d[i - w] + 1 < v) v = d[i - w] + 1;
+                    if (x > 0 && d[i - w - 1] + 1.4142 < v) v = d[i - w - 1] + 1.4142;
+                    if (x < w - 1 && d[i - w + 1] + 1.4142 < v) v = d[i - w + 1] + 1.4142;
+                }
+                d[i] = v;
+            }
+        }
+        for (y = h - 1; y >= 0; y--) {
+            for (x = w - 1; x >= 0; x--) {
+                i = y * w + x;
+                if (d[i] === 0) continue;
+                v = d[i];
+                if (x < w - 1 && d[i + 1] + 1 < v) v = d[i + 1] + 1;
+                if (y < h - 1) {
+                    if (d[i + w] + 1 < v) v = d[i + w] + 1;
+                    if (x < w - 1 && d[i + w + 1] + 1.4142 < v) v = d[i + w + 1] + 1.4142;
+                    if (x > 0 && d[i + w - 1] + 1.4142 < v) v = d[i + w - 1] + 1.4142;
+                }
+                d[i] = v;
+            }
+        }
+        var a = new Float32Array(n);
+        var f = feather < 1 ? 1 : feather;
+        for (i = 0; i < n; i++) {
+            var t = d[i] / f;
+            if (t <= 0) a[i] = 0;
+            else if (t >= 1) a[i] = 1;
+            else a[i] = t * t * (3 - 2 * t);
+        }
+        return a;
+    }
+
     // 把认出来的产品区画出来：青色边 + 淡淡填充，让人一眼看到分界
     var regionTimer = null;
     function showRegion(ms) {
@@ -1647,6 +1713,8 @@
             var prB = radiusParams(true, pscale);
             // 半径越大，越不能让产品边缘的亮像素卷进背景平均，否则产品会被描一圈光
             var guardB = Math.max(2, Math.round(Math.max(prB.r, prB.blurR) * 0.08));
+            // 过渡带要比保护带宽：保护带里的像素不参与柔化，太窄就会在产品外留一圈没被柔化的原始像素，看起来像光晕
+            var featherB = Math.max(guardB, Math.round(Math.max(prB.blurR, prB.r) * 0.32));
             var keepB = dilate(pmask, pw, ph, guardB);
             var regB = new Uint8Array(pw * ph);
             for (var k = 0; k < pw * ph; k++) regB[k] = keepB[k] ? 0 : 1;
@@ -1658,15 +1726,15 @@
                 var blB = lowFreq(filledB, pw, ph, prB.blurF);
                 var ia = 1 - prB.blurA;
                 for (var bi = 0; bi < resB.length; bi++) resB[bi] = resB[bi] * ia + blB[bi] * prB.blurA;
-                // 产品区一律还原：柔化只给背景用
+                // 保护带里一律还原：柔化只给背景用
                 for (var pi2 = 0; pi2 < pw * ph; pi2++) {
-                    if (!regB[pi2]) {
+                    if (keepB[pi2]) {
                         var q3b = pi2 * 3;
                         resB[q3b] = origB[q3b]; resB[q3b + 1] = origB[q3b + 1]; resB[q3b + 2] = origB[q3b + 2];
                     }
                 }
             }
-            softB = softRegionEdge(regB, pw, ph, guardB);
+            softB = softOutward(keepB, pw, ph, featherB);
             for (var p1 = 0; p1 < pw * ph; p1++) {
                 var a1 = softB[p1];
                 if (a1 <= 0.001) continue;
@@ -1860,12 +1928,13 @@
                     $('busyTxt').textContent = '正在修背景…';
                     var pr = radiusParams(true, pscale);
                     var guardB = Math.max(2, Math.round(Math.max(pr.r, pr.blurR) * 0.08));
+                    var featherB = Math.max(guardB, Math.round(Math.max(pr.blurR, pr.r) * 0.32));
                     var keepB = dilate(pmask, pw, ph, guardB);
                     var reg = new Uint8Array(pw * ph);
                     for (var k = 0; k < pw * ph; k++) reg[k] = keepB[k] ? 0 : 1;
                     function bgDone(res) {
                         try {
-                            softB = softRegionEdge(reg, pw, ph, guardB);
+                            softB = softOutward(keepB, pw, ph, featherB);
                             mixIn(res, softB);
                             doProd();
                         } catch (e1) { fail(e1); }
@@ -1882,7 +1951,7 @@
                                         var ia = 1 - pr.blurA;
                                         for (var bi = 0; bi < res.length; bi++) res[bi] = res[bi] * ia + bl[bi] * pr.blurA;
                                         for (var pi = 0; pi < pw * ph; pi++) {
-                                            if (!reg[pi]) {
+                                            if (keepB[pi]) {
                                                 var q3 = pi * 3;
                                                 res[q3] = origA[q3]; res[q3 + 1] = origA[q3 + 1]; res[q3 + 2] = origA[q3 + 2];
                                             }
