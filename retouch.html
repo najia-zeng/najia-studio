@@ -233,7 +233,7 @@
                 <input type="range" id="slBg" min="0" max="50" value="0" step="1" disabled>
                 <b class="sld-v" id="slBgVal">—</b>
             </div>
-            <div class="hint">清背景上的灰尘、绒毛、水渍和多余倒影。力度越大窗口越大，大片不匀也一起吃掉，背景质感留着。拖到 0 是不修。</div>
+            <div class="hint">小力度清灰尘杂物，拉大了整片背景会柔下来。瑕疵多就直接拉大，拖到 0 是不修。</div>
         </div>
 
         <div class="sec off" id="secProd">
@@ -1049,7 +1049,7 @@
     /* ---------------- 蒙尘与划痕 ---------------- */
 
     // 单方向选择性平滑：只平均跟中心颜色接近的像素，离群的不参与
-    function dsPass(src, dst, w, h, radius, threshold, horizontal, region, y0, y1, keepDetail, avgOnly) {
+    function dsPass(src, dst, w, h, radius, threshold, horizontal, region, y0, y1, keepDetail) {
         var r = radius;
         if (y0 === undefined) y0 = 0;
         if (y1 === undefined) y1 = h;
@@ -1101,9 +1101,6 @@
                     } else {
                         dst[q] = cr; dst[q + 1] = cg; dst[q + 2] = cb;
                     }
-                } else if (avgOnly) {
-                    // 大半径抹不匀专用：只肯在"多数邻居同色"的地方取平均，绝不拿异色去盖
-                    dst[q] = cr; dst[q + 1] = cg; dst[q + 2] = cb;
                 } else if (n <= an * 0.3 && fn > 0 && fSpread <= threshold * 2) {
                     // 中心是少数派、多数派内部干净一致 → 中心是脏点，用干净邻居盖掉
                     dst[q] = fr / fn; dst[q + 1] = fg / fn; dst[q + 2] = fb / fn;
@@ -1173,11 +1170,11 @@
         return a;
     }
 
-    function dustScratches(src, w, h, radius, threshold, region, keepDetail, avgOnly) {
+    function dustScratches(src, w, h, radius, threshold, region, keepDetail) {
         var tmp = new Float32Array(src.length);
         var dst = new Float32Array(src.length);
-        dsPass(src, tmp, w, h, radius, threshold, true, region, 0, h, keepDetail, avgOnly);
-        dsPass(tmp, dst, w, h, radius, threshold, false, region, 0, h, keepDetail, avgOnly);
+        dsPass(src, tmp, w, h, radius, threshold, true, region, 0, h, keepDetail);
+        dsPass(tmp, dst, w, h, radius, threshold, false, region, 0, h, keepDetail);
         return dst;
     }
 
@@ -1219,13 +1216,18 @@
         var sc = scale === undefined ? 1 : scale;
         if (isBg) {
             var r = parseInt($('slBg').value, 10);
-            // 两段：小半径去灰尘杂点，大半径只抹跟周围几乎同色的低频不匀（水渍/指纹）
-            // 阈值压得很小，所以只吃掉"本来就该是一片"的差异，不会把不同颜色混成一片
-            // 单段 D&S：半径和阈值一起长，力度大时窗口大到能吃掉水渍、指纹这种大片不匀
-            // 只平均"跟中心接近"的邻居，所以不会把不同颜色混成一片
-            // 半径封顶 30：再大算不动，靠阈值继续加狠劲
-            var rr = Math.min(30, Math.max(1, Math.round(r * sc)));
-            return { r: rr, t: Math.round(r * 1.2), r2: 0, t2: 0 };
+            // 小力度只去尘，大力度开始整片柔化：力度 7 起 blurA 从 0 慢慢加上去
+            var rr = Math.max(1, Math.round(r * 0.5 * sc));
+            var blurA = (r - 6) / 44;
+            if (blurA < 0) blurA = 0;
+            if (blurA > 0.99) blurA = 0.99;
+            return {
+                r: rr,
+                // 阈值跟着实际半径走，太大就会把不同颜色混成一团杂色
+                t: Math.max(3, Math.round(rr * 1.5)),
+                blurR: Math.max(1, Math.round(r * 0.6 * sc)),
+                blurA: blurA
+            };
         }
         var r2 = parseInt($('slProd').value, 10);
         // 窗口至少 5×5：太小判不准"孤立点"，会把纹理当脏点
@@ -1287,12 +1289,21 @@
         if (bgR > 0) {
             var prB = radiusParams(true, pscale);
             // 半径越大，越不能让产品边缘的亮像素卷进背景平均，否则产品会被描一圈光
-            var guardB = Math.max(1, Math.round(Math.max(prB.r, prB.r2) * 0.8));
+            var guardB = Math.max(1, Math.round(Math.max(prB.r, prB.blurR) * 1.1));
             var keepB = dilate(pmask, pw, ph, guardB);
             var regB = new Uint8Array(pw * ph);
             for (var k = 0; k < pw * ph; k++) regB[k] = keepB[k] ? 0 : 1;
-            var resB = dustScratches(floatBuf(), pw, ph, prB.r, prB.t, regB);
-            if (prB.r2 > prB.r) resB = dustScratches(resB, pw, ph, prB.r2, prB.t2, regB, false, true);
+            var resB;
+            if (prB.blurA > 0) {
+                // 大力度直接整片模糊：大半径 D&S 会在每个脏点周围留下环状伪影
+                var baseB = floatBuf();
+                var blB = gaussApprox(baseB, pw, ph, prB.blurR);
+                var ia = 1 - prB.blurA;
+                for (var bi = 0; bi < baseB.length; bi++) baseB[bi] = baseB[bi] * ia + blB[bi] * prB.blurA;
+                resB = baseB;
+            } else {
+                resB = dustScratches(floatBuf(), pw, ph, prB.r, prB.t, regB);
+            }
             softB = softRegionEdge(regB, pw, ph, guardB);
             for (var p1 = 0; p1 < pw * ph; p1++) {
                 var a1 = softB[p1];
@@ -1485,7 +1496,7 @@
                     if (bgR <= 0) return doProd();
                     $('busyTxt').textContent = '正在修背景…';
                     var pr = radiusParams(true, pscale);
-                    var guardB = Math.max(1, Math.round(Math.max(pr.r, pr.r2) * 0.8));
+                    var guardB = Math.max(1, Math.round(Math.max(pr.r, pr.blurR) * 1.1));
                     var keepB = dilate(pmask, pw, ph, guardB);
                     var reg = new Uint8Array(pw * ph);
                     for (var k = 0; k < pw * ph; k++) reg[k] = keepB[k] ? 0 : 1;
@@ -1496,22 +1507,22 @@
                             doProd();
                         } catch (e1) { fail(e1); }
                     }
-                    dustScratchesAsync(inputBuf(), pw, ph, pr.r, pr.t, reg, function (res1) {
-                        try {
-                            if (pr.r2 > pr.r) {
-                                $('busyTxt').textContent = '正在修背景…';
-                                setTimeout(function () {
-                                    try {
-                                        bgDone(dustScratches(res1, pw, ph, pr.r2, pr.t2, reg, false, true));
-                                    } catch (e3) { fail(e3); }
-                                }, 0);
-                            } else {
-                                bgDone(res1);
-                            }
-                        } catch (e2) { fail(e2); }
-                    }, function (pct) {
-                        $('busyTxt').textContent = '正在修背景 ' + Math.round(pct * 100) + '%';
-                    });
+                    if (pr.blurA > 0) {
+                        // 大力度直接整片模糊，不做 D&S，避免环状伪影
+                        setTimeout(function () {
+                            try {
+                                var base = inputBuf();
+                                var bl = gaussApprox(base, pw, ph, pr.blurR);
+                                var ia = 1 - pr.blurA;
+                                for (var bi = 0; bi < base.length; bi++) base[bi] = base[bi] * ia + bl[bi] * pr.blurA;
+                                bgDone(base);
+                            } catch (e0) { fail(e0); }
+                        }, 0);
+                    } else {
+                        dustScratchesAsync(inputBuf(), pw, ph, pr.r, pr.t, reg, bgDone, function (pct) {
+                            $('busyTxt').textContent = '正在修背景 ' + Math.round(pct * 100) + '%';
+                        });
+                    }
                 }
 
                 function finish() {
