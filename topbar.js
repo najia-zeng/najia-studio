@@ -17,6 +17,7 @@
     'scene-flower1.html': 'tools',
     'scene-gen1.html': 'tools',
     'kuociq.html': 'tools',
+    'retouch.html': 'tools',
     'kuociq-chatsdk.html': 'tools',
     'fusion-pro.html': 'tools',
     'member.html': 'manual'
