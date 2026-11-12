@@ -307,6 +307,7 @@
     var userPicked = false;    // 用户是否手动点过产品
     var previewTimer = null;   // 拖滑块时的预览节流
     var previewSeq = 0;
+    var previewShown = false;  // 预览层当前是否盖在画布上
 
     /* ---------------- 上传 ---------------- */
 
@@ -382,7 +383,7 @@
         $('empty').style.display = 'none';
         $('stage').style.display = 'block';
         $('autoInfo').style.display = 'none';
-        $('stageTools').style.display = 'none';
+        $('stageTools').style.display = '';
 
         fitStage();
         requestAnimationFrame(fitStage);
@@ -1265,6 +1266,7 @@
         }
         pctx.putImageData(pim, 0, 0);
         pv.style.display = 'block';
+        previewShown = true;
     }
 
     function clamp8(v) { return v < 0 ? 0 : v > 255 ? 255 : v; }
@@ -1292,6 +1294,7 @@
 
         clearRegion();
         previewSeq++;
+        previewShown = false;
         $('cvPreview').style.display = 'none';
         $('busyTxt').textContent = '正在修…';
         $('busy').classList.add('on');
@@ -1659,10 +1662,13 @@
         cmpOn = on;
         $('cmpBadge').classList.toggle('on', on);
         if (on) {
+            // 看原图时把预览层收起来，不然盖着看不到
+            $('cvPreview').style.display = 'none';
             ctxBase.putImageData(originalData, 0, 0);
         } else {
             // 还原成修补后的图：重跑一次不现实，直接存一份修补结果
             if (resultData) ctxBase.putImageData(resultData, 0, 0);
+            if (previewShown) $('cvPreview').style.display = 'block';
         }
     }
     var resultData = null;
@@ -1682,6 +1688,11 @@
 
     $('btnDl').addEventListener('click', function () {
         if (!imgW) return;
+        if (previewShown) {
+            $('autoInfo').style.display = '';
+            $('autoInfo').textContent = '现在看到的是预览，先点上面的「确定」再下载，出来的才是当前效果。';
+            return;
+        }
         var a = document.createElement('a');
         a.download = 'retouch-' + Date.now() + '.png';
         a.href = cvBase.toDataURL('image/png');
