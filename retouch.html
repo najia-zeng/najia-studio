@@ -43,13 +43,13 @@
     .hero-note b { color: var(--green); }
 
     /* ===== 工作区 ===== */
-    .work { display: grid; grid-template-columns: 1fr 340px; gap: 22px; align-items: stretch; }
+    .work { display: grid; grid-template-columns: 300px 1fr; gap: 22px; align-items: stretch; }
     .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--rad); }
 
     /* ---------- 画布面板 ---------- */
     .stage-card {
         display: flex; flex-direction: column;
-        height: clamp(620px, 66vh, 720px);
+        height: clamp(700px, 76vh, 780px);
         background: #fff; border: 1px solid var(--line);
         border-radius: var(--rad); overflow: hidden;
     }
@@ -272,38 +272,6 @@
 
     <div class="work">
 
-        <!-- ============ 画布 ============ -->
-        <div class="stage-card">
-            <div class="stage-wrap" id="stageWrap">
-                <div class="empty" id="empty">
-                    <div class="empty-ico">🖼</div>
-                    <div class="empty-t">先上传一张产品图</div>
-                    <div class="empty-s">涂掉想删的东西，点一下就好<br>产品部分不会被改动</div>
-                </div>
-
-                <div class="stage-inner">
-                    <div class="stage" id="stage" style="display:none;">
-                        <canvas id="cvBase"></canvas>
-                        <canvas id="cvPreview"></canvas>
-                        <canvas id="cvMask"></canvas>
-                        <div id="cvCursor"></div>
-                    </div>
-                </div>
-
-                <div class="cmp-badge" id="cmpBadge">原图</div>
-
-                <div class="busy" id="busy">
-                    <div class="spinner"></div>
-                    <div class="busy-t" id="busyTxt">正在修补…</div>
-                </div>
-            </div>
-
-            <div class="stage-tools" id="stageTools" style="display:none;">
-                <button class="btn" id="btnCmp">按住看原图</button>
-                <button class="btn btn-main" id="btnDl">下载</button>
-            </div>
-        </div>
-
         <!-- ============ 侧栏 ============ -->
         <aside class="side">
 
@@ -347,6 +315,38 @@
             </div>
 
         </aside>
+
+        <!-- ============ 画布 ============ -->
+        <div class="stage-card">
+            <div class="stage-wrap" id="stageWrap">
+                <div class="empty" id="empty">
+                    <div class="empty-ico">🖼</div>
+                    <div class="empty-t">先上传一张产品图</div>
+                    <div class="empty-s">涂掉想删的东西，点一下就好<br>产品部分不会被改动</div>
+                </div>
+
+                <div class="stage-inner">
+                    <div class="stage" id="stage" style="display:none;">
+                        <canvas id="cvBase"></canvas>
+                        <canvas id="cvPreview"></canvas>
+                        <canvas id="cvMask"></canvas>
+                        <div id="cvCursor"></div>
+                    </div>
+                </div>
+
+                <div class="cmp-badge" id="cmpBadge">原图</div>
+
+                <div class="busy" id="busy">
+                    <div class="spinner"></div>
+                    <div class="busy-t" id="busyTxt">正在修补…</div>
+                </div>
+            </div>
+
+            <div class="stage-tools" id="stageTools" style="display:none;">
+                <button class="btn" id="btnCmp">按住看原图</button>
+                <button class="btn btn-main" id="btnDl">下载</button>
+            </div>
+        </div>
 
     </div>
 
