@@ -42,7 +42,7 @@
     '<a class="brand" href="' + homeHref + '">' +
       '<div class="logo"><img src="img/logo.png" alt="NaStudio"></div>' +
       '<div class="bt"><b>NaStudio</b><span>娜家视觉</span></div>' +
-      '<div class="tagline">帮企业搭视觉生产流水线</div>' +
+      '<div class="tagline">视觉生产流水线</div>' +
     '</a>' +
     '<div class="topnav">' +
       '<span class="quota-tag" id="quotaTag"></span>' +
