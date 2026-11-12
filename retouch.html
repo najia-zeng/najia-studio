@@ -224,36 +224,29 @@
             <input type="file" id="file" accept="image/*" hidden>
         </div>
 
-        <div class="sec" id="secAutoBg" style="display:none;">
-            <div class="sec-t">一键修背景 <span class="badge ok" id="autoBadge">已识别产品</span></div>
+        <div class="sec">
+            <div class="sec-t">一键修背景</div>
             <div class="sld">
                 <span class="sld-l">力度</span>
                 <input type="range" id="slBg" min="6" max="30" value="15" step="1">
                 <b class="sld-v" id="slBgVal">15</b>
             </div>
-            <button class="btn btn-main" id="btnAutoBg">修背景 · 灰尘杂物脏点</button>
+            <button class="btn btn-main" id="btnAutoBg" disabled>修背景 · 灰尘杂物脏点</button>
             <div class="hint">只动产品以外的部分，产品一点不碰。</div>
         </div>
 
-        <div class="sec" id="secAutoProd" style="display:none;">
+        <div class="sec">
             <div class="sec-t">一键修产品</div>
             <div class="sld">
                 <span class="sld-l">力度</span>
                 <input type="range" id="slProd" min="1" max="8" value="2" step="1">
                 <b class="sld-v" id="slProdVal">2</b>
             </div>
-            <button class="btn btn-main" id="btnAutoProd">修产品 · 表面浮尘指纹</button>
+            <button class="btn btn-main" id="btnAutoProd" disabled>修产品 · 表面浮尘指纹</button>
             <div class="hint">只动产品，背景一点不碰。开太大产品会糊。</div>
         </div>
 
-        <div class="sec" id="secMask" style="display:none;">
-            <label class="chk"><input type="checkbox" id="chkMask"> 显示产品和背景的分界</label>
-            <div class="hint" id="autoInfo">上传后自动把产品和背景分开，两个按钮各修一边，互不干扰。</div>
-        </div>
-
-        <div class="sec" id="secReset" style="display:none;">
-            <button class="btn" id="btnReset">换一张图</button>
-        </div>
+        <div class="hint" id="autoInfo" style="display:none;"></div>
 
         <div class="sec">
             <div class="hint">
@@ -380,15 +373,11 @@
         originalData = null;
         hasResult = false;
         prodMask = null;
-        if ($('chkMask')) $('chkMask').checked = false;
         maskOn = false;
 
         $('empty').style.display = 'none';
         $('stage').style.display = 'block';
-        $('secAutoBg').style.display = '';
-        $('secAutoProd').style.display = '';
-        $('secMask').style.display = '';
-        $('secReset').style.display = '';
+        $('autoInfo').style.display = 'none';
         $('stageTools').style.display = 'none';
 
         fitStage();
@@ -398,9 +387,6 @@
         // 自动识别产品：识别完才允许一键修
         $('btnAutoBg').disabled = true;
         $('btnAutoProd').disabled = true;
-        $('autoBadge').className = 'badge warn';
-        $('autoBadge').textContent = '识别中…';
-        $('autoInfo').textContent = '正在判断哪块是产品…';
 
         setTimeout(function () {
             var d = ctxBase.getImageData(0, 0, imgW, imgH).data;
@@ -415,19 +401,14 @@
 
             if (pct < 0.005 || pct > 0.92) {
                 // 没识别出来，或者几乎整幅都是产品
-                $('autoBadge').className = 'badge warn';
-                $('autoBadge').textContent = '没认出产品';
-                $('autoInfo').textContent = '背景和产品颜色太接近，自动分不干净。可以勾上「显示产品和背景的分界」看看，或者换个背景重拍。';
+                $('autoInfo').textContent = '背景和产品颜色太接近，自动分不干净。换个背景重拍试试。';
+                $('autoInfo').style.display = '';
                 prodMask = null;
                 $('btnAutoBg').disabled = true;
                 $('btnAutoProd').disabled = true;
             } else {
-                $('autoBadge').className = 'badge ok';
-                $('autoBadge').textContent = '已识别产品';
-                $('autoInfo').textContent = '产品和背景已分开（产品占画面 ' + (pct * 100).toFixed(0) +
-                    '%）。修背景只动背景，修产品只动产品。';
+                $('autoInfo').style.display = 'none';
             }
-            if (maskOn) drawMaskOverlay();
         }, 40);
     }
 
@@ -538,10 +519,6 @@
     $('slProd').addEventListener('change', function () { onSlideEnd(false); });
 
     // 显示产品轮廓
-    $('chkMask').addEventListener('change', function () {
-        maskOn = this.checked;
-        drawMaskOverlay();
-    });
 
     function inpaint() {
         var w = imgW, h = imgH;
@@ -1100,6 +1077,7 @@
             $('busy').classList.remove('on');
             $('btnAutoBg').disabled = false;
             $('btnAutoProd').disabled = false;
+            $('autoInfo').style.display = '';
             $('autoInfo').textContent = '出错了：' + err.message;
         }
 
@@ -1209,6 +1187,7 @@
                         hasResult = true;
                         $('stageTools').style.display = '';
                         setStep(3);
+                        $('autoInfo').style.display = '';
                         $('autoInfo').textContent = (isBg ? '背景修完' : '产品修完') + '，用时 ' +
                             (ms > 2000 ? (ms / 1000).toFixed(1) + 's' : ms + 'ms') +
                             '。不够干净就把力度调大，再点一次。';
@@ -1464,23 +1443,6 @@
         a.click();
     });
 
-    $('btnReset').addEventListener('click', function () {
-        imgW = imgH = 0;
-        strokes = [];
-        originalData = null;
-        resultData = null;
-        hasResult = false;
-        $('stage').style.display = 'none';
-        $('empty').style.display = '';
-        $('secAutoBg').style.display = 'none';
-        $('secAutoProd').style.display = 'none';
-        $('secMask').style.display = 'none';
-        $('secReset').style.display = 'none';
-        $('stageTools').style.display = 'none';
-        $('cvPreview').style.display = 'none';
-        $('file').value = '';
-        setStep(1);
-    });
 
     /* ---------------- 步骤条 ---------------- */
 
