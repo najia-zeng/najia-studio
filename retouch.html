@@ -300,6 +300,7 @@
     var hasResult = false;
     var prodMask = null;       // 产品识别结果，1 = 产品
     var maskOn = false;        // 是否显示产品分界
+    var userPicked = false;    // 用户是否手动点过产品
     var previewTimer = null;   // 拖滑块时的预览节流
     var previewSeq = 0;
 
@@ -368,6 +369,7 @@
         hasResult = false;
         prodMask = null;
         maskOn = false;
+        userPicked = false;
 
         $('empty').style.display = 'none';
         $('stage').style.display = 'block';
@@ -401,7 +403,8 @@
                 $('btnAutoBg').disabled = true;
                 $('btnAutoProd').disabled = true;
             } else {
-                $('autoInfo').style.display = 'none';
+                $('autoInfo').style.display = '';
+                $('autoInfo').textContent = '分得不对？在图上点一下产品，点哪块认哪块。';
             }
         }, 40);
     }
@@ -511,6 +514,46 @@
     $('slBg').addEventListener('change', function () { onSlideEnd(true); });
     $('slProd').addEventListener('input', function () { onSlide(false); });
     $('slProd').addEventListener('change', function () { onSlideEnd(false); });
+
+    // 分区不准时，在图上点一下产品，就认这一块（可以点多次，越点越全）
+    cvBase.addEventListener('click', function (e) {
+        if (!imgW || !ctxBase) return;
+        var rect = cvBase.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        var x = Math.round((e.clientX - rect.left) / rect.width * imgW);
+        var y = Math.round((e.clientY - rect.top) / rect.height * imgH);
+        if (x < 0 || x >= imgW || y < 0 || y >= imgH) return;
+
+        var d = ctxBase.getImageData(0, 0, imgW, imgH).data;
+        var g = growFrom(d, imgW, imgH, x, y);
+        if (!g) return;
+
+        var n = 0;
+        for (var i = 0; i < imgW * imgH; i++) if (g[i]) n++;
+        if (n < 60) {
+            $('autoInfo').style.display = '';
+            $('autoInfo').textContent = '这一下没点到东西，往产品上再点一次。';
+            return;
+        }
+
+        var grown = dilate(convexFill(g, imgW, imgH), imgW, imgH, 6);
+        if (!userPicked) {
+            // 第一次点：以你点的为准，把自动识别的结果整个换掉
+            prodMask = new Uint8Array(imgW * imgH);
+            userPicked = true;
+        }
+        if (!prodMask) prodMask = new Uint8Array(imgW * imgH);
+        for (var k = 0; k < imgW * imgH; k++) if (grown[k]) prodMask[k] = 1;
+
+        $('btnAutoBg').disabled = false;
+        $('btnAutoProd').disabled = false;
+
+        var pct = 0;
+        for (var j = 0; j < imgW * imgH; j++) if (prodMask[j]) pct++;
+        $('autoInfo').style.display = '';
+        $('autoInfo').textContent = '已把点中的这块认成产品（占画面 ' + (pct / (imgW * imgH) * 100).toFixed(0) + '%）。有漏就在漏的地方再点一下。';
+        flashMask();
+    });
 
     // 显示产品轮廓
 
@@ -844,6 +887,144 @@
     }
 
     // 只保留最大连通域，去掉背景上被误判的孤立点
+    // 从点中的位置往外长：颜色相近、连在一起的算一块
+    function growFrom(data, w, h, sx, sy) {
+        function m2(a) { a.sort(function (p, q) { return p - q; }); var m = a.length >> 1; return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; }
+        var rs = [], gs = [], bs = [];
+        for (var dy = -3; dy <= 3; dy++) {
+            for (var dx = -3; dx <= 3; dx++) {
+                var x0 = sx + dx, y0 = sy + dy;
+                if (x0 < 0 || x0 >= w || y0 < 0 || y0 >= h) continue;
+                var q0 = (y0 * w + x0) * 4;
+                rs.push(data[q0]); gs.push(data[q0 + 1]); bs.push(data[q0 + 2]);
+            }
+        }
+        var sr = m2(rs), sg = m2(gs), sb = m2(bs);
+
+        // 从紧到松试几档，面积一旦暴涨就说明吃到背景了，退回上一档
+        var tries = [12, 16, 22, 30, 40];
+        var best = null, prevRatio = 0;
+        for (var ti = 0; ti < tries.length; ti++) {
+            var T = tries[ti];
+            var mm = new Uint8Array(w * h);
+            var st = new Int32Array(w * h);
+            var sp = 0;
+            var si = sy * w + sx;
+            mm[si] = 1; st[sp++] = si;
+            while (sp) {
+                var p = st[--sp];
+                var px = p % w, py = (p / w) | 0;
+                for (var k = 0; k < 4; k++) {
+                    var nx = px + (k === 0 ? -1 : k === 1 ? 1 : 0);
+                    var ny = py + (k === 2 ? -1 : k === 3 ? 1 : 0);
+                    if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                    var ni = ny * w + nx;
+                    if (mm[ni]) continue;
+                    var nq = ni * 4;
+                    if (Math.abs(data[nq] - sr) < T && Math.abs(data[nq + 1] - sg) < T && Math.abs(data[nq + 2] - sb) < T) {
+                        mm[ni] = 1; st[sp++] = ni;
+                    }
+                }
+            }
+            var cnt = 0;
+            for (var i2 = 0; i2 < w * h; i2++) if (mm[i2]) cnt++;
+            var ratio = cnt / (w * h);
+            if (ratio > 0.35) break;                                    // 吃到背景了，别要
+            if (best && ratio > 0.15 && ratio > prevRatio * 3.2) break;  // 面积暴涨，跨到别的东西上了
+            best = mm;
+            prevRatio = ratio;
+            if (ratio > 0.15) break;                                    // 够大了，收
+        }
+        return best;
+    }
+
+    // 把点中的这块包成完整形状：细长产品不会只抓到一段
+    function convexFill(mask, w, h) {
+        var pts = [];
+        for (var y = 0; y < h; y++) {
+            var x0 = -1, x1 = -1;
+            for (var x = 0; x < w; x++) {
+                if (mask[y * w + x]) { if (x0 < 0) x0 = x; x1 = x; }
+            }
+            if (x0 >= 0) { pts.push([x0, y]); pts.push([x1, y]); }
+        }
+        if (pts.length < 3) return mask;
+        pts.sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+        function cross(o, a, b) { return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); }
+        var lower = [];
+        for (var i = 0; i < pts.length; i++) {
+            while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], pts[i]) <= 0) lower.pop();
+            lower.push(pts[i]);
+        }
+        var upper = [];
+        for (var j = pts.length - 1; j >= 0; j--) {
+            while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], pts[j]) <= 0) upper.pop();
+            upper.push(pts[j]);
+        }
+        var hull = lower.concat(upper.slice(1, -1));
+        if (hull.length < 3) return mask;
+
+        var out = new Uint8Array(w * h);
+        for (var yy = 0; yy < h; yy++) {
+            var xs = [];
+            for (var k = 0; k < hull.length; k++) {
+                var p1 = hull[k], p2 = hull[(k + 1) % hull.length];
+                if ((p1[1] <= yy && p2[1] > yy) || (p2[1] <= yy && p1[1] > yy)) {
+                    xs.push(p1[0] + (yy - p1[1]) / (p2[1] - p1[1]) * (p2[0] - p1[0]));
+                }
+            }
+            xs.sort(function (a, b) { return a - b; });
+            for (var m = 0; m + 1 < xs.length; m += 2) {
+                var xa = Math.max(0, Math.round(xs[m])), xb = Math.min(w - 1, Math.round(xs[m + 1]));
+                for (var xx = xa; xx <= xb; xx++) out[yy * w + xx] = 1;
+            }
+        }
+        return out;
+    }
+
+    // 膨胀，给产品边缘留保护带
+    function dilate(mask, w, h, px) {
+        var span = px * 2 + 1;
+        var tmp = new Uint8Array(w * h);
+        var out = new Uint8Array(w * h);
+        var run, x, y;
+        for (y = 0; y < h; y++) {
+            run = 0;
+            for (x = 0; x < w; x++) { if (mask[y * w + x]) run = span; if (run > 0) { tmp[y * w + x] = 1; run--; } }
+            run = 0;
+            for (x = w - 1; x >= 0; x--) { if (mask[y * w + x]) run = span; if (run > 0) { tmp[y * w + x] = 1; run--; } }
+        }
+        for (x = 0; x < w; x++) {
+            run = 0;
+            for (y = 0; y < h; y++) { if (tmp[y * w + x]) run = span; if (run > 0) { out[y * w + x] = 1; run--; } }
+            run = 0;
+            for (y = h - 1; y >= 0; y--) { if (tmp[y * w + x]) run = span; if (run > 0) { out[y * w + x] = 1; run--; } }
+        }
+        return out;
+    }
+
+    // 点完之后把分界线闪一下，让人看到认的是哪块
+    var flashTimer = null;
+    function flashMask() {
+        if (!imgW || !prodMask) return;
+        var w = imgW, h = imgH;
+        var od = ctxMask.createImageData(w, h);
+        for (var y = 1; y < h - 1; y++) {
+            for (var x = 1; x < w - 1; x++) {
+                var i = y * w + x;
+                if (!prodMask[i]) continue;
+                if (!prodMask[i - 1] || !prodMask[i + 1] || !prodMask[i - w] || !prodMask[i + w]) {
+                    var q = i * 4;
+                    od.data[q] = 80; od.data[q + 1] = 220; od.data[q + 2] = 220; od.data[q + 3] = 235;
+                }
+            }
+        }
+        ctxMask.clearRect(0, 0, w, h);
+        ctxMask.putImageData(od, 0, 0);
+        if (flashTimer) clearTimeout(flashTimer);
+        flashTimer = setTimeout(function () { ctxMask.clearRect(0, 0, w, h); flashTimer = null; }, 900);
+    }
+
     function keepLargest(mask, w, h) {
         var seen = new Uint8Array(w * h);
         var queue = new Int32Array(w * h);
