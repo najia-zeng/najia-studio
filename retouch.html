@@ -10,90 +10,113 @@
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-        --bg: #f7f7fb; --panel: #ffffff; --panel-2: #fafaff;
-        --border: #e7e7f0; --text: #1b1b2f; --text-sec: #7b7b93;
+        --font: "Space Grotesk", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+        --blue: #6b5ce7; --blue-d: #5a4bd6;
+        --ink: #1a1a2e; --muted: #6a6483; --line: #e8e8ed;
+        --bg: #f7f7fa; --card: #ffffff;
+        --green: #0d9a72; --danger: #e05c5c;
+        --rad: 18px; --rad-s: 12px;
+        /* 兼容脚本里可能引用的旧变量名 */
         --accent: #6b5ce7; --accent-h: #5a4bd6;
+        --text: #1a1a2e; --text-sec: #6a6483;
+        --panel: #ffffff; --panel-2: #fbfaff;
+        --border: #e8e8ed; --radius: 18px; --radius-s: 12px;
         --grad: linear-gradient(135deg, #6b5ce7 0%, #4a7cf7 100%);
-        --danger: #e05c5c; --ok: #10a06a;
-        --radius: 16px; --radius-s: 12px;
+        --ok: #0d9a72;
     }
+    html, body { -webkit-font-smoothing: antialiased; }
     body {
-        font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
-        color: var(--text); background: var(--bg);
-        height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+        font-family: var(--font); color: var(--ink); background: var(--bg);
+        line-height: 1.6; font-size: 14.5px;
+        display: flex; flex-direction: column; min-height: 100vh;
     }
 
-    /* 顶栏：复用全站 topbar，白底 */
     #ns-topbar { flex-shrink: 0; background: #fff; }
 
-    /* 页面标题条：跟全站其它工具页同一套视觉语言 */
-    .pg-hdr {
-        flex-shrink: 0; height: 76px; display: flex; align-items: center; gap: 20px;
-        padding: 0 32px; position: relative;
-        background: linear-gradient(100deg, #ffffff 0%, #fbfaff 42%, #f2efff 100%);
-        border-bottom: 1px solid var(--border);
-    }
-    .pg-hdr::after {
-        content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
-        background: var(--grad); opacity: .5;
-    }
-    .pg-hd-l { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-    .pg-title {
-        font-size: 22px; font-weight: 750; letter-spacing: -.5px; line-height: 1.15;
-        background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
-    }
-    .pg-sub { font-size: 12.5px; color: var(--text-sec); }
-    .pg-tag {
-        margin-left: auto; flex-shrink: 0; display: flex; align-items: center; gap: 7px;
-        font-size: 12.5px; color: #6b5ce7; background: rgba(107,92,231,.08);
-        border: 1px solid rgba(107,92,231,.18); border-radius: 999px;
-        padding: 7px 15px; font-weight: 500;
-    }
-    .pg-tag i { width: 6px; height: 6px; border-radius: 50%; background: var(--grad); display: block; }
+    main.content { flex: 1; width: 100%; max-width: 1240px; margin: 0 auto; padding: 26px 40px 56px; }
 
-    .work { flex: 1; display: flex; min-height: 0; }
+    /* ===== 页头 ===== */
+    .hero { text-align: center; padding: 8px 0 24px; }
+    .hero h1 { margin: 0 0 9px; font-size: 44px; font-weight: 800; line-height: 1.22; letter-spacing: -.8px; }
+    .hero h1 em { font-style: normal; color: var(--blue); }
+    .hero-note { margin: 0; font-size: 16px; color: #56526e; font-weight: 550; line-height: 1.7; }
+    .hero-note b { color: var(--green); }
 
-    /* ---------- 侧栏 ---------- */
+    /* ===== 工作区 ===== */
+    .work { display: grid; grid-template-columns: 1fr 340px; gap: 22px; align-items: stretch; }
+    .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--rad); }
+
+    /* ---------- 画布面板 ---------- */
+    .stage-card {
+        display: flex; flex-direction: column;
+        height: clamp(620px, 66vh, 720px);
+        background: #fff; border: 1px solid var(--line);
+        border-radius: var(--rad); overflow: hidden;
+    }
+    .stage-wrap {
+        position: relative; flex: 1 1 auto; min-height: 0;
+        display: flex; align-items: center; justify-content: center;
+        padding: 18px; background: #fbfaff;
+    }
+    /* 有图之后才铺棋盘格（纯 CSS 判断，不动脚本） */
+    .stage-card:has(#stage[style*="block"]) .stage-wrap {
+        background-color: #fff;
+        background-image:
+            linear-gradient(45deg, #f0eff7 25%, transparent 25%),
+            linear-gradient(-45deg, #f0eff7 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, #f0eff7 75%),
+            linear-gradient(-45deg, transparent 75%, #f0eff7 75%);
+        background-size: 22px 22px;
+        background-position: 0 0, 0 11px, 11px -11px, -11px 0;
+    }
+    .stage-inner { display: flex; flex-direction: column; align-items: center; max-width: 100%; max-height: 100%; }
+    .stage { position: relative; line-height: 0; box-shadow: 0 8px 28px rgba(45,35,110,.12); }
+    .stage canvas { display: block; }
+    #cvPreview { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; display: none; }
+    .stage-tools {
+        flex: 0 0 auto; display: flex; gap: 10px;
+        justify-content: center; align-items: center;
+        height: 62px; background: #fff; border-top: 1px solid #f5f4fa;
+    }
+    .stage-tools .btn { width: auto; flex: none; padding: 10px 26px; }
+
+    /* ---------- 侧栏卡片 ---------- */
     .side {
-        width: 320px; flex-shrink: 0; background: var(--panel);
-        border-right: 1px solid var(--border);
-        display: flex; flex-direction: column; overflow-y: auto;
+        background: var(--card); border: 1px solid var(--line); border-radius: var(--rad);
+        display: flex; flex-direction: column; overflow: hidden;
     }
-    .side-hd { padding: 20px 20px 14px; border-bottom: 1px solid var(--border); }
-    .side-title {
-        font-size: 20px; font-weight: 700; letter-spacing: -.4px;
-        background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
-    }
-    .side-sub { font-size: 12px; color: var(--text-sec); margin-top: 5px; line-height: 1.6; }
+    .side-hd { padding: 20px 20px 14px; border-bottom: 1px solid #f0f0f5; }
+    .side-title { font-size: 17px; font-weight: 750; letter-spacing: -.3px; }
+    .side-sub { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.6; }
 
-    .sec { padding: 16px 20px; border-bottom: 1px solid var(--border); }
-    .sec:first-child { padding-top: 18px; }
-    .sec-t { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -.2px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .sec-t b { color: var(--text); font-weight: 600; }
+    .sec { padding: 15px 18px; border-bottom: 1px solid #f0f0f5; }
+    .sec:last-child { border-bottom: none; margin-top: auto; border-top: 1px solid #f0f0f5; }
+    .sec-t { font-size: 13px; font-weight: 750; color: var(--ink); letter-spacing: .2px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .sec-t b { color: var(--ink); font-weight: 650; }
 
-    .seg { display: flex; gap: 6px; margin-bottom: 10px; }
-    .seg-b { flex: 1; padding: 7px 0; font-size: 12.5px; border: 1px solid var(--border);
-             background: var(--panel-2); border-radius: 9px; cursor: pointer;
-             color: var(--text-sec); font-family: inherit; transition: .15s; }
-    .seg-b:hover { border-color: #cfc9f0; color: var(--text); }
-    .seg-b.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
-    .chk { display: flex; align-items: center; gap: 8px; font-size: 12.5px;
-           color: var(--text-sec); margin-top: 11px; cursor: pointer; user-select: none; }
-    .chk input { width: 14px; height: 14px; accent-color: var(--accent); cursor: pointer; }
-    .badge { font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 600; }
-    .badge.ok { background: rgba(16,160,106,.12); color: var(--ok); }
+    .seg { display: flex; gap: 8px; margin-bottom: 10px; }
+    .seg-b { flex: 1; padding: 8px 0; font-size: 13px; border: 1.5px solid #e6e2f5;
+             background: #fff; border-radius: 10px; cursor: pointer;
+             color: #56526e; font-family: inherit; font-weight: 650; transition: all .15s; }
+    .seg-b:hover { border-color: #c9c1f5; }
+    .seg-b.on { background: var(--blue); border-color: var(--blue); color: #fff; box-shadow: 0 3px 10px rgba(107,92,231,.28); }
+    .chk { display: flex; align-items: center; gap: 8px; font-size: 13px;
+           color: #4a4660; margin-top: 11px; cursor: pointer; user-select: none; font-weight: 600; }
+    .chk input { width: 16px; height: 16px; accent-color: var(--blue); cursor: pointer; }
+    .badge { font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 650; }
+    .badge.ok { background: rgba(13,154,114,.12); color: var(--green); }
     .badge.warn { background: rgba(224,92,92,.12); color: var(--danger); }
 
     /* 上传区 */
     .drop {
-        border: 1.5px dashed var(--border); border-radius: var(--radius);
-        padding: 26px 16px; text-align: center; cursor: pointer;
-        transition: all .18s; background: var(--panel-2);
+        border: 2px dashed #d8d0fb; border-radius: 14px;
+        padding: 20px 14px; text-align: center; cursor: pointer;
+        transition: all .18s; background: #fbfaff;
     }
-    .drop:hover, .drop.over { border-color: var(--accent); background: rgba(107,92,231,.08); }
-    .drop-ico { font-size: 26px; opacity: .5; margin-bottom: 8px; }
-    .drop-t { font-size: 13px; font-weight: 500; }
-    .drop-s { font-size: 11.5px; color: var(--text-sec); margin-top: 5px; line-height: 1.6; }
+    .drop:hover, .drop.over { border-color: var(--blue); background: #f6f3ff; }
+    .drop-ico { font-size: 24px; opacity: .6; margin-bottom: 9px; }
+    .drop-t { font-size: 14px; font-weight: 750; }
+    .drop-s { font-size: 11.5px; color: #8a86a3; margin-top: 6px; line-height: 1.65; }
 
     /* 笔刷 */
     .brush-row { display: flex; align-items: center; gap: 12px; }
@@ -103,76 +126,61 @@
         display: flex; align-items: center; justify-content: center;
     }
     .brush-dot { border-radius: 50%; background: rgba(224,92,92,.85); }
+
+    /* 滑块：跟抠图页同一套 */
     input[type=range] {
-        flex: 1; -webkit-appearance: none; appearance: none;
-        height: 4px; border-radius: 2px; background: var(--border); outline: none;
+        width: 100%; height: 22px; -webkit-appearance: none; appearance: none;
+        background: transparent; margin: 0; outline: none;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+        height: 4px; border-radius: 2px; background: #e8e4fa;
     }
     input[type=range]::-webkit-slider-thumb {
         -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
-        background: var(--grad); cursor: pointer; border: 2px solid var(--panel);
-        box-shadow: 0 2px 6px rgba(107,92,231,.28);
+        background: var(--blue); margin-top: -6px; cursor: pointer;
+        box-shadow: 0 1px 4px rgba(107,92,231,.4); border: none;
     }
+    input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: #e8e4fa; }
     input[type=range]::-moz-range-thumb {
-        width: 14px; height: 14px; border-radius: 50%; background: #6b5ce7;
-        cursor: pointer; border: 2px solid var(--panel);
+        width: 16px; height: 16px; border: none; border-radius: 50%;
+        background: var(--blue); cursor: pointer;
+    }
+
+    /* 力度滑块 */
+    .sec.off .sld, .sec.off .hint { opacity: .4; }
+    .sld { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+    .sld-l { font-size: 12.5px; color: var(--muted); flex: none; font-weight: 600; }
+    .sld-v { font-size: 13px; color: var(--blue); font-weight: 750; min-width: 24px; text-align: right; font-variant-numeric: tabular-nums; }
+    .sld input[type=range] { flex: 1; }
+    .sld input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+        background: var(--blue); cursor: pointer; margin-top: -6px;
+        box-shadow: 0 1px 4px rgba(107,92,231,.4);
     }
 
     /* 按钮 */
     .btn {
-        width: 100%; padding: 11px 16px; border-radius: 10px; border: 1px solid var(--border);
-        background: var(--panel-2); color: var(--text); font-size: 13px; font-weight: 500;
-        font-family: inherit; cursor: pointer; transition: all .15s;
-        display: flex; align-items: center; justify-content: center; gap: 7px;
+        width: 100%; padding: 12px 16px; border-radius: 12px;
+        border: 1.5px solid #e6e2f5; background: #fff; color: #56526e;
+        font-size: 14px; font-weight: 650; font-family: inherit; cursor: pointer;
+        transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 7px;
     }
-    .btn:hover:not(:disabled) { background: #f2f0fc; border-color: #cfc9f0; }
-    .btn:disabled { opacity: .38; cursor: not-allowed; }
-    .btn-main { background: var(--grad); border-color: transparent; color: #fff; font-weight: 600; }
-    .btn-main:hover:not(:disabled) { filter: brightness(1.12); background: var(--grad); }
-    .btn-main:disabled { background: #f3f2f8; color: #b8b5cc; border-color: #e7e7f0; opacity: 1; }
+    .btn:hover:not(:disabled) { border-color: #c9c1f5; color: var(--blue); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-main {
+        background: var(--blue); border-color: transparent; color: #fff; font-weight: 700;
+        font-size: 15px; padding: 14px; box-shadow: 0 4px 14px rgba(107,92,231,.3);
+    }
+    .btn-main:hover:not(:disabled) { background: var(--blue); color: #fff; transform: translateY(-1px); box-shadow: 0 7px 18px rgba(107,92,231,.36); }
+    .btn-main:disabled { background: #f3f2f8; color: #b8b5cc; border-color: transparent; opacity: 1; box-shadow: none; transform: none; }
     .btn-row { display: flex; gap: 8px; margin-top: 10px; }
     .btn-row .btn { flex: 1; }
 
-    .hint { font-size: 11.5px; color: var(--text-sec); line-height: 1.65; margin-top: 10px; }
-    .hint b { color: #5a5872; font-weight: 500; }
+    .hint { font-size: 11.5px; color: #a5a1bb; line-height: 1.65; margin-top: 7px; }
+    .hint b { color: #56526e; font-weight: 650; }
 
-    /* ---------- 画布区 ---------- */
-    .stage-wrap {
-        flex: 1; min-width: 0; position: relative; overflow: hidden;
-        box-shadow: inset 0 1px 0 var(--border);
-        display: flex; align-items: center; justify-content: center;
-        background:
-            linear-gradient(45deg, #f2f1f9 25%, transparent 25%, transparent 75%, #f2f1f9 75%) 0 0/22px 22px,
-            linear-gradient(45deg, #f2f1f9 25%, transparent 25%, transparent 75%, #f2f1f9 75%) 11px 11px/22px 22px,
-            #faf9fd;
-    }
-    .stage-inner { display: flex; flex-direction: column; align-items: center; max-width: 100%; max-height: 100%; }
-    .stage { position: relative; line-height: 0; box-shadow: 0 6px 26px rgba(60,50,120,.12); }
-    .stage canvas { display: block; }
-    #cvPreview { position: absolute; left: 0; top: 0; width: 100%; height: 100%;
-        pointer-events: none; display: none; }
-    .stage-tools { display: flex; gap: 8px; justify-content: center; padding: 14px 0 18px; }
-    .stage-tools .btn { width: auto; flex: none; padding: 9px 24px; }
-
-    /* 力度滑块 */
-    .sec.off .sld, .sec.off .hint { opacity: .38; }
-    .sld { display: flex; align-items: center; gap: 11px; margin-bottom: 12px; }
-    .sld-l { font-size: 12px; color: var(--text-sec); flex: none; }
-    .sld-v { font-size: 12.5px; color: var(--text); font-weight: 600; min-width: 22px; text-align: right; }
-    .sld input[type=range] {
-        flex: 1; -webkit-appearance: none; appearance: none;
-        height: 4px; border-radius: 3px; background: var(--panel-2); outline: none; cursor: pointer;
-    }
-    .sld input[type=range]::-webkit-slider-thumb {
-        -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
-        background: var(--accent); cursor: pointer; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(107,92,231,.35);
-    }
-    .sld input[type=range]::-moz-range-thumb {
-        width: 16px; height: 16px; border-radius: 50%;
-        background: var(--accent); cursor: pointer; border: none;
-    }
-    #cvMask {
-        position: absolute; left: 0; top: 0; pointer-events: none;
-    }
+    /* 掩膜与光标（位置由脚本控制，不能动） */
+    #cvMask { position: absolute; left: 0; top: 0; pointer-events: none; }
     #cvCursor {
         position: absolute; border-radius: 50%; pointer-events: none;
         border: 1px solid rgba(0,0,0,.35);
@@ -182,56 +190,72 @@
 
     /* 空态 */
     .empty {
-        text-align: center; color: var(--text-sec); padding: 40px;
+        flex: 1; align-self: stretch;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center; color: #8a86a3; padding: 30px 20px;
+        border: 2px dashed #e9e5f8; border-radius: 14px; background: #fff;
     }
-    .empty-ico { font-size: 44px; opacity: .34; margin-bottom: 16px; }
-    .empty-t { font-size: 15px; color: #8a87a8; margin-bottom: 7px; }
-    .empty-s { font-size: 12.5px; line-height: 1.7; }
+    .empty-ico { font-size: 40px; opacity: .4; margin-bottom: 14px; }
+    .empty-t { font-size: 16px; font-weight: 750; color: #56526e; margin-bottom: 7px; }
+    .empty-s { font-size: 13px; line-height: 1.75; }
 
     /* 处理中遮罩 */
     .busy {
-        position: absolute; inset: 0; background: rgba(255,255,255,.86);
+        position: absolute; inset: 0; background: rgba(255,255,255,.78);
         display: none; align-items: center; justify-content: center; flex-direction: column;
         gap: 14px; z-index: 20; backdrop-filter: blur(3px);
     }
     .busy.on { display: flex; }
     .spinner {
-        width: 34px; height: 34px; border: 3px solid rgba(107,92,231,.25);
-        border-top-color: var(--accent); border-radius: 50%;
+        width: 34px; height: 34px; border: 3px solid rgba(107,92,231,.2);
+        border-top-color: var(--blue); border-radius: 50%;
         animation: spin .8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .busy-t { font-size: 13px; color: #7b7b93; }
+    .busy-t { font-size: 13.5px; color: var(--blue); font-weight: 650; }
 
     /* 对比提示 */
     .cmp-badge {
         position: absolute; left: 50%; top: 16px; transform: translateX(-50%);
-        background: rgba(0,0,0,.72); color: #fff; font-size: 12px;
+        background: rgba(26,26,46,.78); color: #fff; font-size: 12px; font-weight: 600;
         padding: 6px 14px; border-radius: 999px; display: none; z-index: 15;
         border: 1px solid rgba(255,255,255,.14);
     }
     .cmp-badge.on { display: block; }
 
     /* 步骤提示 */
-    .steps { display: flex; gap: 6px; margin-bottom: 12px; }
+    .steps { display: flex; gap: 7px; margin-bottom: 11px; }
     .step {
-        flex: 1; text-align: center; font-size: 11px; padding: 6px 4px;
-        border-radius: 7px; background: var(--panel-2); color: var(--text-sec);
-        border: 1px solid transparent; transition: all .2s;
+        flex: 1; text-align: center; font-size: 11.5px; padding: 7px 4px; font-weight: 650;
+        border-radius: 9px; background: #fbfaff; color: #8a86a3;
+        border: 1.5px solid #f0eefa; transition: all .2s;
     }
-    .step.on { background: rgba(107,92,231,.10); color: #6b5ce7; border-color: rgba(107,92,231,.35); font-weight: 600; }
-    .step.done { color: var(--ok); }
+    .step.on { background: rgba(107,92,231,.09); color: var(--blue); border-color: rgba(107,92,231,.35); }
+    .step.done { color: var(--green); border-color: rgba(13,154,114,.3); background: rgba(13,154,114,.07); }
+
+    /* 底部说明 */
+    .tips {
+        margin-top: 18px; padding: 16px 20px; background: #fff;
+        border: 1px solid var(--line); border-radius: 14px;
+        font-size: 12.5px; color: var(--muted); line-height: 1.9;
+    }
+    .tips .row { display: flex; gap: 9px; }
+    .tips .n { color: var(--blue); font-weight: 750; flex-shrink: 0; }
+    .tips b { color: var(--ink); }
 
     /* 移动端 */
-    @media (max-width: 860px) {
-        body { height: auto; overflow: auto; }
-        .work { flex-direction: column; }
-        .side { width: 100%; max-height: none; border-right: none; border-bottom: 1px solid var(--border); }
-        .stage-wrap { min-height: 58vh; }
-        .pg-hdr { height: auto; padding: 13px 18px 14px; flex-wrap: wrap; gap: 9px; }
-        .pg-title { font-size: 19px; }
-        .pg-sub { font-size: 11.5px; line-height: 1.45; }
-        .pg-tag { margin-left: 0; padding: 5px 12px; font-size: 11.5px; }
+    @media (max-width: 900px) {
+        main.content { padding: 18px 16px 44px; }
+        .hero { padding: 4px 0 18px; }
+        .hero h1 { font-size: 32px; }
+        .hero-note { font-size: 14.5px; }
+        .work { grid-template-columns: 1fr; gap: 16px; }
+        .stage-card { height: 52vh; min-height: 320px; }
+        .stage-wrap { padding: 12px; }
+        .stage-tools { height: 56px; }
+        .work { align-items: start; }
+        .stage-tools { padding: 12px 0 2px; }
+        .side { border-radius: var(--rad); }
     }
 </style>
 </head>
@@ -239,87 +263,100 @@
 
 <div id="ns-topbar"></div>
 
-<div class="pg-hdr">
-    <div class="pg-hd-l">
-        <div class="pg-title">产品图修瑕疵</div>
-        <div class="pg-sub">擦掉多余的倒影、背景杂物和产品表面浮尘，产品本身不变</div>
-    </div>
-    <div class="pg-tag"><i></i>本地处理 · 图片不上传服务器</div>
-</div>
+<main class="content">
 
-<div class="work">
-    <!-- ============ 侧栏 ============ -->
-    <aside class="side">
-        <div class="sec">
-            <div class="steps">
-                <div class="step on" id="st1">1 上传</div>
-                <div class="step" id="st2">2 修补</div>
-                <div class="step" id="st3">3 下载</div>
+    <section class="hero">
+        <h1>产品图<em>修瑕疵</em></h1>
+        <p class="hero-note">擦掉多余的倒影、背景杂物和产品表面浮尘，产品本身不变。<b>本地处理，图片不上传服务器。</b></p>
+    </section>
+
+    <div class="work">
+
+        <!-- ============ 画布 ============ -->
+        <div class="stage-card">
+            <div class="stage-wrap" id="stageWrap">
+                <div class="empty" id="empty">
+                    <div class="empty-ico">🖼</div>
+                    <div class="empty-t">先上传一张产品图</div>
+                    <div class="empty-s">涂掉想删的东西，点一下就好<br>产品部分不会被改动</div>
+                </div>
+
+                <div class="stage-inner">
+                    <div class="stage" id="stage" style="display:none;">
+                        <canvas id="cvBase"></canvas>
+                        <canvas id="cvPreview"></canvas>
+                        <canvas id="cvMask"></canvas>
+                        <div id="cvCursor"></div>
+                    </div>
+                </div>
+
+                <div class="cmp-badge" id="cmpBadge">原图</div>
+
+                <div class="busy" id="busy">
+                    <div class="spinner"></div>
+                    <div class="busy-t" id="busyTxt">正在修补…</div>
+                </div>
             </div>
-            <div class="drop" id="drop">
-                <div class="drop-ico">🖼</div>
-                <div class="drop-t">点击上传 · 拖进来 · 粘贴</div>
-                <div class="drop-s">支持 JPG / PNG，建议不超过 4000px</div>
-            </div>
-            <input type="file" id="file" accept="image/*" hidden>
-        </div>
 
-        <div class="sec off" id="secBg">
-            <div class="sec-t">背景</div>
-            <div class="sld">
-                <span class="sld-l">力度</span>
-                <input type="range" id="slBg" min="0" max="50" value="0" step="1" disabled>
-                <b class="sld-v" id="slBgVal">—</b>
-            </div>
-            <div class="hint">小力度清灰尘杂物，拉大了整片背景会柔下来。瑕疵多就直接拉大，拖到 0 是不修。</div>
-        </div>
-
-        <div class="sec off" id="secProd">
-            <div class="sec-t">产品</div>
-            <div class="sld">
-                <span class="sld-l">力度</span>
-                <input type="range" id="slProd" min="0" max="6" value="0" step="1" disabled>
-                <b class="sld-v" id="slProdVal">—</b>
-            </div>
-            <div class="hint">只清产品表面的浮尘小点，纹理和边缘不动。拖到 0 是不修。</div>
-        </div>
-
-        <div class="sec">
-            <button class="btn btn-main" id="btnApply" disabled>确定</button>
-            <div class="hint" id="autoInfo" style="display:none;"></div>
-        </div>
-
-    </aside>
-
-    <!-- ============ 画布 ============ -->
-    <div class="stage-wrap" id="stageWrap">
-        <div class="empty" id="empty">
-            <div class="empty-ico">🖼</div>
-            <div class="empty-t">先上传一张产品图</div>
-            <div class="empty-s">涂掉想删的东西，点一下就好<br>产品部分不会被改动</div>
-        </div>
-
-        <div class="stage-inner">
-            <div class="stage" id="stage" style="display:none;">
-                <canvas id="cvBase"></canvas>
-                <canvas id="cvPreview"></canvas>
-                <canvas id="cvMask"></canvas>
-                <div id="cvCursor"></div>
-            </div>
             <div class="stage-tools" id="stageTools" style="display:none;">
                 <button class="btn" id="btnCmp">按住看原图</button>
                 <button class="btn btn-main" id="btnDl">下载</button>
             </div>
         </div>
 
-        <div class="cmp-badge" id="cmpBadge">原图</div>
+        <!-- ============ 侧栏 ============ -->
+        <aside class="side">
 
-        <div class="busy" id="busy">
-            <div class="spinner"></div>
-            <div class="busy-t" id="busyTxt">正在修补…</div>
-        </div>
+            <div class="sec">
+                <div class="steps">
+                    <div class="step on" id="st1">1 上传</div>
+                    <div class="step" id="st2">2 修补</div>
+                    <div class="step" id="st3">3 下载</div>
+                </div>
+                <div class="drop" id="drop">
+                    <div class="drop-ico">🖼</div>
+                    <div class="drop-t">点击上传 · 拖进来 · 粘贴</div>
+                    <div class="drop-s">支持 JPG / PNG，建议不超过 4000px</div>
+                </div>
+                <input type="file" id="file" accept="image/*" hidden>
+            </div>
+
+            <div class="sec off" id="secBg">
+                <div class="sec-t">背景</div>
+                <div class="sld">
+                    <span class="sld-l">力度</span>
+                    <input type="range" id="slBg" min="0" max="50" value="0" step="1" disabled>
+                    <b class="sld-v" id="slBgVal">—</b>
+                </div>
+                <div class="hint">小力度清灰尘杂物，拉大了整片背景会柔下来。瑕疵多就直接拉大，拖到 0 是不修。</div>
+            </div>
+
+            <div class="sec off" id="secProd">
+                <div class="sec-t">产品</div>
+                <div class="sld">
+                    <span class="sld-l">力度</span>
+                    <input type="range" id="slProd" min="0" max="6" value="0" step="1" disabled>
+                    <b class="sld-v" id="slProdVal">—</b>
+                </div>
+                <div class="hint">只清产品表面的浮尘小点，纹理和边缘不动。拖到 0 是不修。</div>
+            </div>
+
+            <div class="sec">
+                <button class="btn btn-main" id="btnApply" disabled>确定</button>
+                <div class="hint" id="autoInfo" style="display:none;"></div>
+            </div>
+
+        </aside>
+
     </div>
-</div>
+
+    <div class="tips">
+        <div class="row"><span class="n">1</span><span><b>红色笔刷涂过的地方才会修</b>，没涂的区域一个像素都不动。涂完点「确定」。</span></div>
+        <div class="row"><span class="n">2</span><span><b>产品本体不会被改动</b>：只清背景杂物和产品表面的浮尘小点，纹理和边缘保留。</span></div>
+        <div class="row"><span class="n">3</span><span><b>力度拖到 0 就是不修</b>。全程在本机计算，图片不会上传服务器。</span></div>
+    </div>
+
+</main>
 
 <script src="topbar.js"></script>
 <script>
