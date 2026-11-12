@@ -195,6 +195,8 @@
 
     /* 掩膜与光标（位置由脚本控制，不能动） */
     #cvMask { position: absolute; left: 0; top: 0; pointer-events: none; }
+    /* 画布上可以直接按住拖框圈产品 */
+    #cvBase { cursor: crosshair; touch-action: none; }
     #cvCursor {
         position: absolute; border-radius: 50%; pointer-events: none;
         border: 1px solid rgba(0,0,0,.35);
@@ -334,7 +336,7 @@
 
         <div class="tips">
             <div class="row"><span class="n">1</span><span><b>红色笔刷涂过的地方才会修</b>，没涂的区域一个像素都不动。涂完点「确定」。</span></div>
-            <div class="row"><span class="n">2</span><span><b>产品本体不会被改动</b>：只清背景杂物和产品表面的浮尘小点，纹理和边缘保留。</span></div>
+            <div class="row"><span class="n">2</span><span><b>产品本体不会被改动</b>：青色框里的一个像素都不动。自动分错了，就在图上<b>按住拖一个框</b>把产品框住。</span></div>
             <div class="row"><span class="n">3</span><span><b>力度拖到 0 就是不修</b>。全程在本机计算，图片不会上传服务器。</span></div>
         </div>
 
@@ -506,7 +508,7 @@
 
             if (pct < 0.005 || pct > 0.92) {
                 // 没识别出来，或者几乎整幅都是产品
-                $('autoInfo').textContent = '背景和产品颜色太接近，自动分不干净。在产品上点一下，我按你点的来。';
+                $('autoInfo').textContent = '背景和产品颜色太接近，自动分不干净。在图上按住拖一个框，把产品整个框住就行。';
                 $('autoInfo').style.display = '';
                 prodMask = null;
                 $('btnApply').disabled = true;
@@ -516,7 +518,7 @@
                 $('secProd').classList.add('off');
             } else {
                 $('autoInfo').style.display = '';
-                $('autoInfo').textContent = '青色这块是产品，其余都能修。分得不对就在产品上点一下。';
+                $('autoInfo').textContent = '青色这块是产品，其余都能修。不准就按住拖一个框把产品框住。';
                 showRegion(2200);
             }
         }, 40);
@@ -627,30 +629,88 @@
     $('slBg').addEventListener('input', function () { onSlide(true); });
     $('slProd').addEventListener('input', function () { onSlide(false); });
 
-    // 分区不准时，在图上点一下产品，就认这一块（可以点多次，越点越全）
-    cvBase.addEventListener('click', function (e) {
-        if (!imgW || !ctxBase) return;
+    // 分区不准时有两种手动办法：
+    // ① 在图上按住拖一个框 —— 框内全部当产品。磨砂瓶、半透明瓶这种颜色跟背景一样分不出来的，只能靠框。
+    // ② 在图上点一下 —— 认这一块颜色相近的连通区。细长、有颜色的（线缆、五金）用这个更贴。
+    var boxDrag = null;
+
+    function toImg(e) {
         var rect = cvBase.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
+        if (!rect.width || !rect.height) return null;
         var x = Math.round((e.clientX - rect.left) / rect.width * imgW);
         var y = Math.round((e.clientY - rect.top) / rect.height * imgH);
-        if (x < 0 || x >= imgW || y < 0 || y >= imgH) return;
+        if (x < 0) x = 0; else if (x >= imgW) x = imgW - 1;
+        if (y < 0) y = 0; else if (y >= imgH) y = imgH - 1;
+        return { x: x, y: y };
+    }
 
+    function say(t) {
+        $('autoInfo').style.display = '';
+        $('autoInfo').textContent = t;
+    }
+
+    function enableProd() {
+        $('btnApply').disabled = false;
+        $('slBg').disabled = false;
+        $('slProd').disabled = false;
+        $('secBg').classList.remove('off');
+        $('secProd').classList.remove('off');
+    }
+
+    // 拖框过程中看到的青色虚线框（松手后换成真正的分区）
+    function drawBox(b) {
+        var x0 = Math.min(b.x0, b.x1), x1 = Math.max(b.x0, b.x1);
+        var y0 = Math.min(b.y0, b.y1), y1 = Math.max(b.y0, b.y1);
+        ctxMask.clearRect(0, 0, imgW, imgH);
+        ctxMask.fillStyle = 'rgba(90,235,235,0.10)';
+        ctxMask.fillRect(x0, y0, x1 - x0, y1 - y0);
+        ctxMask.strokeStyle = 'rgba(40,205,205,0.95)';
+        ctxMask.lineWidth = Math.max(2, Math.round(imgW / 500));
+        ctxMask.setLineDash([12, 8]);
+        ctxMask.strokeRect(x0, y0, x1 - x0, y1 - y0);
+        ctxMask.setLineDash([]);
+    }
+
+    // 以框为准：框里一律不修，框外照力度修
+    function applyBox(b) {
+        var x0 = Math.min(b.x0, b.x1), x1 = Math.max(b.x0, b.x1);
+        var y0 = Math.min(b.y0, b.y1), y1 = Math.max(b.y0, b.y1);
+        if (x1 - x0 < 12 || y1 - y0 < 12) {
+            say('框太小了，把产品整个框进去再松手。');
+            if (prodMask) showRegion(0); else clearRegion();
+            return;
+        }
+        var boxPct = ((x1 - x0 + 1) * (y1 - y0 + 1)) / (imgW * imgH);
+        if (boxPct > 0.92) {
+            say('框太大了，几乎整个画面都被框进去了。只框住产品就好。');
+            if (prodMask) showRegion(0); else clearRegion();
+            return;
+        }
+        var m = new Uint8Array(imgW * imgH);
+        for (var y = y0; y <= y1; y++) {
+            var base = y * imgW;
+            for (var x = x0; x <= x1; x++) m[base + x] = 1;
+        }
+        prodMask = m;
+        userPicked = true;
+        enableProd();
+        var pct = ((x1 - x0 + 1) * (y1 - y0 + 1)) / (imgW * imgH) * 100;
+        say('已按你框的范围认定产品（占画面 ' + pct.toFixed(0) + '%）。框里的都不修，框外的照力度修。框得松松的，框里那圈背景就修不到。');
+        showRegion(0);
+        doPreview();
+    }
+
+    // 点一下：认这一块颜色相近的连通区
+    function pickAt(x, y) {
         var d = ctxBase.getImageData(0, 0, imgW, imgH).data;
         var g = pickRegion(d, imgW, imgH, x, y);
         if (!g) {
-            $('autoInfo').style.display = '';
-            $('autoInfo').textContent = '这一下点在背景上了，往产品身上点。';
+            say('这一下点在背景上了。磨砂、半透明的瓶身点不出来，改成按住拖一个框把产品框住。');
             return;
         }
-
         var n = 0;
         for (var i = 0; i < imgW * imgH; i++) if (g[i]) n++;
-        if (n < 60) {
-            $('autoInfo').style.display = '';
-            $('autoInfo').textContent = '这一下没点到东西，往产品上再点一次。';
-            return;
-        }
+        if (n < 60) { say('这一下没点到东西，往产品上再点一次。'); return; }
 
         var grown = dilate(closeMask(g, imgW, imgH, 6), imgW, imgH, 6);
         if (!userPicked) {
@@ -661,17 +721,44 @@
         if (!prodMask) prodMask = new Uint8Array(imgW * imgH);
         for (var k = 0; k < imgW * imgH; k++) if (grown[k]) prodMask[k] = 1;
 
-        $('btnApply').disabled = false;
-        $('slBg').disabled = false;
-        $('slProd').disabled = false;
-
+        enableProd();
         var pct = 0;
         for (var j = 0; j < imgW * imgH; j++) if (prodMask[j]) pct++;
-        $('autoInfo').style.display = '';
-        $('autoInfo').textContent = '已把点中的这块认成产品（占画面 ' + (pct / (imgW * imgH) * 100).toFixed(0) + '%）。有漏就在漏的地方再点一下。';
+        say('已把点中的这块认成产品（占画面 ' + (pct / (imgW * imgH) * 100).toFixed(0) + '%）。有漏就在漏的地方再点一下，或者按住拖个框。');
         showRegion(0);
         doPreview();
+    }
+
+    cvBase.addEventListener('pointerdown', function (e) {
+        if (!imgW || !ctxBase) return;
+        var p = toImg(e);
+        if (!p) return;
+        boxDrag = { x0: p.x, y0: p.y, x1: p.x, y1: p.y, moved: false, id: e.pointerId };
+        if (cvBase.setPointerCapture) { try { cvBase.setPointerCapture(e.pointerId); } catch (err) { } }
+        e.preventDefault();
     });
+
+    cvBase.addEventListener('pointermove', function (e) {
+        if (!boxDrag) return;
+        var p = toImg(e);
+        if (!p) return;
+        boxDrag.x1 = p.x; boxDrag.y1 = p.y;
+        if (Math.abs(boxDrag.x1 - boxDrag.x0) > 6 || Math.abs(boxDrag.y1 - boxDrag.y0) > 6) boxDrag.moved = true;
+        if (boxDrag.moved) drawBox(boxDrag);
+        e.preventDefault();
+    });
+
+    function endDrag(cancelled) {
+        if (!boxDrag) return;
+        var b = boxDrag;
+        boxDrag = null;
+        if (cvBase.releasePointerCapture) { try { cvBase.releasePointerCapture(b.id); } catch (err) { } }
+        if (cancelled) { if (prodMask) showRegion(0); else clearRegion(); return; }
+        if (b.moved) applyBox(b); else pickAt(b.x0, b.y0);
+    }
+
+    cvBase.addEventListener('pointerup', function () { endDrag(false); });
+    cvBase.addEventListener('pointercancel', function () { endDrag(true); });
 
     // 显示产品轮廓
 
