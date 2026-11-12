@@ -28,7 +28,7 @@
 
     /* 页面标题条：跟全站其它工具页同一套视觉语言 */
     .pg-hdr {
-        flex-shrink: 0; height: 76px; display: flex; align-items: center; gap: 20px;
+        flex-shrink: 0; height: 92px; display: flex; align-items: center; gap: 20px;
         padding: 0 32px; position: relative;
         background: linear-gradient(100deg, #ffffff 0%, #fbfaff 42%, #f2efff 100%);
         border-bottom: 1px solid var(--border);
@@ -37,12 +37,12 @@
         content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
         background: var(--grad); opacity: .5;
     }
-    .pg-hd-l { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .pg-hd-l { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
     .pg-title {
-        font-size: 22px; font-weight: 750; letter-spacing: -.5px; line-height: 1.15;
+        font-size: 27px; font-weight: 750; letter-spacing: -.6px; line-height: 1.12;
         background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
     }
-    .pg-sub { font-size: 12.5px; color: var(--text-sec); }
+    .pg-sub { font-size: 13px; color: var(--text-sec); letter-spacing: .2px; font-weight: 400; }
     .pg-tag {
         margin-left: auto; flex-shrink: 0; display: flex; align-items: center; gap: 7px;
         font-size: 12.5px; color: #6b5ce7; background: rgba(107,92,231,.08);
@@ -229,7 +229,7 @@
         .side { width: 100%; max-height: none; border-right: none; border-bottom: 1px solid var(--border); }
         .stage-wrap { min-height: 58vh; }
         .pg-hdr { height: auto; padding: 13px 18px 14px; flex-wrap: wrap; gap: 9px; }
-        .pg-title { font-size: 19px; }
+        .pg-title { font-size: 21px; }
         .pg-sub { font-size: 11.5px; line-height: 1.45; }
         .pg-tag { margin-left: 0; padding: 5px 12px; font-size: 11.5px; }
     }
