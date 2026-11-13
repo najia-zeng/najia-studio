@@ -688,8 +688,8 @@
         var b = $('btnBrush'), e = $('btnBrushErase');
         b.classList.toggle('on', brushMode && brushKind === 'add');
         e.classList.toggle('on', brushMode && brushKind === 'sub');
-        b.textContent = (brushMode && brushKind === 'add') ? '涂完了' : '扩大选区';
-        e.textContent = (brushMode && brushKind === 'sub') ? '涂完了' : '缩小选区';
+        b.textContent = '扩大选区';
+        e.textContent = '缩小选区';
     }
 
     function enterBrush(kind) {
