@@ -1739,8 +1739,8 @@
         for (var p = 0; p < n; p++) {
             var t = (d[p] - rIn) / span;
             if (t <= 0) t = 0; else if (t >= 1) t = 1;
-            // 贴着产品撤销得最多（kMin），往外平滑收回 0
-            var undo = (1 - kMin) * (1 - t * t * (3 - 2 * t));
+            // kMin = 贴着产品要「撤回多少比例的修整」（= 影子保留强度），往外平滑收到 0
+            var undo = kMin * (1 - t * t * (3 - 2 * t));
             // 用户亲手擦掉的区域，一律不保留影子
             if (erase) undo *= (1 - erase[p]);
             var q = p * 3;
@@ -2259,7 +2259,7 @@
             // 距离图只算一次，投影保留和过渡带共用
             var dB = distMap(keepB, pw, ph);
             resB = keepContactShadow(origB, resB, dB, pw * ph, pw, ph, featherB,
-                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 0.82,
+                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 1.0,
                 eraseWeight(pw, ph, pscale));
             softB = softOutward(keepB, pw, ph, featherB, dB);
             for (var p1 = 0; p1 < pw * ph; p1++) {
@@ -2465,7 +2465,7 @@
                         try {
                             var dB = distMap(keepB, pw, ph);
                             res = keepContactShadow(origA, res, dB, pw * ph, pw, ph, featherB,
-                                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 0.82,
+                                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 1.0,
                                 eraseWeight(pw, ph, pscale));
                             softB = softOutward(keepB, pw, ph, featherB, dB);
                             mixIn(res, softB);
