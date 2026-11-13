@@ -189,9 +189,11 @@
     .btn-main:disabled { background: #f3f2f8; color: #b8b5cc; border-color: transparent; opacity: 1; box-shadow: none; transform: none; }
     .btn-row { display: flex; gap: 8px; margin-top: 10px; }
     .btn-row .btn { flex: 1; }
-    .brush-row { display: flex; gap: 8px; }
-    .brush-row .btn { flex: 1; padding: 10px 8px; font-size: 13px; }
+    .brush-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .brush-row .btn { flex: 1 1 calc(50% - 4px); padding: 10px 6px; font-size: 13px; white-space: nowrap; }
     .brush-row .btn.on { background: var(--blue); border-color: transparent; color: #fff; }
+    .brush-row .btn#btnBrush.on { background: #33a862; }
+    .brush-row .btn#btnBrushErase.on { background: #e2703a; }
 
     .hint { font-size: 11px; color: #a5a1bb; line-height: 1.6; margin-top: 6px; }
     .hint b { color: #56526e; font-weight: 650; }
@@ -336,6 +338,7 @@
                 <div class="sec-t">圈产品（自动圈不准时用）</div>
                 <div class="brush-row">
                     <button class="btn" id="btnBrush">涂抹产品</button>
+                    <button class="btn" id="btnBrushErase">涂抹清理</button>
                     <button class="btn" id="btnBrushUndo">撤销</button>
                     <button class="btn" id="btnBrushClear">清空</button>
                 </div>
@@ -344,7 +347,7 @@
                     <input type="range" id="slBrush" min="12" max="220" value="60" step="2">
                     <b class="sld-v" id="slBrushVal">60</b>
                 </div>
-                <div class="hint">自动圈不准、拖框也不贴合时：点「涂抹产品」，把漏掉的产品直接涂一遍——<b>涂过的地方算产品，一个像素都不会动</b>。涂错点撤销。</div>
+                <div class="hint">自动圈不准时：<b>「涂抹产品」</b>（绿）涂过的地方算产品，一个像素不动；<b>「涂抹清理」</b>（橙）反过来——把被当成产品的影子、杂物涂掉，涂过的地方按背景修。涂错点撤销。</div>
             </div>
 
             <div class="sec">
@@ -354,7 +357,7 @@
 
         <div class="tips">
             <div class="row"><span class="n">1</span><span><b>红色笔刷涂过的地方才会修</b>，没涂的区域一个像素都不动。涂完点「确定」。</span></div>
-            <div class="row"><span class="n">2</span><span><b>产品本体不会被改动</b>：青色框里的一个像素都不动。自动圈漏了，就点<b>「涂抹产品」</b>把漏的地方涂上，或按住拖一个框把产品框住。</span></div>
+            <div class="row"><span class="n">2</span><span><b>产品本体不会被改动</b>：青色框里的一个像素都不动。自动圈漏了，点<b>「涂抹产品」</b>补上；把影子、杂物当成产品圈进去了，点<b>「涂抹清理」</b>划回背景。</span></div>
             <div class="row"><span class="n">3</span><span><b>力度拖到 0 就是不修</b>。全程在本机计算，图片不会上传服务器。</span></div>
         </div>
 
@@ -420,7 +423,8 @@
     var maskOn = false;        // 是否显示产品分界
     var userPicked = false;    // 用户是否手动点过产品
     var brushMode = false;     // 涂抹产品模式
-    var prodStrokes = [];      // 涂抹产品的笔迹（撤销/重绘用）
+    var brushKind = 'add';     // 'add' = 涂了算产品（绿）；'sub' = 涂了算背景、要去修（橙）
+    var prodStrokes = [];      // 涂抹产品的笔迹（撤销/重绘用），每笔带 sub 标记
     var preBrushMask;          // 涂抹前的遮罩快照：undefined=从没涂过，null/value=快照
     var brushR = 60;           // 笔刷直径（图坐标系）
     var previewTimer = null;   // 拖滑块时的预览节流
@@ -498,6 +502,7 @@
         maskOn = false;
         userPicked = false;
         brushMode = false;
+        brushKind = 'add';
         prodStrokes = [];
         preBrushMask = undefined;
         setBrushUI();
@@ -686,25 +691,36 @@
     /* ---------------- 涂抹产品：涂过的地方算产品，一个像素不动 ---------------- */
 
     function setBrushUI() {
-        var b = $('btnBrush');
-        b.classList.toggle('on', brushMode);
-        b.textContent = brushMode ? '涂完了' : '涂抹产品';
+        var b = $('btnBrush'), e = $('btnBrushErase');
+        b.classList.toggle('on', brushMode && brushKind === 'add');
+        e.classList.toggle('on', brushMode && brushKind === 'sub');
+        b.textContent = (brushMode && brushKind === 'add') ? '涂完了' : '涂抹产品';
+        e.textContent = (brushMode && brushKind === 'sub') ? '涂完了' : '涂抹清理';
     }
 
-    $('btnBrush').addEventListener('click', function () {
+    function enterBrush(kind) {
         if (!imgW) { say('先上传一张图。'); return; }
-        brushMode = !brushMode;
-        setBrushUI();
-        if (brushMode) {
-            say('在图上按住拖动，把漏掉的产品涂一遍——涂过的地方都算产品，不会被修。涂完再点一次退出涂抹。');
-            cvBase.style.cursor = 'cell';
-        } else {
-            say('已退出涂抹。青色就是现在的产品范围。');
+        if (brushMode && brushKind === kind) {      // 再点一次同一支笔 = 退出
+            brushMode = false;
+            setBrushUI();
+            say(kind === 'add' ? '已退出涂抹。青色就是现在的产品范围。'
+                : '已退出清理。青色就是现在的产品范围。');
             cvBase.style.cursor = 'crosshair';
             cvCursor.style.display = 'none';
             if (prodMask) showRegion(0);
+            return;
         }
-    });
+        brushMode = true;
+        brushKind = kind;
+        setBrushUI();
+        say(kind === 'add'
+            ? '在图上按住拖动，把漏掉的产品涂一遍——涂过的地方都算产品，不会被修。'
+            : '把被当成产品的影子、杂物涂一遍——涂过的地方按背景修掉。');
+        cvBase.style.cursor = 'cell';
+    }
+
+    $('btnBrush').addEventListener('click', function () { enterBrush('add'); });
+    $('btnBrushErase').addEventListener('click', function () { enterBrush('sub'); });
 
     $('btnBrushUndo').addEventListener('click', function () {
         if (!imgW) return;
@@ -735,6 +751,7 @@
     });
 
     // 从涂抹前的快照 + 当前笔迹列表重建产品遮罩（撤销 / 清空后重画）
+    // 笔迹按落笔顺序重放：绿的写 1（算产品），橙的写 0（算背景）
     function rebuildBrush() {
         if (preBrushMask === undefined) return;
         prodMask = preBrushMask === null ? new Uint8Array(imgW * imgH) : new Uint8Array(preBrushMask);
@@ -747,6 +764,7 @@
         if (n === 0) {
             prodMask = null;
             clearRegion();
+            if (announce) say('产品范围被清空了：现在整张图都会按背景修。如果这不是你想要的，马上点「撤销」。');
             return;
         }
         userPicked = true;
@@ -755,20 +773,26 @@
         doPreview();
         if (announce) {
             var pct = n / (imgW * imgH) * 100;
-            say('涂过的地方已算进产品（占画面 ' + pct.toFixed(0) + '%），不会被修。还漏就接着涂，涂多了点「撤销」。');
+            var last = prodStrokes.length ? prodStrokes[prodStrokes.length - 1] : null;
+            if (last && last.sub) {
+                say('涂掉的地方已划回背景（产品还占画面 ' + pct.toFixed(0) + '%），会被修掉。影子没消干净就接着涂。');
+            } else {
+                say('涂过的地方已算进产品（占画面 ' + pct.toFixed(0) + '%），不会被修。还漏就接着涂，涂多了点「撤销」。');
+            }
         }
     }
 
-    // 笔迹盖进遮罩：一个点一个点盖章
+    // 笔迹盖进遮罩：一个点一个点盖章。s.sub = true 时写 0（从产品里摘出去，按背景修）
     function stampStroke(m, s) {
+        var v = s.sub ? 0 : 1;
         var pts = s.pts;
-        if (pts.length === 1) { stampDot(m, pts[0].x, pts[0].y, s.size); return; }
+        if (pts.length === 1) { stampDot(m, pts[0].x, pts[0].y, s.size, v); return; }
         for (var i = 1; i < pts.length; i++) {
-            stampSeg(m, pts[i - 1].x, pts[i - 1].y, pts[i].x, pts[i].y, s.size);
+            stampSeg(m, pts[i - 1].x, pts[i - 1].y, pts[i].x, pts[i].y, s.size, v);
         }
     }
 
-    function stampDot(m, x, y, size) {
+    function stampDot(m, x, y, size, v) {
         var r = size / 2;
         var x0 = Math.max(0, Math.floor(x - r)), x1 = Math.min(imgW - 1, Math.ceil(x + r));
         var y0 = Math.max(0, Math.floor(y - r)), y1 = Math.min(imgH - 1, Math.ceil(y + r));
@@ -777,29 +801,31 @@
             var dy = yy - y, row = yy * imgW;
             for (var xx = x0; xx <= x1; xx++) {
                 var dx = xx - x;
-                if (dx * dx + dy * dy <= r2) m[row + xx] = 1;
+                if (dx * dx + dy * dy <= r2) m[row + xx] = v;
             }
         }
     }
 
-    function stampSeg(m, x1, y1, x2, y2, size) {
+    function stampSeg(m, x1, y1, x2, y2, size, v) {
         var dx = x2 - x1, dy = y2 - y1;
         var len = Math.sqrt(dx * dx + dy * dy);
         var step = Math.max(1, size / 3);
         var n = Math.max(1, Math.ceil(len / step));
-        for (var i = 0; i <= n; i++) stampDot(m, x1 + dx * i / n, y1 + dy * i / n, size);
+        for (var i = 0; i <= n; i++) stampDot(m, x1 + dx * i / n, y1 + dy * i / n, size, v);
     }
 
-    // 涂抹的笔迹画到遮罩层上（绿色，跟青色轮廓叠加）
-    function drawProdDot(x, y, size) {
+    // 涂抹的笔迹画到遮罩层上（绿 = 算产品，橙 = 算背景要修），跟青色轮廓叠加
+    function strokeColor(s) { return s.sub ? 'rgba(255,140,70,0.30)' : 'rgba(66,205,110,0.28)'; }
+
+    function drawProdDot(x, y, size, s) {
         ctxMask.beginPath();
         ctxMask.arc(x, y, size / 2, 0, Math.PI * 2);
-        ctxMask.fillStyle = 'rgba(66,205,110,0.28)';
+        ctxMask.fillStyle = strokeColor(s);
         ctxMask.fill();
     }
 
-    function drawProdLine(x1, y1, x2, y2, size) {
-        ctxMask.strokeStyle = 'rgba(66,205,110,0.28)';
+    function drawProdLine(x1, y1, x2, y2, size, s) {
+        ctxMask.strokeStyle = strokeColor(s);
         ctxMask.lineWidth = size;
         ctxMask.lineCap = 'round';
         ctxMask.lineJoin = 'round';
@@ -812,10 +838,10 @@
     function drawProdStrokes() {
         prodStrokes.forEach(function (s) {
             if (s.pts.length === 1) {
-                drawProdDot(s.pts[0].x, s.pts[0].y, s.size);
+                drawProdDot(s.pts[0].x, s.pts[0].y, s.size, s);
             } else {
                 for (var i = 1; i < s.pts.length; i++) {
-                    drawProdLine(s.pts[i - 1].x, s.pts[i - 1].y, s.pts[i].x, s.pts[i].y, s.size);
+                    drawProdLine(s.pts[i - 1].x, s.pts[i - 1].y, s.pts[i].x, s.pts[i].y, s.size, s);
                 }
             }
         });
@@ -830,10 +856,10 @@
         if (!prodMask) prodMask = new Uint8Array(imgW * imgH);
         var p = toImg(e);
         if (!p) return;
-        brushDrag = { pts: [{ x: p.x, y: p.y }], size: brushR };
+        brushDrag = { pts: [{ x: p.x, y: p.y }], size: brushR, sub: brushKind === 'sub' };
         prodStrokes.push(brushDrag);
-        stampDot(prodMask, p.x, p.y, brushDrag.size);
-        drawProdDot(p.x, p.y, brushDrag.size);
+        stampDot(prodMask, p.x, p.y, brushDrag.size, brushDrag.sub ? 0 : 1);
+        drawProdDot(p.x, p.y, brushDrag.size, brushDrag);
         if (cvBase.setPointerCapture) { try { cvBase.setPointerCapture(e.pointerId); } catch (err) { } }
         e.preventDefault();
     }
@@ -845,8 +871,8 @@
         var last = brushDrag.pts[brushDrag.pts.length - 1];
         if (last.x === p.x && last.y === p.y) { e.preventDefault(); return; }
         brushDrag.pts.push({ x: p.x, y: p.y });
-        stampSeg(prodMask, last.x, last.y, p.x, p.y, brushDrag.size);
-        drawProdLine(last.x, last.y, p.x, p.y, brushDrag.size);
+        stampSeg(prodMask, last.x, last.y, p.x, p.y, brushDrag.size, brushDrag.sub ? 0 : 1);
+        drawProdLine(last.x, last.y, p.x, p.y, brushDrag.size, brushDrag);
         e.preventDefault();
     }
 
@@ -1600,13 +1626,91 @@
         return out;
     }
 
+    // 单通道版本的模糊（0/1 权重图用）
+    function boxBlur1(src, w, h, r) {
+        var tmp = new Float32Array(src.length);
+        var out = new Float32Array(src.length);
+        var win = r * 2 + 1;
+        var x, y, q, a, b, xn, xp;
+        for (y = 0; y < h; y++) {
+            var row = y * w;
+            a = 0;
+            for (x = -r; x <= r; x++) {
+                xn = x < 0 ? 0 : (x >= w ? w - 1 : x);
+                a += src[row + xn];
+            }
+            for (x = 0; x < w; x++) {
+                tmp[row + x] = a / win;
+                xn = x + r + 1; if (xn >= w) xn = w - 1;
+                xp = x - r; if (xp < 0) xp = 0;
+                a += src[row + xn] - src[row + xp];
+            }
+        }
+        for (x = 0; x < w; x++) {
+            a = 0;
+            for (y = -r; y <= r; y++) {
+                var yn = y < 0 ? 0 : (y >= h ? h - 1 : y);
+                a += tmp[yn * w + x];
+            }
+            for (y = 0; y < h; y++) {
+                out[y * w + x] = a / win;
+                var yn2 = y + r + 1; if (yn2 >= h) yn2 = h - 1;
+                var yp2 = y - r; if (yp2 < 0) yp2 = 0;
+                b = tmp[yn2 * w + x] - tmp[yp2 * w + x];
+                a += b;
+            }
+        }
+        return out;
+    }
+
+    // 把笔迹按比例盖到任意尺寸的遮罩上（预览用的 pw×ph 和原图尺寸不同）
+    function stampToMask(m, w, h, s, scale) {
+        var size = Math.max(4, s.size * scale);
+        var r = size / 2, r2 = r * r;
+        function dot(x, y) {
+            var x0 = Math.max(0, Math.floor(x - r)), x1 = Math.min(w - 1, Math.ceil(x + r));
+            var y0 = Math.max(0, Math.floor(y - r)), y1 = Math.min(h - 1, Math.ceil(y + r));
+            for (var yy = y0; yy <= y1; yy++) {
+                var dy = yy - y, row = yy * w;
+                for (var xx = x0; xx <= x1; xx++) {
+                    var dx = xx - x;
+                    if (dx * dx + dy * dy <= r2) m[row + xx] = 1;
+                }
+            }
+        }
+        var pts = s.pts;
+        dot(pts[0].x * scale, pts[0].y * scale);
+        for (var i = 1; i < pts.length; i++) {
+            var ax = pts[i - 1].x * scale, ay = pts[i - 1].y * scale;
+            var bx = pts[i].x * scale, by = pts[i].y * scale;
+            var dx = bx - ax, dy = by - ay, len = Math.sqrt(dx * dx + dy * dy);
+            var n = Math.max(1, Math.ceil(len / Math.max(1, size / 3)));
+            for (var j = 1; j <= n; j++) dot(ax + dx * j / n, ay + dy * j / n);
+        }
+    }
+
+    // 用户明确用「涂抹清理」擦掉的区域，权重 1（边缘柔化）。
+    // 这块不能交给投影保留逻辑去猜——用户说了要修，就得修干净，否则擦了跟没擦一样。
+    function eraseWeight(w, h, scale) {
+        var any = false;
+        for (var i = 0; i < prodStrokes.length; i++) if (prodStrokes[i].sub) { any = true; break; }
+        if (!any) return null;
+        var m = new Uint8Array(w * h);
+        for (var j = 0; j < prodStrokes.length; j++) {
+            if (prodStrokes[j].sub) stampToMask(m, w, h, prodStrokes[j], scale);
+        }
+        var f = new Float32Array(w * h);
+        for (var k = 0; k < w * h; k++) f[k] = m[k] ? 1 : 0;
+        return boxBlur1(f, w, h, Math.max(2, Math.round(Math.min(w, h) * 0.008)));
+    }
+
     // 接触投影保留。
     // 产品是实打实放在台面上的，边缘外一定连着它自己的影子。原来把这圈影子当背景瑕疵一起抹了，
     // 产品就成了一张贴纸——这正是「交界发硬」的根。
     // 做法：把「修了多少」拆成粗、细两层。细的（灰尘、划痕）该修就修；
     // 粗的只撤「把暗处提亮」那一半——影子一定是暗的，所以撤掉提亮就等于把影子放回去；
     // 亮的污渍、发白的斑照旧修掉。再按离产品的距离平滑收回，影子就自然淡出去。
-    function keepContactShadow(orig, fixed, d, n, w, h, rIn, rOut, kMin) {
+    function keepContactShadow(orig, fixed, d, n, w, h, rIn, rOut, kMin, erase) {
         var diff = new Float32Array(fixed.length);
         for (var i = 0; i < diff.length; i++) diff[i] = fixed[i] - orig[i];
         var low = boxBlur3(diff, w, h, Math.max(2, Math.round((rOut - rIn) / 3)));
@@ -1618,6 +1722,8 @@
             if (t <= 0) t = 0; else if (t >= 1) t = 1;
             // 贴着产品撤销得最多（kMin），往外平滑收回 0
             var undo = (1 - kMin) * (1 - t * t * (3 - 2 * t));
+            // 用户亲手擦掉的区域，一律不保留影子
+            if (erase) undo *= (1 - erase[p]);
             var q = p * 3;
             out[q] = fixed[q]; out[q + 1] = fixed[q + 1]; out[q + 2] = fixed[q + 2];
             if (undo <= 0.001) continue;
@@ -2134,7 +2240,8 @@
             // 距离图只算一次，投影保留和过渡带共用
             var dB = distMap(keepB, pw, ph);
             resB = keepContactShadow(origB, resB, dB, pw * ph, pw, ph, featherB,
-                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 0.82);
+                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 0.82,
+                eraseWeight(pw, ph, pscale));
             softB = softOutward(keepB, pw, ph, featherB, dB);
             for (var p1 = 0; p1 < pw * ph; p1++) {
                 var a1 = softB[p1];
@@ -2339,7 +2446,8 @@
                         try {
                             var dB = distMap(keepB, pw, ph);
                             res = keepContactShadow(origA, res, dB, pw * ph, pw, ph, featherB,
-                                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 0.82);
+                                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 0.82,
+                                eraseWeight(pw, ph, pscale));
                             softB = softOutward(keepB, pw, ph, featherB, dB);
                             mixIn(res, softB);
                             doProd();
