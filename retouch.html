@@ -1444,6 +1444,45 @@
         return keep;
     }
 
+    // 金属产品的凹槽、亮面反光缝（叉齿之间、瓶盖竖纹、亮面倒影带）颜色跟背景几乎一样，
+    // 单靠颜色必然漏判 → 修完这些缝被填平，产品看着"变厚、齿变钝"。
+    // 几何兜底：一个点如果左右两侧 R 以内都有产品（或上下两侧都有），说明它夹在产品的缝里，
+    // 那是产品的一部分，补进选区。产品外侧的开阔背景只有一侧有产品，不会被误填。
+    function fillPinchedGaps(mask, w, h, R) {
+        var n = w * h, i, x, y, run;
+        var L = new Int32Array(n), Rr = new Int32Array(n);
+        for (y = 0; y < h; y++) {
+            run = 0;
+            for (x = 0; x < w; x++) { i = y * w + x; if (mask[i]) run = 0; else L[i] = ++run; }
+            run = 0;
+            for (x = w - 1; x >= 0; x--) { i = y * w + x; if (mask[i]) run = 0; else Rr[i] = ++run; }
+        }
+        var U = new Int32Array(n), D = new Int32Array(n);
+        for (x = 0; x < w; x++) {
+            run = 0;
+            for (y = 0; y < h; y++) { i = y * w + x; if (mask[i]) run = 0; else U[i] = ++run; }
+            run = 0;
+            for (y = h - 1; y >= 0; y--) { i = y * w + x; if (mask[i]) run = 0; else D[i] = ++run; }
+        }
+        var out = new Uint8Array(mask);
+        for (i = 0; i < n; i++) {
+            if (mask[i]) continue;
+            // 左右都碰得到产品、并且缝本身不宽 → 夹在中间
+            var hor = (L[i] > 0 && L[i] <= R) && (Rr[i] > 0 && Rr[i] <= R);
+            var ver = (U[i] > 0 && U[i] <= R) && (D[i] > 0 && D[i] <= R);
+            if (hor || ver) out[i] = 1;
+        }
+        return out;
+    }
+
+    // 每行「干净背景」的亮度，用来判断某块是不是实心投影（比背景暗多少）
+    function rowBgLum(pd, w, h) {
+        var rb = bgRows(pd, w, h);
+        var out = new Float32Array(h);
+        for (var y = 0; y < h; y++) out[y] = (rb[y * 3] + rb[y * 3 + 1] + rb[y * 3 + 2]) / 3;
+        return out;
+    }
+
     function detectProduct(data, w, h) {
         var rowBg = bgRows(data, w, h);
         var clean = denoise(keepBigBlobs(rawMask(data, w, h, rowBg, 30), w, h, 0.1), w, h);
@@ -1455,7 +1494,9 @@
         //    结果产品外面留一条修不到的脏边，看着像发光。改成圆形膨胀 1px，只留最小余量。
         // 6. 产品围起来的背景挖出来，不然线圈中间的瑕疵永远修不掉
         // 7. 颜色贴着背景的成片误判还回背景
-        var withGuard = dilateRound(sm, w, h, 1);
+        var gapR = Math.max(6, Math.round(Math.min(w, h) * 0.015));
+        var filled = fillPinchedGaps(sm, w, h, gapR);
+        var withGuard = dilateRound(filled, w, h, 1);
         var noBg = unmaskLikeBg(withGuard, data, w, h, rowBg, 42);
         return openHoles(noBg, w, h);
     }
@@ -1685,10 +1726,31 @@
     // 亮的污渍、发白的斑照旧修掉。再按离产品的距离平滑收回，影子就自然淡出去。
     // 注意：用户擦掉的区域也走同一套——「缩小选区」只是把这块划回背景，
     // 背景本来就该保留产品脚边的接触阴影，不能因为被擦过就把影子抹掉（否则暗影里会挖出一块白斑）。
-    function keepContactShadow(orig, fixed, d, n, w, h, rIn, rOut, kMin) {
+    function keepContactShadow(orig, fixed, d, n, w, h, rIn, rOut, kMin, bgY) {
         var diff = new Float32Array(fixed.length);
         for (var i = 0; i < diff.length; i++) diff[i] = fixed[i] - orig[i];
-        var low = boxBlur3(diff, w, h, Math.max(2, Math.round((rOut - rIn) / 3)));
+        // 用「阴影强度」直接决定保留多少原图，而不是靠模糊出来的提亮量：
+        // 模糊半径小 → 阴影中段被稀释，只撤得回一半；半径大 → 整片背景都修不动了。
+        // shade 是低频的、本身平滑，边界自然过渡。
+        // 阴影强度：这块比「该行的干净背景」暗多少（取低频，脏点这种高频不算）。
+        // 只有成片偏暗的地方才算投影、才需要把提亮撤回；干净背景照旧修，
+        // 否则把范围一放大会变成"整张图都不修"。
+        var shade = null;
+        if (bgY) {
+            var dark = new Float32Array(n), p0, q0;
+            for (p0 = 0; p0 < n; p0++) {
+                q0 = p0 * 3;
+                var vv = (orig[q0] + orig[q0 + 1] + orig[q0 + 2]) / 3;
+                var dd = bgY[(p0 / w) | 0] - vv;
+                dark[p0] = dd > 0 ? dd : 0;
+            }
+            var lowDark = boxBlur1(dark, w, h, Math.max(4, Math.round(Math.min(w, h) * 0.02)));
+            shade = new Float32Array(n);
+            for (p0 = 0; p0 < n; p0++) {
+                var sd = lowDark[p0] / 7;          // 比背景暗 14 级就算"实心阴影"
+                shade[p0] = sd > 1 ? 1 : sd;
+            }
+        }
         var out = new Float32Array(fixed.length);
         var span = rOut - rIn;
         if (span < 1) span = 1;
@@ -1697,16 +1759,14 @@
             if (t <= 0) t = 0; else if (t >= 1) t = 1;
             // kMin = 贴着产品要「撤回多少比例的修整」（= 影子保留强度），往外平滑收到 0
             var undo = kMin * (1 - t * t * (3 - 2 * t));
+            if (shade) undo *= shade[p];
             var q = p * 3;
             out[q] = fixed[q]; out[q + 1] = fixed[q + 1]; out[q + 2] = fixed[q + 2];
             if (undo <= 0.001) continue;
-            var l0 = low[q], l1 = low[q + 1], l2 = low[q + 2];
-            // 只撤「提亮」：三通道一起判，免得色偏
-            if (l0 + l1 + l2 > 0) {
-                out[q]     = fixed[q]     - l0 * undo;
-                out[q + 1] = fixed[q + 1] - l1 * undo;
-                out[q + 2] = fixed[q + 2] - l2 * undo;
-            }
+            var w0 = undo > 1 ? 1 : undo;
+            out[q]     = fixed[q]     * (1 - w0) + orig[q]     * w0;
+            out[q + 1] = fixed[q + 1] * (1 - w0) + orig[q + 1] * w0;
+            out[q + 2] = fixed[q + 2] * (1 - w0) + orig[q + 2] * w0;
         }
         return out;
     }
@@ -2189,6 +2249,11 @@
             var featherB = Math.max(Math.round(Math.min(pw, ph) * 0.03),
                 Math.round(Math.max(prB.blurR, prB.r) * 1.1));
             if (featherB < guardB + 2) featherB = guardB + 2;
+            // 接触阴影的范围比过渡带大得多：叉头压出来的投影能延伸出画面短边的 10-20%，
+            // 只按 feather 保留 → 阴影中段被提亮一半，看着像"暗影里一块发白"。
+            var shadowIn = featherB;
+            var shadowOut = Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.22));
+            var bgY = rowBgLum(pd, pw, ph);
             var keepB = dilate(pmask, pw, ph, guardB);
             var regB = new Uint8Array(pw * ph);
             for (var k = 0; k < pw * ph; k++) regB[k] = keepB[k] ? 0 : 1;
@@ -2210,8 +2275,7 @@
             }
             // 距离图只算一次，投影保留和过渡带共用
             var dB = distMap(keepB, pw, ph);
-            resB = keepContactShadow(origB, resB, dB, pw * ph, pw, ph, featherB,
-                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 1.0);
+            resB = keepContactShadow(origB, resB, dB, pw * ph, pw, ph, shadowIn, shadowOut, 1.0, bgY);
             softB = softOutward(keepB, pw, ph, featherB, dB);
             for (var p1 = 0; p1 < pw * ph; p1++) {
                 var a1 = softB[p1];
@@ -2409,14 +2473,16 @@
                     var featherB = Math.max(Math.round(Math.min(pw, ph) * 0.03),
                         Math.round(Math.max(pr.blurR, pr.r) * 1.1));
                     if (featherB < guardB + 2) featherB = guardB + 2;
+                    var shadowIn = featherB;
+                    var shadowOut = Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.22));
+                    var bgY = rowBgLum(pd, pw, ph);
                     var keepB = dilate(pmask, pw, ph, guardB);
                     var reg = new Uint8Array(pw * ph);
                     for (var k = 0; k < pw * ph; k++) reg[k] = keepB[k] ? 0 : 1;
                     function bgDone(res) {
                         try {
                             var dB = distMap(keepB, pw, ph);
-                            res = keepContactShadow(origA, res, dB, pw * ph, pw, ph, featherB,
-                                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 1.0);
+                            res = keepContactShadow(origA, res, dB, pw * ph, pw, ph, shadowIn, shadowOut, 1.0, bgY);
                             softB = softOutward(keepB, pw, ph, featherB, dB);
                             mixIn(res, softB);
                             doProd();
