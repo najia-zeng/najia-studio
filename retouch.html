@@ -335,7 +335,7 @@
                     <div class="step" id="st2">2 修补</div>
                     <div class="step" id="st3">3 下载</div>
                 </div>
-                <div class="quota-tag" id="quotaTag" style="margin:0 0 10px;"></div>
+                <div class="quota-tag" id="quotaSide" style="margin:0 0 10px;"></div>
                 <div class="drop" id="drop">
                     <div class="drop-ico">🖼</div>
                     <div class="drop-t">点击上传 · 拖进来 · 粘贴</div>
@@ -454,12 +454,21 @@
         }
         function freeLeft() { return Math.max(0, FREE_LIMIT - getFreeUsed()); }
         function renderQuota() {
-            var el = $('quotaTag');
-            if (!el) return;
-            if (isLicensed()) { el.className = 'quota-tag'; el.innerHTML = '已解锁 · 不限次'; return; }
-            var l = freeLeft();
-            el.className = 'quota-tag' + (l === 0 ? ' used' : '');
-            el.innerHTML = l > 0 ? '免费体验剩 <b>' + l + '</b> 次' : '免费体验已用完';
+            // 顶栏(topbar.js)与页内各有一处，两处都更新
+            var ids = ['quotaTag', 'quotaSide'];
+            var cls, txt;
+            if (isLicensed()) { cls = 'quota-tag'; txt = '已解锁 · 不限次'; }
+            else {
+                var l = freeLeft();
+                cls = 'quota-tag' + (l === 0 ? ' used' : '');
+                txt = l > 0 ? '免费体验剩 <b>' + l + '</b> 次' : '免费体验已用完';
+            }
+            ids.forEach(function (id) {
+                var el = $(id);
+                if (!el) return;
+                el.className = cls;
+                el.innerHTML = txt;
+            });
         }
         function openBuyDlg() {
             $('buyMask').style.display = 'flex';
