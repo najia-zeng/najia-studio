@@ -755,7 +755,7 @@
             var pct = n / (imgW * imgH) * 100;
             var last = prodStrokes.length ? prodStrokes[prodStrokes.length - 1] : null;
             if (last && last.sub) {
-                say('涂掉的地方已划回背景（产品还占画面 ' + pct.toFixed(0) + '%），会被修掉。影子没消干净就接着涂。');
+                say('涂掉的地方已划回背景（产品还占画面 ' + pct.toFixed(0) + '%），按背景修；产品脚边的自然阴影会保住。');
             } else {
                 say('涂过的地方已算进产品（占画面 ' + pct.toFixed(0) + '%），不会被修。还漏就接着涂，涂多了点「还原」。');
             }
@@ -1677,28 +1677,15 @@
         }
     }
 
-    // 用户明确用「涂抹清理」擦掉的区域，权重 1（边缘柔化）。
-    // 这块不能交给投影保留逻辑去猜——用户说了要修，就得修干净，否则擦了跟没擦一样。
-    function eraseWeight(w, h, scale) {
-        var any = false;
-        for (var i = 0; i < prodStrokes.length; i++) if (prodStrokes[i].sub) { any = true; break; }
-        if (!any) return null;
-        var m = new Uint8Array(w * h);
-        for (var j = 0; j < prodStrokes.length; j++) {
-            if (prodStrokes[j].sub) stampToMask(m, w, h, prodStrokes[j], scale);
-        }
-        var f = new Float32Array(w * h);
-        for (var k = 0; k < w * h; k++) f[k] = m[k] ? 1 : 0;
-        return boxBlur1(f, w, h, Math.max(2, Math.round(Math.min(w, h) * 0.008)));
-    }
-
     // 接触投影保留。
     // 产品是实打实放在台面上的，边缘外一定连着它自己的影子。原来把这圈影子当背景瑕疵一起抹了，
     // 产品就成了一张贴纸——这正是「交界发硬」的根。
     // 做法：把「修了多少」拆成粗、细两层。细的（灰尘、划痕）该修就修；
     // 粗的只撤「把暗处提亮」那一半——影子一定是暗的，所以撤掉提亮就等于把影子放回去；
     // 亮的污渍、发白的斑照旧修掉。再按离产品的距离平滑收回，影子就自然淡出去。
-    function keepContactShadow(orig, fixed, d, n, w, h, rIn, rOut, kMin, erase) {
+    // 注意：用户擦掉的区域也走同一套——「缩小选区」只是把这块划回背景，
+    // 背景本来就该保留产品脚边的接触阴影，不能因为被擦过就把影子抹掉（否则暗影里会挖出一块白斑）。
+    function keepContactShadow(orig, fixed, d, n, w, h, rIn, rOut, kMin) {
         var diff = new Float32Array(fixed.length);
         for (var i = 0; i < diff.length; i++) diff[i] = fixed[i] - orig[i];
         var low = boxBlur3(diff, w, h, Math.max(2, Math.round((rOut - rIn) / 3)));
@@ -1710,8 +1697,6 @@
             if (t <= 0) t = 0; else if (t >= 1) t = 1;
             // kMin = 贴着产品要「撤回多少比例的修整」（= 影子保留强度），往外平滑收到 0
             var undo = kMin * (1 - t * t * (3 - 2 * t));
-            // 用户亲手擦掉的区域，一律不保留影子
-            if (erase) undo *= (1 - erase[p]);
             var q = p * 3;
             out[q] = fixed[q]; out[q + 1] = fixed[q + 1]; out[q + 2] = fixed[q + 2];
             if (undo <= 0.001) continue;
@@ -2226,8 +2211,7 @@
             // 距离图只算一次，投影保留和过渡带共用
             var dB = distMap(keepB, pw, ph);
             resB = keepContactShadow(origB, resB, dB, pw * ph, pw, ph, featherB,
-                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 1.0,
-                eraseWeight(pw, ph, pscale));
+                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 1.0);
             softB = softOutward(keepB, pw, ph, featherB, dB);
             for (var p1 = 0; p1 < pw * ph; p1++) {
                 var a1 = softB[p1];
@@ -2432,8 +2416,7 @@
                         try {
                             var dB = distMap(keepB, pw, ph);
                             res = keepContactShadow(origA, res, dB, pw * ph, pw, ph, featherB,
-                                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 1.0,
-                                eraseWeight(pw, ph, pscale));
+                                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 1.0);
                             softB = softOutward(keepB, pw, ph, featherB, dB);
                             mixIn(res, softB);
                             doProd();
