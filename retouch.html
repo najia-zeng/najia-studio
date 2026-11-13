@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="gate.js"></script>
 <title>产品图修补 · NaStudio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -284,6 +283,34 @@
         .tips { padding: 12px 16px 16px; font-size: 11px; }
     }
 
+
+    /* ===== 体验额度 & 买断弹窗 ===== */
+    .quota-tag { font-size: 12px; color: #999; white-space: nowrap; }
+    .quota-tag b { font-weight: 500; color: #555; }
+    .quota-tag.used { color: #d9534f; }
+    .nj-dlg-mask { position: fixed; inset: 0; background: rgba(0,0,0,.38); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
+    .nj-dlg { background: #fff; border-radius: 14px; width: 100%; max-width: 420px; max-height: 88vh; overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2); position: relative; }
+    .nj-dlg-b { padding: 34px 26px 4px; }
+    .nj-dlg-t1 { font-size: 23px; font-weight: 700; color: #1a1a2e; text-align: center; letter-spacing: 1.5px; }
+    .nj-dlg-t2 { font-size: 13px; color: #6a6483; text-align: center; margin: 11px 0 22px; line-height: 1.65; }
+    .nj-dlg-x { position: absolute; right: 15px; top: 11px; color: #c9c9d6; font-size: 22px; line-height: 1; cursor: pointer; z-index: 3; background: none; border: none; font-family: inherit; padding: 4px; }
+    .nj-dlg-x:hover { color: #888; }
+    .nj-qr-box { display: block; border: 1px dashed #d9d9e6; border-radius: 16px; background: #fafafd; padding: 22px 18px 15px; }
+    .nj-qr-box img { display: block; width: 180px; height: 180px; object-fit: contain; border-radius: 10px; background: #fff; margin: 0 auto; }
+    .nj-qr-tip { font-size: 13px; color: #9c9cb2; text-align: center; margin-top: 13px; }
+    .nj-qr-or { font-size: 13px; color: #8d8da3; text-align: center; margin: 20px 0 11px; }
+    .nj-qr-id { text-align: center; font-size: 19px; font-weight: 700; letter-spacing: 1.2px; color: #6b5ce7; background: #f4f2fd; border-radius: 10px; padding: 11px; cursor: pointer; user-select: all; transition: background .15s, color .15s; }
+    .nj-qr-id:hover { background: #ebe7fb; }
+    .nj-qr-id.copied { background: #e9f8ee; color: #2f9e57; }
+    .nj-lic-mini { font-size: 11.5px; color: #bcbccb; text-align: center; margin: 20px 0 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+    .nj-lic-mini:hover { color: #6b5ce7; }
+    .nj-lic-row { display: flex; gap: 8px; }
+    .nj-lic-row input { flex: 1; min-width: 0; box-sizing: border-box; padding: 10px 12px; border: 1px solid #e8e8ed; border-radius: 8px; font-size: 13px; font-family: inherit; color: #1a1a2e; }
+    .nj-lic-row input:focus { outline: none; border-color: #999; }
+    .nj-lic-row button { padding: 0 17px; border-radius: 8px; border: 1px solid #6b5ce7; background: #fff; color: #6b5ce7; font-size: 13px; cursor: pointer; font-family: inherit; white-space: nowrap; }
+    .nj-lic-err { font-size: 12px; color: #d9534f; min-height: 18px; padding-top: 6px; }
+    .nj-dlg-f { padding: 14px 26px 26px; }
+    .nj-dlg-f button { width: 100%; padding: 13px; border-radius: 9px; border: none; background: linear-gradient(135deg,#6b5ce7 0%,#4a7cf7 100%); color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; box-shadow: 0 4px 12px rgba(107,92,231,.22); }
     </style>
 </head>
 <body>
@@ -308,6 +335,8 @@
                     <div class="step" id="st2">2 修补</div>
                     <div class="step" id="st3">3 下载</div>
                 </div>
+                <div class="quota-tag" id="quotaTag" style="margin:0 0 10px;"></div>
+                <div class="drop" id="drop">                </div>
                 <div class="drop" id="drop">
                     <div class="drop-ico">🖼</div>
                     <div class="drop-t">点击上传 · 拖进来 · 粘贴</div>
@@ -398,6 +427,97 @@
 
     var $ = function (id) { return document.getElementById(id); };
 
+        /* ===== 体验额度 & 激活（与风格包同一套发码规则，本页独立计数） ===== */
+        var LICENSE_SALT = 'naji-ark-2026';
+        var FREE_LIMIT = 3;
+        var WECHAT_ID = 'najia9864';
+        var LIC_KEY = 'nj_lic_rt';
+        var USED_KEY = 'nj_free_used_rt';
+        function licHash(x) {
+            var h = 0;
+            for (var i = 0; i < x.length; i++) { h = (h * 31 + x.charCodeAt(i)) >>> 0; }
+            return h.toString(36).toUpperCase().padStart(4, '0').slice(0, 4);
+        }
+        function licValid(code) {
+            var c = (code || '').trim().toUpperCase().replace(/[\s-]/g, '');
+            var m = c.match(/^NJ([A-Z0-9]{8})([A-Z0-9]{4})$/);
+            if (!m) return false;
+            return licHash(m[1] + LICENSE_SALT) === m[2];
+        }
+        function isLicensed() {
+            try { return localStorage.getItem(LIC_KEY) === '1'; } catch (e) { return false; }
+        }
+        function getFreeUsed() {
+            try { return parseInt(localStorage.getItem(USED_KEY) || '0', 10) || 0; } catch (e) { return 0; }
+        }
+        function setFreeUsed(n) {
+            try { localStorage.setItem(USED_KEY, String(n)); } catch (e) {}
+        }
+        function freeLeft() { return Math.max(0, FREE_LIMIT - getFreeUsed()); }
+        function renderQuota() {
+            var el = $('quotaTag');
+            if (!el) return;
+            if (isLicensed()) { el.className = 'quota-tag'; el.innerHTML = '已解锁 · 不限次'; return; }
+            var l = freeLeft();
+            el.className = 'quota-tag' + (l === 0 ? ' used' : '');
+            el.innerHTML = l > 0 ? '免费体验剩 <b>' + l + '</b> 次' : '免费体验已用完';
+        }
+        function openBuyDlg() {
+            $('buyMask').style.display = 'flex';
+            $('licErr').textContent = '';
+        }
+        function closeBuyDlg() { $('buyMask').style.display = 'none'; }
+        function toggleLic() {
+            var row = $('licRow'), mini = $('licMini');
+            var show = row.style.display === 'none';
+            row.style.display = show ? 'flex' : 'none';
+            if (mini) mini.style.display = show ? 'none' : 'block';
+            if (show) { var inp = $('licInput'); if (inp) setTimeout(function () { inp.focus(); }, 60); }
+        }
+        function copyWx() {
+            var el = $('qrId');
+            if (!el) return;
+            var ok = function () {
+                el.classList.add('copied');
+                el.textContent = '已复制 ' + WECHAT_ID;
+                setTimeout(function () { el.classList.remove('copied'); el.textContent = WECHAT_ID; }, 1600);
+            };
+            var fallback = function () {
+                var ta = document.createElement('textarea');
+                ta.value = WECHAT_ID;
+                ta.style.position = 'fixed'; ta.style.opacity = '0';
+                document.body.appendChild(ta); ta.select();
+                try { document.execCommand('copy'); ok(); } catch (e) {}
+                document.body.removeChild(ta);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(WECHAT_ID).then(ok).catch(fallback);
+            } else { fallback(); }
+        }
+        function activateLicense() {
+            var v = ($('licInput').value || '').trim();
+            if (!v) { $('licErr').textContent = '请先填激活码'; return; }
+            if (!licValid(v)) { $('licErr').textContent = '激活码不对，检查一下有没有输错'; return; }
+            try { localStorage.setItem(LIC_KEY, '1'); } catch (e) {}
+            closeBuyDlg();
+            renderQuota();
+        }
+        function bindBuyDlg() {
+            var b = $('buyClose'); if (b) b.addEventListener('click', closeBuyDlg);
+            var d = $('buyDone'); if (d) d.addEventListener('click', closeBuyDlg);
+            var q = $('qrId'); if (q) q.addEventListener('click', copyWx);
+            var m = $('licMini'); if (m) m.addEventListener('click', toggleLic);
+            var g = $('licGo'); if (g) g.addEventListener('click', activateLicense);
+            var li = $('licInput');
+            if (li) li.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); activateLicense(); }
+            });
+            li = li && li.addEventListener('input', function () { $('licErr').textContent = ''; });
+        }
+        var curImgFp = '', lastCountedFp = '';
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { bindBuyDlg(); });
+        else bindBuyDlg();
+        renderQuota();
     var cvBase = $('cvBase'), cvMask = $('cvMask'), cvCursor = $('cvCursor');
     var ctxBase = cvBase.getContext('2d', { willReadFrequently: true });
     var ctxMask = cvMask.getContext('2d', { willReadFrequently: true });
@@ -485,6 +605,12 @@
 
         strokes = [];
         originalData = ctxBase.getImageData(0, 0, imgW, imgH);
+        try {
+            var fpd = originalData.data, fpStep = Math.max(4, Math.floor(fpd.length / 48));
+            var fp = imgW + 'x' + imgH;
+            for (var fi = 0; fi < fpd.length; fi += fpStep) fp += ',' + fpd[fi];
+            curImgFp = fp;
+        } catch (e) { curImgFp = String(Date.now()); }
         origCanvas = document.createElement('canvas');
         origCanvas.width = imgW;
         origCanvas.height = imgH;
@@ -2361,6 +2487,7 @@
 
     function applyAll() {
         if (!imgW || !prodMask || !origCanvas) return;
+        if (!isLicensed() && freeLeft() <= 0) { openBuyDlg(); return; }
         var bgR = parseInt($('slBg').value, 10);
         var prodR = parseInt($('slProd').value, 10);
         if (bgR <= 0 && prodR <= 0) {
@@ -2554,6 +2681,12 @@
                     $('stageTools').style.display = '';
                     setStep(3);
                     $('autoInfo').style.display = 'none';
+                    if (!isLicensed() && curImgFp && curImgFp !== lastCountedFp) {
+                        lastCountedFp = curImgFp;
+                        setFreeUsed(getFreeUsed() + 1);
+                        renderQuota();
+                    }
+
                 }
 
                 doBg();
@@ -2828,5 +2961,31 @@
     // 初始笔刷预览
 })();
 </script>
+
+<!-- ===== 体验额度 · 买断弹窗 ===== -->
+<div class="nj-dlg-mask" id="buyMask" style="display:none">
+    <div class="nj-dlg">
+        <button class="nj-dlg-x" type="button" id="buyClose">&times;</button>
+        <div class="nj-dlg-b">
+            <div class="nj-dlg-t1">免费体验已用完</div>
+            <div class="nj-dlg-t2">扫码沟通，一次买断长期用</div>
+            <div class="nj-qr-box">
+                <img src="img/qr-weixin.png" alt="微信二维码">
+                <div class="nj-qr-tip">请使用微信扫码</div>
+            </div>
+            <div class="nj-qr-or">或手动添加我的微信</div>
+            <div class="nj-qr-id" id="qrId" title="点击复制微信号">najia9864</div>
+            <div class="nj-lic-mini" id="licMini">已购买？点此激活</div>
+            <div class="nj-lic-row" id="licRow" style="display:none">
+                <input type="text" id="licInput" placeholder="NJ-XXXXXXXX-XXXX" autocomplete="off">
+                <button type="button" id="licGo">解锁</button>
+            </div>
+            <div class="nj-lic-err" id="licErr"></div>
+        </div>
+        <div class="nj-dlg-f">
+            <button type="button" id="buyDone">我已添加，完成</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
