@@ -161,7 +161,7 @@
             font-size: 14px; font-weight: 500;
             cursor: pointer; font-family: inherit;
             transition: all .2s;
-            margin-top: auto;
+            margin-top: 2px;
             box-shadow: 0 6px 18px rgba(107,92,231,.28);
         }
         .gen-btn:hover { box-shadow: 0 9px 26px rgba(107,92,231,.4); transform: translateY(-1px); }
@@ -403,8 +403,8 @@
                 <textarea class="inp-textarea" id="desc" placeholder='例如：白色釉面陶瓷咖啡杯'></textarea>
             </div>
 
-            <div class="quota-tag" id="quotaTag" style="margin:0 0 10px;"></div>
             <button class="gen-btn" id="genBtn" onclick="generate()">生成提示词</button>
+            <div class="quota-tag" id="quotaSide" style="margin:2px 0 0; text-align:center;"></div>
         </div>
 
         <!-- Right -->
@@ -502,12 +502,21 @@ const $ = id => document.getElementById(id);
     }
     function freeLeft() { return Math.max(0, FREE_LIMIT - getFreeUsed()); }
     function renderQuota() {
-        var el = $('quotaTag');
-        if (!el) return;
-        if (isLicensed()) { el.className = 'quota-tag'; el.innerHTML = '已解锁 · 不限次'; return; }
-        var l = freeLeft();
-        el.className = 'quota-tag' + (l === 0 ? ' used' : '');
-        el.innerHTML = l > 0 ? '免费体验剩 <b>' + l + '</b> 次' : '免费体验已用完';
+        // 顶栏(topbar.js)与页内各有一处，两处都更新
+        var ids = ['quotaTag', 'quotaSide'];
+        var cls, txt;
+        if (isLicensed()) { cls = 'quota-tag'; txt = '已解锁 · 不限次'; }
+        else {
+            var l = freeLeft();
+            cls = 'quota-tag' + (l === 0 ? ' used' : '');
+            txt = l > 0 ? '免费体验剩 <b>' + l + '</b> 次' : '免费体验已用完';
+        }
+        ids.forEach(function (id) {
+            var el = $(id);
+            if (!el) return;
+            el.className = cls;
+            el.innerHTML = txt;
+        });
     }
     function openBuyDlg() {
         $('buyMask').style.display = 'flex';
