@@ -1281,9 +1281,9 @@
         return out;
     }
 
-    // 保护区内一律权重 0，出了保护区再按「离边缘的距离」慢慢升到 1。
-    // 不用模糊遮罩做过渡：模糊的过渡在边界上正好是 0.5，等于贴着产品镶一圈背景色（白边/刻痕感）。
-    function softOutward(mask, w, h, feather) {
+    // 每个像素到产品保护区（mask）的距离：0 = 贴边，越大离产品越远。
+    // 两遍扫描的距离变换，一次算好，过渡和投影保留都用它。
+    function distMap(mask, w, h) {
         var n = w * h, INF = 1e6;
         var d = new Float32Array(n);
         var i, x, y, v;
@@ -1316,15 +1316,102 @@
                 d[i] = v;
             }
         }
+        return d;
+    }
+
+    // 保护区内一律权重 0，出了保护区再按「离边缘的距离」慢慢升到 1。
+    // 不用模糊遮罩做过渡：模糊的过渡在边界上正好是 0.5，等于贴着产品镶一圈背景色（白边/刻痕感）。
+    function softOutward(mask, w, h, feather, dPre) {
+        var n = w * h;
+        var d = dPre || distMap(mask, w, h);
         var a = new Float32Array(n);
         var f = feather < 1 ? 1 : feather;
-        for (i = 0; i < n; i++) {
+        for (var i = 0; i < n; i++) {
             var t = d[i] / f;
             if (t <= 0) a[i] = 0;
             else if (t >= 1) a[i] = 1;
             else a[i] = t * t * (3 - 2 * t);
         }
         return a;
+    }
+
+    // 三通道盒式模糊（横向+纵向滑窗）。把「修正量」拆成粗细两层用它，
+    // 局部用，半径不大，比逐像素卷积快一个量级。
+    function boxBlur3(src, w, h, r) {
+        var tmp = new Float32Array(src.length);
+        var out = new Float32Array(src.length);
+        var win = r * 2 + 1;
+        var x, y, q, a0, a1, a2, b0, b1, b2, xn, xp;
+        for (y = 0; y < h; y++) {
+            var row = y * w;
+            a0 = 0; a1 = 0; a2 = 0;
+            for (x = -r; x <= r; x++) {
+                xn = x < 0 ? 0 : (x >= w ? w - 1 : x);
+                q = (row + xn) * 3;
+                a0 += src[q]; a1 += src[q + 1]; a2 += src[q + 2];
+            }
+            for (x = 0; x < w; x++) {
+                q = (row + x) * 3;
+                tmp[q] = a0 / win; tmp[q + 1] = a1 / win; tmp[q + 2] = a2 / win;
+                xn = x + r + 1; if (xn >= w) xn = w - 1;
+                xp = x - r; if (xp < 0) xp = 0;
+                b0 = ((row + xn) * 3); b1 = ((row + xp) * 3);
+                a0 += src[b0] - src[b1];
+                a1 += src[b0 + 1] - src[b1 + 1];
+                a2 += src[b0 + 2] - src[b1 + 2];
+            }
+        }
+        for (x = 0; x < w; x++) {
+            a0 = 0; a1 = 0; a2 = 0;
+            for (y = -r; y <= r; y++) {
+                var yn = y < 0 ? 0 : (y >= h ? h - 1 : y);
+                q = (yn * w + x) * 3;
+                a0 += tmp[q]; a1 += tmp[q + 1]; a2 += tmp[q + 2];
+            }
+            for (y = 0; y < h; y++) {
+                q = (y * w + x) * 3;
+                out[q] = a0 / win; out[q + 1] = a1 / win; out[q + 2] = a2 / win;
+                var yn2 = y + r + 1; if (yn2 >= h) yn2 = h - 1;
+                var yp2 = y - r; if (yp2 < 0) yp2 = 0;
+                b0 = (yn2 * w + x) * 3; b1 = (yp2 * w + x) * 3;
+                a0 += tmp[b0] - tmp[b1];
+                a1 += tmp[b0 + 1] - tmp[b1 + 1];
+                a2 += tmp[b0 + 2] - tmp[b1 + 2];
+            }
+        }
+        return out;
+    }
+
+    // 接触投影保留。
+    // 产品是实打实放在台面上的，边缘外一定连着它自己的影子。原来把这圈影子当背景瑕疵一起抹了，
+    // 产品就成了一张贴纸——这正是「交界发硬」的根。
+    // 做法：把「修了多少」拆成粗、细两层。细的（灰尘、划痕）该修就修；
+    // 粗的只撤「把暗处提亮」那一半——影子一定是暗的，所以撤掉提亮就等于把影子放回去；
+    // 亮的污渍、发白的斑照旧修掉。再按离产品的距离平滑收回，影子就自然淡出去。
+    function keepContactShadow(orig, fixed, d, n, w, h, rIn, rOut, kMin) {
+        var diff = new Float32Array(fixed.length);
+        for (var i = 0; i < diff.length; i++) diff[i] = fixed[i] - orig[i];
+        var low = boxBlur3(diff, w, h, Math.max(2, Math.round((rOut - rIn) / 3)));
+        var out = new Float32Array(fixed.length);
+        var span = rOut - rIn;
+        if (span < 1) span = 1;
+        for (var p = 0; p < n; p++) {
+            var t = (d[p] - rIn) / span;
+            if (t <= 0) t = 0; else if (t >= 1) t = 1;
+            // 贴着产品撤销得最多（kMin），往外平滑收回 0
+            var undo = (1 - kMin) * (1 - t * t * (3 - 2 * t));
+            var q = p * 3;
+            out[q] = fixed[q]; out[q + 1] = fixed[q + 1]; out[q + 2] = fixed[q + 2];
+            if (undo <= 0.001) continue;
+            var l0 = low[q], l1 = low[q + 1], l2 = low[q + 2];
+            // 只撤「提亮」：三通道一起判，免得色偏
+            if (l0 + l1 + l2 > 0) {
+                out[q]     = fixed[q]     - l0 * undo;
+                out[q + 1] = fixed[q + 1] - l1 * undo;
+                out[q + 2] = fixed[q + 2] - l2 * undo;
+            }
+        }
+        return out;
     }
 
     // 把认出来的产品区画出来：青色边 + 淡淡填充，让人一眼看到分界
@@ -1800,8 +1887,11 @@
             var prB = radiusParams(true, pscale);
             // 半径越大，越不能让产品边缘的亮像素卷进背景平均，否则产品会被描一圈光
             var guardB = Math.max(2, Math.round(Math.max(prB.r, prB.blurR) * 0.08));
-            // 过渡带要比保护带宽：保护带里的像素不参与柔化，太窄就会在产品外留一圈没被柔化的原始像素，看起来像光晕
-            var featherB = Math.max(guardB, Math.round(Math.max(prB.blurR, prB.r) * 0.32));
+            // 过渡带宽度跟「画面尺寸」和「修复力度」里较大的那个走：
+            // 只按力度算，大图上过渡带还不到画面的 1%，交界就是一刀切。
+            var featherB = Math.max(Math.round(Math.min(pw, ph) * 0.03),
+                Math.round(Math.max(prB.blurR, prB.r) * 1.1));
+            if (featherB < guardB + 2) featherB = guardB + 2;
             var keepB = dilate(pmask, pw, ph, guardB);
             var regB = new Uint8Array(pw * ph);
             for (var k = 0; k < pw * ph; k++) regB[k] = keepB[k] ? 0 : 1;
@@ -1821,7 +1911,11 @@
                     }
                 }
             }
-            softB = softOutward(keepB, pw, ph, featherB);
+            // 距离图只算一次，投影保留和过渡带共用
+            var dB = distMap(keepB, pw, ph);
+            resB = keepContactShadow(origB, resB, dB, pw * ph, pw, ph, featherB,
+                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 0.82);
+            softB = softOutward(keepB, pw, ph, featherB, dB);
             for (var p1 = 0; p1 < pw * ph; p1++) {
                 var a1 = softB[p1];
                 if (a1 <= 0.001) continue;
@@ -2015,13 +2109,18 @@
                     $('busyTxt').textContent = '正在修背景…';
                     var pr = radiusParams(true, pscale);
                     var guardB = Math.max(2, Math.round(Math.max(pr.r, pr.blurR) * 0.08));
-                    var featherB = Math.max(guardB, Math.round(Math.max(pr.blurR, pr.r) * 0.32));
+                    var featherB = Math.max(Math.round(Math.min(pw, ph) * 0.03),
+                        Math.round(Math.max(pr.blurR, pr.r) * 1.1));
+                    if (featherB < guardB + 2) featherB = guardB + 2;
                     var keepB = dilate(pmask, pw, ph, guardB);
                     var reg = new Uint8Array(pw * ph);
                     for (var k = 0; k < pw * ph; k++) reg[k] = keepB[k] ? 0 : 1;
                     function bgDone(res) {
                         try {
-                            softB = softOutward(keepB, pw, ph, featherB);
+                            var dB = distMap(keepB, pw, ph);
+                            res = keepContactShadow(origA, res, dB, pw * ph, pw, ph, featherB,
+                                Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.1)), 0.82);
+                            softB = softOutward(keepB, pw, ph, featherB, dB);
                             mixIn(res, softB);
                             doProd();
                         } catch (e1) { fail(e1); }
