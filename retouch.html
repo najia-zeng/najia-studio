@@ -603,6 +603,11 @@
         ctxMask.clearRect(0, 0, imgW, imgH);
 
         strokes = [];
+        // 换了新图：力度滑杆回到初始，不沿用上一张调的数值
+        $('slBg').value = 0;
+        $('slProd').value = 0;
+        $('slBgVal').textContent = '—';
+        $('slProdVal').textContent = '—';
         originalData = ctxBase.getImageData(0, 0, imgW, imgH);
         try {
             var fpd = originalData.data, fpStep = Math.max(4, Math.floor(fpd.length / 48));
@@ -2943,7 +2948,45 @@
         a.download = 'retouch-' + Date.now() + '.png';
         a.href = cvBase.toDataURL('image/png');
         a.click();
+        // 下载完成：整页回到初始状态，直接接下一张图
+        resetAll();
     });
+
+    // 整页复位（下载完成后用）：图片清掉、力度归零、步骤回 1
+    function resetAll() {
+        imgW = 0; imgH = 0;
+        hasResult = false;
+        resultData = null;
+        originalData = null;
+        prodMask = null;
+        autoMask = null;
+        maskOn = false;
+        userPicked = false;
+        brushMode = false;
+        prodStrokes = [];
+        strokes = [];
+        preBrushMask = undefined;
+        previewShown = false;
+        cmpOn = false;
+        $('cmpBadge') && $('cmpBadge').classList.remove('on');
+        cvBase.width = 0; cvBase.height = 0;
+        cvMask.width = 0; cvMask.height = 0;
+        $('cvPreview').style.display = 'none';
+        $('empty').style.display = '';
+        $('stage').style.display = 'none';
+        $('stageTools').style.display = 'none';
+        $('autoInfo').style.display = 'none';
+        $('secBg').classList.add('off');
+        $('secProd').classList.add('off');
+        $('slBg').value = 0;
+        $('slProd').value = 0;
+        $('slBg').disabled = true;
+        $('slProd').disabled = true;
+        $('slBgVal').textContent = '—';
+        $('slProdVal').textContent = '—';
+        $('btnApply').disabled = true;
+        setStep(1);
+    }
 
 
     /* ---------------- 步骤条 ---------------- */
