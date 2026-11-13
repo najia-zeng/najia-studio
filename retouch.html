@@ -189,6 +189,9 @@
     .btn-main:disabled { background: #f3f2f8; color: #b8b5cc; border-color: transparent; opacity: 1; box-shadow: none; transform: none; }
     .btn-row { display: flex; gap: 8px; margin-top: 10px; }
     .btn-row .btn { flex: 1; }
+    .brush-row { display: flex; gap: 8px; }
+    .brush-row .btn { flex: 1; padding: 10px 8px; font-size: 13px; }
+    .brush-row .btn.on { background: var(--blue); border-color: transparent; color: #fff; }
 
     .hint { font-size: 11px; color: #a5a1bb; line-height: 1.6; margin-top: 6px; }
     .hint b { color: #56526e; font-weight: 650; }
@@ -329,6 +332,21 @@
                 <div class="hint">只清产品表面的浮尘小点，纹理和边缘不动。拖到 0 是不修。</div>
             </div>
 
+            <div class="sec" id="secBrush">
+                <div class="sec-t">圈产品（自动圈不准时用）</div>
+                <div class="brush-row">
+                    <button class="btn" id="btnBrush">涂抹产品</button>
+                    <button class="btn" id="btnBrushUndo">撤销</button>
+                    <button class="btn" id="btnBrushClear">清空</button>
+                </div>
+                <div class="sld">
+                    <span class="sld-l">笔刷</span>
+                    <input type="range" id="slBrush" min="12" max="220" value="60" step="2">
+                    <b class="sld-v" id="slBrushVal">60</b>
+                </div>
+                <div class="hint">自动圈不准、拖框也不贴合时：点「涂抹产品」，把漏掉的产品直接涂一遍——<b>涂过的地方算产品，一个像素都不会动</b>。涂错点撤销。</div>
+            </div>
+
             <div class="sec">
                 <button class="btn btn-main" id="btnApply" disabled>确定</button>
                 <div class="hint" id="autoInfo" style="display:none;"></div>
@@ -336,7 +354,7 @@
 
         <div class="tips">
             <div class="row"><span class="n">1</span><span><b>红色笔刷涂过的地方才会修</b>，没涂的区域一个像素都不动。涂完点「确定」。</span></div>
-            <div class="row"><span class="n">2</span><span><b>产品本体不会被改动</b>：青色框里的一个像素都不动。自动分错了，就在图上<b>按住拖一个框</b>把产品框住。</span></div>
+            <div class="row"><span class="n">2</span><span><b>产品本体不会被改动</b>：青色框里的一个像素都不动。自动圈漏了，就点<b>「涂抹产品」</b>把漏的地方涂上，或按住拖一个框把产品框住。</span></div>
             <div class="row"><span class="n">3</span><span><b>力度拖到 0 就是不修</b>。全程在本机计算，图片不会上传服务器。</span></div>
         </div>
 
@@ -401,6 +419,10 @@
     var prodMask = null;       // 产品识别结果，1 = 产品
     var maskOn = false;        // 是否显示产品分界
     var userPicked = false;    // 用户是否手动点过产品
+    var brushMode = false;     // 涂抹产品模式
+    var prodStrokes = [];      // 涂抹产品的笔迹（撤销/重绘用）
+    var preBrushMask;          // 涂抹前的遮罩快照：undefined=从没涂过，null/value=快照
+    var brushR = 60;           // 笔刷直径（图坐标系）
     var previewTimer = null;   // 拖滑块时的预览节流
     var previewSeq = 0;
     var previewShown = false;  // 预览层当前是否盖在画布上
@@ -475,6 +497,10 @@
         prodMask = null;
         maskOn = false;
         userPicked = false;
+        brushMode = false;
+        prodStrokes = [];
+        preBrushMask = undefined;
+        setBrushUI();
 
         $('empty').style.display = 'none';
         $('stage').style.display = 'block';
@@ -508,7 +534,7 @@
 
             if (pct < 0.005 || pct > 0.92) {
                 // 没识别出来，或者几乎整幅都是产品
-                $('autoInfo').textContent = '背景和产品颜色太接近，自动分不干净。在图上按住拖一个框，把产品整个框住就行。';
+                $('autoInfo').textContent = '背景和产品颜色太接近，自动分不干净。点左侧「涂抹产品」，把产品涂一遍；或按住拖一个框把产品框住。';
                 $('autoInfo').style.display = '';
                 prodMask = null;
                 $('btnApply').disabled = true;
@@ -657,6 +683,179 @@
         $('secProd').classList.remove('off');
     }
 
+    /* ---------------- 涂抹产品：涂过的地方算产品，一个像素不动 ---------------- */
+
+    function setBrushUI() {
+        var b = $('btnBrush');
+        b.classList.toggle('on', brushMode);
+        b.textContent = brushMode ? '涂完了' : '涂抹产品';
+    }
+
+    $('btnBrush').addEventListener('click', function () {
+        if (!imgW) { say('先上传一张图。'); return; }
+        brushMode = !brushMode;
+        setBrushUI();
+        if (brushMode) {
+            say('在图上按住拖动，把漏掉的产品涂一遍——涂过的地方都算产品，不会被修。涂完再点一次退出涂抹。');
+            cvBase.style.cursor = 'cell';
+        } else {
+            say('已退出涂抹。青色就是现在的产品范围。');
+            cvBase.style.cursor = 'crosshair';
+            cvCursor.style.display = 'none';
+            if (prodMask) showRegion(0);
+        }
+    });
+
+    $('btnBrushUndo').addEventListener('click', function () {
+        if (!imgW) return;
+        if (!prodStrokes.length) { say('还没涂过，不用撤销。'); return; }
+        prodStrokes.pop();
+        rebuildBrush();
+        say('撤销了一笔。');
+        refreshAfterBrush(false);
+    });
+
+    $('btnBrushClear').addEventListener('click', function () {
+        if (!imgW) return;
+        if (preBrushMask === undefined) { say('还没涂过。'); return; }
+        prodStrokes = [];
+        if (preBrushMask === null) {
+            prodMask = null;
+        } else {
+            prodMask = new Uint8Array(preBrushMask);
+        }
+        say('已清空涂抹，回到涂抹前的识别结果。');
+        if (prodMask) showRegion(0); else clearRegion();
+        doPreview();
+    });
+
+    $('slBrush').addEventListener('input', function () {
+        brushR = parseInt(this.value, 10);
+        $('slBrushVal').textContent = brushR;
+    });
+
+    // 从涂抹前的快照 + 当前笔迹列表重建产品遮罩（撤销 / 清空后重画）
+    function rebuildBrush() {
+        if (preBrushMask === undefined) return;
+        prodMask = preBrushMask === null ? new Uint8Array(imgW * imgH) : new Uint8Array(preBrushMask);
+        prodStrokes.forEach(function (s) { stampStroke(prodMask, s); });
+    }
+
+    function refreshAfterBrush(announce) {
+        var n = 0;
+        for (var i = 0; i < imgW * imgH; i++) if (prodMask[i]) n++;
+        if (n === 0) {
+            prodMask = null;
+            clearRegion();
+            return;
+        }
+        userPicked = true;
+        enableProd();
+        showRegion(0);
+        doPreview();
+        if (announce) {
+            var pct = n / (imgW * imgH) * 100;
+            say('涂过的地方已算进产品（占画面 ' + pct.toFixed(0) + '%），不会被修。还漏就接着涂，涂多了点「撤销」。');
+        }
+    }
+
+    // 笔迹盖进遮罩：一个点一个点盖章
+    function stampStroke(m, s) {
+        var pts = s.pts;
+        if (pts.length === 1) { stampDot(m, pts[0].x, pts[0].y, s.size); return; }
+        for (var i = 1; i < pts.length; i++) {
+            stampSeg(m, pts[i - 1].x, pts[i - 1].y, pts[i].x, pts[i].y, s.size);
+        }
+    }
+
+    function stampDot(m, x, y, size) {
+        var r = size / 2;
+        var x0 = Math.max(0, Math.floor(x - r)), x1 = Math.min(imgW - 1, Math.ceil(x + r));
+        var y0 = Math.max(0, Math.floor(y - r)), y1 = Math.min(imgH - 1, Math.ceil(y + r));
+        var r2 = r * r;
+        for (var yy = y0; yy <= y1; yy++) {
+            var dy = yy - y, row = yy * imgW;
+            for (var xx = x0; xx <= x1; xx++) {
+                var dx = xx - x;
+                if (dx * dx + dy * dy <= r2) m[row + xx] = 1;
+            }
+        }
+    }
+
+    function stampSeg(m, x1, y1, x2, y2, size) {
+        var dx = x2 - x1, dy = y2 - y1;
+        var len = Math.sqrt(dx * dx + dy * dy);
+        var step = Math.max(1, size / 3);
+        var n = Math.max(1, Math.ceil(len / step));
+        for (var i = 0; i <= n; i++) stampDot(m, x1 + dx * i / n, y1 + dy * i / n, size);
+    }
+
+    // 涂抹的笔迹画到遮罩层上（绿色，跟青色轮廓叠加）
+    function drawProdDot(x, y, size) {
+        ctxMask.beginPath();
+        ctxMask.arc(x, y, size / 2, 0, Math.PI * 2);
+        ctxMask.fillStyle = 'rgba(66,205,110,0.28)';
+        ctxMask.fill();
+    }
+
+    function drawProdLine(x1, y1, x2, y2, size) {
+        ctxMask.strokeStyle = 'rgba(66,205,110,0.28)';
+        ctxMask.lineWidth = size;
+        ctxMask.lineCap = 'round';
+        ctxMask.lineJoin = 'round';
+        ctxMask.beginPath();
+        ctxMask.moveTo(x1, y1);
+        ctxMask.lineTo(x2, y2);
+        ctxMask.stroke();
+    }
+
+    function drawProdStrokes() {
+        prodStrokes.forEach(function (s) {
+            if (s.pts.length === 1) {
+                drawProdDot(s.pts[0].x, s.pts[0].y, s.size);
+            } else {
+                for (var i = 1; i < s.pts.length; i++) {
+                    drawProdLine(s.pts[i - 1].x, s.pts[i - 1].y, s.pts[i].x, s.pts[i].y, s.size);
+                }
+            }
+        });
+    }
+
+    var brushDrag = null;   // 当前正在涂的这一笔
+
+    function startBrush(e) {
+        if (preBrushMask === undefined) {
+            preBrushMask = prodMask ? new Uint8Array(prodMask) : null;
+        }
+        if (!prodMask) prodMask = new Uint8Array(imgW * imgH);
+        var p = toImg(e);
+        if (!p) return;
+        brushDrag = { pts: [{ x: p.x, y: p.y }], size: brushR };
+        prodStrokes.push(brushDrag);
+        stampDot(prodMask, p.x, p.y, brushDrag.size);
+        drawProdDot(p.x, p.y, brushDrag.size);
+        if (cvBase.setPointerCapture) { try { cvBase.setPointerCapture(e.pointerId); } catch (err) { } }
+        e.preventDefault();
+    }
+
+    function moveBrush(e) {
+        if (!brushDrag) return;
+        var p = toImg(e);
+        if (!p) return;
+        var last = brushDrag.pts[brushDrag.pts.length - 1];
+        if (last.x === p.x && last.y === p.y) { e.preventDefault(); return; }
+        brushDrag.pts.push({ x: p.x, y: p.y });
+        stampSeg(prodMask, last.x, last.y, p.x, p.y, brushDrag.size);
+        drawProdLine(last.x, last.y, p.x, p.y, brushDrag.size);
+        e.preventDefault();
+    }
+
+    function endBrush() {
+        if (!brushDrag) return;
+        brushDrag = null;
+        refreshAfterBrush(true);
+    }
+
     // 拖框过程中看到的青色虚线框（松手后换成真正的分区）
     function drawBox(b) {
         var x0 = Math.min(b.x0, b.x1), x1 = Math.max(b.x0, b.x1);
@@ -669,6 +868,7 @@
         ctxMask.setLineDash([12, 8]);
         ctxMask.strokeRect(x0, y0, x1 - x0, y1 - y0);
         ctxMask.setLineDash([]);
+        if (prodStrokes.length) drawProdStrokes();
     }
 
     // 以框为准：框里一律不修，框外照力度修
@@ -733,12 +933,27 @@
         if (!imgW || !ctxBase) return;
         var p = toImg(e);
         if (!p) return;
+        if (brushMode) { startBrush(e); return; }
         boxDrag = { x0: p.x, y0: p.y, x1: p.x, y1: p.y, moved: false, id: e.pointerId };
         if (cvBase.setPointerCapture) { try { cvBase.setPointerCapture(e.pointerId); } catch (err) { } }
         e.preventDefault();
     });
 
     cvBase.addEventListener('pointermove', function (e) {
+        // 涂抹模式下显示笔刷光标圈
+        if (brushMode && imgW) {
+            var r = cvBase.getBoundingClientRect();
+            if (r.width) {
+                var cx = e.clientX - r.left, cy = e.clientY - r.top;
+                var dispR = brushR / imgW * r.width;
+                cvCursor.style.display = 'block';
+                cvCursor.style.width = (dispR * 2) + 'px';
+                cvCursor.style.height = (dispR * 2) + 'px';
+                cvCursor.style.left = cx + 'px';
+                cvCursor.style.top = cy + 'px';
+            }
+        }
+        if (brushDrag) { moveBrush(e); return; }
         if (!boxDrag) return;
         var p = toImg(e);
         if (!p) return;
@@ -748,7 +963,10 @@
         e.preventDefault();
     });
 
+    cvBase.addEventListener('pointerleave', function () { cvCursor.style.display = 'none'; });
+
     function endDrag(cancelled) {
+        if (brushDrag) { endBrush(); return; }
         if (!boxDrag) return;
         var b = boxDrag;
         boxDrag = null;
@@ -1439,6 +1657,7 @@
         }
         ctxMask.clearRect(0, 0, w, h);
         ctxMask.putImageData(od, 0, 0);
+        if (prodStrokes.length) drawProdStrokes();
         if (regionTimer) { clearTimeout(regionTimer); regionTimer = null; }
         if (ms > 0) regionTimer = setTimeout(clearRegion, ms);
     }
@@ -1447,6 +1666,7 @@
         if (regionTimer) { clearTimeout(regionTimer); regionTimer = null; }
         if (!imgW) return;
         ctxMask.clearRect(0, 0, imgW, imgH);
+        if (prodStrokes.length) drawProdStrokes();
     }
 
     function keepLargest(mask, w, h) {
