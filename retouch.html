@@ -608,6 +608,13 @@
         $('slProd').value = 0;
         $('slBgVal').textContent = '—';
         $('slProdVal').textContent = '—';
+        // 清掉上一张图的预览层，否则它会盖在新图上面；同时作废还在算的预览
+        previewSeq++;
+        previewShown = false;
+        resultData = null;
+        $('cvPreview').style.display = 'none';
+        $('cvPreview').width = 0;
+        $('cvPreview').height = 0;
         originalData = ctxBase.getImageData(0, 0, imgW, imgH);
         try {
             var fpd = originalData.data, fpStep = Math.max(4, Math.floor(fpd.length / 48));
@@ -2972,6 +2979,8 @@
         cvBase.width = 0; cvBase.height = 0;
         cvMask.width = 0; cvMask.height = 0;
         $('cvPreview').style.display = 'none';
+        $('cvPreview').width = 0;
+        $('cvPreview').height = 0;
         $('empty').style.display = '';
         $('stage').style.display = 'none';
         $('stageTools').style.display = 'none';
