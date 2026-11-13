@@ -190,7 +190,7 @@
     .btn-row { display: flex; gap: 8px; margin-top: 10px; }
     .btn-row .btn { flex: 1; }
     .brush-row { display: flex; flex-wrap: wrap; gap: 8px; }
-    .brush-row .btn { flex: 1 1 calc(50% - 4px); padding: 10px 6px; font-size: 13px; white-space: nowrap; }
+    .brush-row .btn { flex: 1 1 0; min-width: 0; padding: 10px 4px; font-size: 12.5px; white-space: nowrap; }
     .brush-row .btn.on { background: var(--blue); border-color: transparent; color: #fff; }
     .brush-row .btn#btnBrush.on { background: #33a862; }
     .brush-row .btn#btnBrushErase.on { background: #e2703a; }
@@ -335,31 +335,23 @@
             </div>
 
             <div class="sec" id="secBrush">
-                <div class="sec-t">圈产品（自动圈不准时用）</div>
+                <div class="sec-t">微调选区（自动圈不准时用）</div>
                 <div class="brush-row">
-                    <button class="btn" id="btnBrush">涂抹产品</button>
-                    <button class="btn" id="btnBrushErase">涂抹清理</button>
-                    <button class="btn" id="btnBrushUndo">撤销</button>
-                    <button class="btn" id="btnBrushClear">清空</button>
+                    <button class="btn" id="btnBrush">扩大选区</button>
+                    <button class="btn" id="btnBrushErase">缩小选区</button>
+                    <button class="btn" id="btnBrushClear">还原</button>
                 </div>
                 <div class="sld">
                     <span class="sld-l">笔刷</span>
                     <input type="range" id="slBrush" min="12" max="220" value="60" step="2">
                     <b class="sld-v" id="slBrushVal">60</b>
                 </div>
-                <div class="hint">自动圈不准时：<b>「涂抹产品」</b>（绿）涂过的地方算产品，一个像素不动；<b>「涂抹清理」</b>（橙）反过来——把被当成产品的影子、杂物涂掉，涂过的地方按背景修。涂错点撤销。</div>
             </div>
 
             <div class="sec">
                 <button class="btn btn-main" id="btnApply" disabled>确定</button>
                 <div class="hint" id="autoInfo" style="display:none;"></div>
             </div>
-
-        <div class="tips">
-            <div class="row"><span class="n">1</span><span><b>红色笔刷涂过的地方才会修</b>，没涂的区域一个像素都不动。涂完点「确定」。</span></div>
-            <div class="row"><span class="n">2</span><span><b>产品本体不会被改动</b>：青色框里的一个像素都不动。自动圈漏了，点<b>「涂抹产品」</b>补上；把影子、杂物当成产品圈进去了，点<b>「涂抹清理」</b>划回背景。</span></div>
-            <div class="row"><span class="n">3</span><span><b>力度拖到 0 就是不修</b>。全程在本机计算，图片不会上传服务器。</span></div>
-        </div>
 
         </aside>
 
@@ -426,6 +418,7 @@
     var brushKind = 'add';     // 'add' = 涂了算产品（绿）；'sub' = 涂了算背景、要去修（橙）
     var prodStrokes = [];      // 涂抹产品的笔迹（撤销/重绘用），每笔带 sub 标记
     var preBrushMask;          // 涂抹前的遮罩快照：undefined=从没涂过，null/value=快照
+    var autoMask = null;       // 系统自动识别的原始选区快照（「还原」用）
     var brushR = 60;           // 笔刷直径（图坐标系）
     var previewTimer = null;   // 拖滑块时的预览节流
     var previewSeq = 0;
@@ -499,6 +492,7 @@
         origCanvas.getContext('2d').drawImage(cvBase, 0, 0);
         hasResult = false;
         prodMask = null;
+        autoMask = null;
         maskOn = false;
         userPicked = false;
         brushMode = false;
@@ -524,6 +518,7 @@
         setTimeout(function () {
             var d = ctxBase.getImageData(0, 0, imgW, imgH).data;
             prodMask = keepLargest(detectProduct(d, imgW, imgH), imgW, imgH);
+            autoMask = new Uint8Array(prodMask);   // 存一份自动识别结果，供「还原」
 
             var n = 0;
             for (var i = 0; i < imgW * imgH; i++) if (prodMask[i]) n++;
@@ -539,9 +534,10 @@
 
             if (pct < 0.005 || pct > 0.92) {
                 // 没识别出来，或者几乎整幅都是产品
-                $('autoInfo').textContent = '背景和产品颜色太接近，自动分不干净。点左侧「涂抹产品」，把产品涂一遍；或按住拖一个框把产品框住。';
+                $('autoInfo').textContent = '背景和产品颜色太接近，自动分不干净。点左侧「扩大选区」，把产品涂一遍；或按住拖一个框把产品框住。';
                 $('autoInfo').style.display = '';
                 prodMask = null;
+                autoMask = null;
                 $('btnApply').disabled = true;
                 $('slBg').disabled = true;
                 $('slProd').disabled = true;
@@ -651,7 +647,7 @@
         });
     }
 
-    /* ---------------- 撤销 / 清除 ---------------- */
+    /* ---------------- 确定 / 还原 ---------------- */
 
     // 确定：按当前两个力度全分辨率跑一遍
     $('btnApply').addEventListener('click', applyAll);
@@ -694,8 +690,8 @@
         var b = $('btnBrush'), e = $('btnBrushErase');
         b.classList.toggle('on', brushMode && brushKind === 'add');
         e.classList.toggle('on', brushMode && brushKind === 'sub');
-        b.textContent = (brushMode && brushKind === 'add') ? '涂完了' : '涂抹产品';
-        e.textContent = (brushMode && brushKind === 'sub') ? '涂完了' : '涂抹清理';
+        b.textContent = (brushMode && brushKind === 'add') ? '涂完了' : '扩大选区';
+        e.textContent = (brushMode && brushKind === 'sub') ? '涂完了' : '缩小选区';
     }
 
     function enterBrush(kind) {
@@ -722,26 +718,20 @@
     $('btnBrush').addEventListener('click', function () { enterBrush('add'); });
     $('btnBrushErase').addEventListener('click', function () { enterBrush('sub'); });
 
-    $('btnBrushUndo').addEventListener('click', function () {
-        if (!imgW) return;
-        if (!prodStrokes.length) { say('还没涂过，不用撤销。'); return; }
-        prodStrokes.pop();
-        rebuildBrush();
-        say('撤销了一笔。');
-        refreshAfterBrush(false);
-    });
-
+    // 还原：回到系统自动识别的选区（涂抹、拖框、点选全部作废）
     $('btnBrushClear').addEventListener('click', function () {
         if (!imgW) return;
-        if (preBrushMask === undefined) { say('还没涂过。'); return; }
-        prodStrokes = [];
-        if (preBrushMask === null) {
-            prodMask = null;
-        } else {
-            prodMask = new Uint8Array(preBrushMask);
+        if (!autoMask) {
+            say('自动识别没能圈出产品，没有可还原的选区——现在的选区是你自己框/涂出来的。');
+            return;
         }
-        say('已清空涂抹，回到涂抹前的识别结果。');
-        if (prodMask) showRegion(0); else clearRegion();
+        prodMask = new Uint8Array(autoMask);
+        prodStrokes = [];
+        preBrushMask = undefined;
+        userPicked = false;
+        say('已还原到系统自动识别的选区。');
+        enableProd();
+        showRegion(0);
         doPreview();
     });
 
@@ -750,21 +740,13 @@
         $('slBrushVal').textContent = brushR;
     });
 
-    // 从涂抹前的快照 + 当前笔迹列表重建产品遮罩（撤销 / 清空后重画）
-    // 笔迹按落笔顺序重放：绿的写 1（算产品），橙的写 0（算背景）
-    function rebuildBrush() {
-        if (preBrushMask === undefined) return;
-        prodMask = preBrushMask === null ? new Uint8Array(imgW * imgH) : new Uint8Array(preBrushMask);
-        prodStrokes.forEach(function (s) { stampStroke(prodMask, s); });
-    }
-
     function refreshAfterBrush(announce) {
         var n = 0;
         for (var i = 0; i < imgW * imgH; i++) if (prodMask[i]) n++;
         if (n === 0) {
             prodMask = null;
             clearRegion();
-            if (announce) say('产品范围被清空了：现在整张图都会按背景修。如果这不是你想要的，马上点「撤销」。');
+            if (announce) say('产品范围被清空了：现在整张图都会按背景修。如果这不是你想要的，马上点「还原」。');
             return;
         }
         userPicked = true;
@@ -777,7 +759,7 @@
             if (last && last.sub) {
                 say('涂掉的地方已划回背景（产品还占画面 ' + pct.toFixed(0) + '%），会被修掉。影子没消干净就接着涂。');
             } else {
-                say('涂过的地方已算进产品（占画面 ' + pct.toFixed(0) + '%），不会被修。还漏就接着涂，涂多了点「撤销」。');
+                say('涂过的地方已算进产品（占画面 ' + pct.toFixed(0) + '%），不会被修。还漏就接着涂，涂多了点「还原」。');
             }
         }
     }
@@ -2523,10 +2505,7 @@
                     hasResult = true;
                     $('stageTools').style.display = '';
                     setStep(3);
-                    $('autoInfo').style.display = '';
-                    $('autoInfo').textContent = '修好了，用时 ' +
-                        (ms > 2000 ? (ms / 1000).toFixed(1) + 's' : ms + 'ms') +
-                        '。不满意就再调力度，图会从原图重算一遍。';
+                    $('autoInfo').style.display = 'none';
                 }
 
                 doBg();
