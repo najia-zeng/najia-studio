@@ -404,7 +404,7 @@
             </div>
 
             <div class="quota-tag" id="quotaTag" style="margin:0 0 10px;"></div>
-            <button class="gen-btn" id="genBtn" onclick="generate()">生成提示词</button>            <button class="gen-btn" id="genBtn" onclick="generate()">生成提示词</button>
+            <button class="gen-btn" id="genBtn" onclick="generate()">生成提示词</button>
         </div>
 
         <!-- Right -->
@@ -820,6 +820,22 @@ function resetAll() {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    /* 拖放防误跳：文件拖到页面任意位置，都不让浏览器拿图片替换当前页/开新标签 */
+    (function () {
+        function stop(e) { e.preventDefault(); }
+        window.addEventListener('dragenter', stop, false);
+        window.addEventListener('dragover', stop, false);
+        window.addEventListener('drop', stop, false);
+        window.addEventListener('drop', function (e) {
+            var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+            if (!f || String(f.type).indexOf('image') !== 0) return;
+            var t = e.target;
+            if (t && t.closest && t.closest('#drop')) return;
+            var fn = window[''];
+            if (typeof fn === 'function') fn(f);
+        }, false);
+    })();
 </script>
 
 <!-- ===== 体验额度 · 买断弹窗 ===== -->
