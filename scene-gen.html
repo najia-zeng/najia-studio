@@ -209,6 +209,13 @@
   #ns-topbar .tbtn{width:100%;text-align:center;}
 }
 </style>
+<!-- 本工具可安装到桌面（PWA）：客户解锁后双击桌面图标即用 -->
+<link rel="manifest" href="/manifest-sg.webmanifest">
+<meta name="theme-color" content="#6b5ce7">
+<link rel="icon" href="/img/icon-sg-192.png" type="image/png">
+<link rel="apple-touch-icon" href="/img/icon-sg-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="科研医美">
 <link rel="stylesheet" href="topbar.css">
 </head>
 <body>
@@ -1023,5 +1030,46 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     </div>
 </div>
+
+<!-- ===== 装到桌面（PWA）浮动按钮 ===== -->
+<style>
+#njInstallBtn{position:fixed;right:18px;bottom:18px;z-index:9990;
+  font-family:inherit;font-size:12.5px;font-weight:650;color:#6b5ce7;
+  background:rgba(255,255,255,.94);border:1px solid #c9c1f5;border-radius:999px;
+  padding:9px 16px;cursor:pointer;box-shadow:0 4px 14px rgba(45,35,110,.14);
+  transition:all .15s;}
+#njInstallBtn:hover{background:#f4f2fd;transform:translateY(-1px);}
+</style>
+<button type="button" id="njInstallBtn">⤓ 装到桌面，双击就能用</button>
+<script>
+(function () {
+  var dp = null;
+  var btn = document.getElementById('njInstallBtn');
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    dp = e;
+  });
+  window.addEventListener('appinstalled', function () {
+    if (btn) { btn.textContent = '✓ 已装到桌面'; }
+    setTimeout(function () { if (btn) btn.classList.remove('show'); }, 2400);
+  });
+  if (btn) btn.addEventListener('click', function () {
+    if (dp) { dp.prompt(); dp.userChoice.then(function () { dp = null; }); return; }
+    var ua = navigator.userAgent || '';
+    var msg;
+    if (/MicroMessenger/i.test(ua)) {
+      msg = '微信里装不了：先点右上角「···」→「在浏览器打开」，再点这个按钮。';
+    } else if (/iPhone|iPad|iPod/i.test(ua)) {
+      msg = 'iPhone 装：点 Safari 底部中间的「分享」按钮 → 往下滑找到「添加到主屏幕」。';
+    } else if (/Edg\//.test(ua)) {
+      msg = 'Edge 装：点右上角「···」→「应用」→「将此站点作为应用安装」。';
+    } else {
+      msg = 'Chrome 装：点地址栏右侧的安装小图标，或右上角「⋮」菜单里的「安装页面」。';
+    }
+    alert(msg);
+  });
+})();
+</script>
+
 </body>
 </html>
