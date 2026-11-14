@@ -49,9 +49,9 @@
     .stage-inner { display: flex; flex-direction: column; align-items: center; width: 100%; }
     .stage { position: relative; line-height: 0; box-shadow: 0 8px 28px rgba(45,35,110,.12); }
     .stage canvas { display: block; }
-    .stage-tools { flex: 0 0 auto; display: flex; gap: 10px; justify-content: center; align-items: center;
-        height: 62px; background: #fff; border-top: 1px solid #f5f4fa; }
-    .stage-tools .btn { width: auto; flex: none; padding: 10px 26px; }
+    .stage-tools { flex: 0 0 auto; display: flex; gap: 14px; justify-content: center; align-items: center;
+        height: 78px; background: #fff; border-top: 1px solid #f5f4fa; }
+    .stage-tools .btn { width: auto; flex: none; padding: 14px 46px; font-size: 15.5px; border-radius: 14px; }
 
     /* ---------- 侧栏 ---------- */
     .side { background: var(--card); border: none; border-right: 1px solid var(--line); border-radius: 0;
@@ -138,10 +138,11 @@
     .tips .row + .row { margin-top: 4px; }
     .tips .n { color: var(--blue); font-weight: 750; flex-shrink: 0; }
     .tips b { color: var(--ink); }
-    /* 侧栏底部「体验额度 / 解锁」按钮 */
-    .side-quota { padding: 10px 20px 16px; text-align: center; }
+    /* 侧栏底部「体验额度 / 解锁」按钮（吸底，侧栏滚动时也钉在底部） */
+    .side-quota { margin-top: auto; position: sticky; bottom: 0; background: #fff;
+        padding: 12px 20px 16px; text-align: center; border-top: 1px solid #f0f0f5; }
     .side-quota .quota-tag { display: block; text-align: center; }
-    .side-quota .quota-cta { width: 100%; padding: 9px 12px; white-space: normal; line-height: 1.5; }
+    .side-quota .quota-cta { width: 100%; padding: 10px 12px; white-space: normal; line-height: 1.5; }
 
     /* 移动端 */
     @media (max-width: 900px) {
@@ -151,10 +152,11 @@
         .hero-note { font-size: 13px; }
         .work { grid-template-columns: 1fr; gap: 0; min-height: 0; align-items: start; }
         .stage-card { height: 62vh; min-height: 320px; }
-        .stage-tools { height: 56px; }
+        .stage-tools { height: 70px; }
+        .stage-tools .btn { padding: 12px 30px; font-size: 15px; }
         .sec { padding: 14px 16px; }
         .side { border-radius: 0; border-right: none; border-bottom: 1px solid var(--line); }
-        .tips { padding: 12px 16px 16px; font-size: 11px; }
+        .side-quota { padding: 10px 16px 14px; }
     }
 
     /* ===== 体验额度 & 买断弹窗 ===== */
@@ -244,12 +246,6 @@
                 <div class="btn-row" style="margin-top:12px;">
                     <button class="btn" id="btnReset">恢复默认</button>
                 </div>
-            </div>
-
-            <div class="tips">
-                <div class="row"><span class="n">1</span><span>上传后右边直接是<b>去灰后</b>的效果</span></div>
-                <div class="row"><span class="n">2</span><span>按住「看原图」随时对比调没调过头</span></div>
-                <div class="row"><span class="n">3</span><span>下载保存<b>原尺寸</b>，不压画质</span></div>
             </div>
 
             <div class="side-quota">
