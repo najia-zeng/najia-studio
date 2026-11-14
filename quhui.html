@@ -414,6 +414,7 @@
 
     var fullCanvas = null;      // 原尺寸原图（离屏），下载时用
     var fullCtx = null;
+    var srcImg = null;          // 原始 Image 对象（下载后用它重画，防止重复下载叠加处理）
     var imgW = 0, imgH = 0;     // 原尺寸
     var pW = 0, pH = 0;         // 预览代理尺寸（大图缩小，滑杆才丝滑）
     var origProxyData = null;   // 代理图原始像素（调滑杆都从它重算，不叠加）
@@ -464,6 +465,7 @@
     }
 
     function setupImage(img) {
+        srcImg = img;
         imgW = img.naturalWidth;
         imgH = img.naturalHeight;
 
@@ -656,10 +658,15 @@
                             setFreeUsed(getFreeUsed() + 1);
                             renderQuota();
                         }
-                        resetAll();
+                        // 下载后保留图片：从原图重画离屏画布，可继续调整再下载，不会叠加处理
+                        if (srcImg) {
+                            fullCtx.clearRect(0, 0, imgW, imgH);
+                            fullCtx.drawImage(srcImg, 0, 0, imgW, imgH);
+                        }
+                        $('busyTxt').textContent = '已保存 ✓ 想再调一点，改完还能继续下载';
+                        setTimeout(function () { $('busy').classList.remove('on'); }, 900);
                     } catch (e) {
                         alert('导出失败，再试一次；还不行就换个浏览器试试');
-                    } finally {
                         $('busy').classList.remove('on');
                     }
                 };
@@ -686,7 +693,7 @@
     function resetAll() {
         imgW = 0; imgH = 0; pW = 0; pH = 0;
         origProxyData = null;
-        fullCanvas = null; fullCtx = null;
+        fullCanvas = null; fullCtx = null; srcImg = null;
         loB = 0; hiW = 1;
         curImgFp = '';
         cmpOn = false;
