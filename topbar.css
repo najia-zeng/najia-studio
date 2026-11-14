@@ -70,3 +70,15 @@
   #ns-topbar .tbtn{flex:1;text-align:center;padding:8px 10px;font-size:13px;}
   #ns-topbar .quota-tag{width:100%;margin:0 0 2px;}
 }
+
+/* ===== 页内「体验额度 / 解锁」CTA（比顶栏那行小字明显得多） ===== */
+.quota-cta{display:inline-block;align-self:center;width:auto;font-family:inherit;
+  font-size:12.5px;font-weight:700;padding:7px 16px;border-radius:999px;
+  background:#f2effe;color:#5a4fd8;border:1px solid #ded7fb;cursor:pointer;
+  transition:all .15s;white-space:nowrap;text-align:center;}
+.quota-cta:hover{background:#e9e4fd;border-color:#c9c1f5;transform:translateY(-1px);}
+.quota-cta b{font-weight:800;color:#4b3fc4;}
+.quota-cta.used{background:linear-gradient(135deg,#6b5ce7,#8f74f2);color:#fff;border-color:transparent;
+  box-shadow:0 4px 12px rgba(107,92,231,.32);padding:8px 18px;}
+.quota-cta.used b{color:#fff;}
+.quota-cta.used:hover{box-shadow:0 9px 22px rgba(107,92,231,.38);}
