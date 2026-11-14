@@ -3,11 +3,13 @@
    用法：页面底部放
    <script src="/install.js" data-name="娜家·一键修瑕疵" data-url="/retouch.html" defer></script>
 
-   逻辑：
-   1) 浏览器支持「网页应用安装」（Chrome / Edge 等）→ 直接走系统安装
-   2) 不支持（360 / QQ / 搜狗 / 微信等）→ 弹出一份通用指引：桌面右键新建快捷方式
-      这条方法任何 Windows 电脑都能用，不依赖浏览器脾气
-   注：service worker 只注册、不缓存任何资源，避免页面更新不生效
+   行为：
+   1) 浏览器支持「网页应用安装」（Chrome / Edge / 360 等）→ 走系统原生安装，
+      装完桌面出现本工具专属图标，双击 = 独立小窗口（像软件）
+      注意：浏览器的安装能力要在页面加载后几秒才确认好，点击时若还没确认，
+      先等最多 5 秒再决定，避免误判成"不支持"
+   2) 真不支持（部分国产浏览器 / 微信内置）→ 弹通用指引：桌面右键新建快捷方式
+   3) window.__njSuggestInstall()：页面激活成功后调用，主动提醒客户安装到桌面
    ========================================================================== */
 (function () {
   var me = document.currentScript || (function () {
@@ -17,13 +19,13 @@
   var TOOL_NAME = (me && me.getAttribute('data-name')) || '娜家工具';
   var PAGE_PATH = (me && me.getAttribute('data-url')) || location.pathname;
   var FULL_URL = location.origin + PAGE_PATH;
+  var BTN_TXT = '⤓ 装到桌面，双击就能用';
 
-  // 透明 SW：部分 Chromium 版本把「已注册 service worker」当安装前提
+  // 透明 SW：部分 Chromium 版本把「已注册 service worker」当安装前提；不缓存任何资源
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
     try { navigator.serviceWorker.register('/sw.js').catch(function () {}); } catch (e) {}
   }
 
-  // 已经在独立窗口里打开（等于已装过），不再提示
   var standalone = false;
   try {
     standalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
@@ -72,7 +74,7 @@
   var btn = document.createElement('button');
   btn.type = 'button';
   btn.id = 'njInstallBtn';
-  btn.textContent = '⤓ 装到桌面，双击就能用';
+  btn.textContent = BTN_TXT;
   document.body.appendChild(btn);
 
   var mask = document.createElement('div');
@@ -129,22 +131,62 @@
 
   if (standalone) { btn.style.display = 'none'; return; }
 
+  /* ===== 安装能力等待机制 ===== */
   var dp = null;
+  var waiters = [];
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
     dp = e;
+    // 通知所有在等的人
+    var list = waiters.splice(0, waiters.length);
+    for (var i = 0; i < list.length; i++) { try { list[i](); } catch (err) {} }
   });
   window.addEventListener('appinstalled', function () {
     btn.textContent = '✓ 已装到桌面';
     setTimeout(function () { btn.style.display = 'none'; }, 2400);
   });
 
-  btn.addEventListener('click', function () {
-    if (dp) {
+  // 浏览器确认安装能力通常在页面加载后几秒，等它一下再下结论
+  function waitForPrompt(ms) {
+    return new Promise(function (res) {
+      if (dp) { res(); return; }
+      var done = false;
+      var timer = setTimeout(function () {
+        if (!done) { done = true; res(); }
+      }, ms);
+      waiters.push(function () {
+        if (!done) { done = true; clearTimeout(timer); res(); }
+      });
+    });
+  }
+
+  function nativePrompt() {
+    if (!dp) return false;
+    try {
       dp.prompt();
       dp.userChoice.then(function () { dp = null; });
-      return;
-    }
-    openDlg();
-  });
+      return true;
+    } catch (e) { return false; }
+  }
+
+  var busy = false;
+  function doInstall() {
+    if (busy) return;
+    if (dp && nativePrompt()) return;
+    busy = true;
+    btn.textContent = '正在准备安装…';
+    waitForPrompt(5000).then(function () {
+      btn.textContent = BTN_TXT;
+      busy = false;
+      if (!dp || !nativePrompt()) openDlg();
+    });
+  }
+
+  btn.addEventListener('click', doInstall);
+
+  // 页面激活成功后可调用：主动提醒客户装到桌面（输码解锁 → 弹安装）
+  window.__njSuggestInstall = function () {
+    if (standalone) return;
+    setTimeout(doInstall, 900);
+  };
 })();
