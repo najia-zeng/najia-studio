@@ -95,6 +95,11 @@
             gap: 16px;
         }
 
+        /* 侧栏底部「体验额度 / 解锁」按钮（吸底） */
+        .side-quota { margin-top: auto; padding-top: 4px; text-align: center; }
+        .side-quota .quota-tag { display: block; text-align: center; }
+        .side-quota .quota-cta { width: 100%; padding: 10px 12px; white-space: normal; line-height: 1.5; }
+
         .sec-title { font-size: 20px; font-weight: 600; letter-spacing: -0.2px; margin-bottom: 10px; }
 
         /* Mode cards */
@@ -411,7 +416,9 @@
             </div>
 
             <button class="gen-btn" id="genBtn" onclick="generate()">生成提示词</button>
-            <div class="quota-tag" id="quotaSide" style="margin:2px 0 0; text-align:center;"></div>
+            <div class="side-quota">
+                <div class="quota-tag" id="quotaSide"></div>
+            </div>
         </div>
 
         <!-- Right -->
