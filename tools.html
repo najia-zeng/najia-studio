@@ -114,7 +114,7 @@
 
   <section class="hero">
     <h1>AI <em>提效</em>工具</h1>
-    <p class="hero-note">每个工具免费体验 3 次；付款解锁后长期使用，装到桌面随时点开。</p>
+    <p class="hero-note">先免费体验（修瑕疵 6 次、其他工具各 3 次）；想长期使用，微信解锁。</p>
   </section>
 
   <div class="tabs" id="tabs">
@@ -200,7 +200,7 @@
 <script>
 (function () {
   /* ===== 每张卡片实时显示解锁状态（和各工具页存的位置一一对应） ===== */
-  var FREE_LIMIT = 3;
+  var FREE_LIMIT = { rt: 6, kc: 3, sg: 3, sf: 3 };  // 修瑕疵 6 次当钩子，其余 3 次
   var KEYS = {
     rt: { lic: 'nj_lic_rt', used: 'nj_free_used_rt' },
     kc: { lic: 'nj_lic_kc', used: 'nj_free_used_kc' },
@@ -217,7 +217,7 @@
       if (!meta) return;
       var licensed = readLS(KEYS[t].lic) === '1';
       var used = parseInt(readLS(KEYS[t].used) || '0', 10) || 0;
-      var left = Math.max(0, FREE_LIMIT - used);
+      var left = Math.max(0, FREE_LIMIT[t] - used);
       if (licensed) {
         meta.className = 'c-meta free';
         meta.innerHTML = '已解锁 · 不限次 <span class="arrow">→</span>';
