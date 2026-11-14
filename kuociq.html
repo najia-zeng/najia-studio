@@ -567,6 +567,8 @@ const $ = id => document.getElementById(id);
         try { localStorage.setItem(LIC_KEY, '1'); } catch (e) {}
         $('licErr').textContent = '';
         closeBuyDlg();
+        // 解锁成功 → 主动提醒装到桌面（客户输完码顺势安装）
+        if (window.__njSuggestInstall) window.__njSuggestInstall();
         renderQuota();
     }
     function bindBuyDlg() {
