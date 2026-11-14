@@ -474,8 +474,8 @@ let uid = 'u_' + Math.random().toString(36).slice(2, 11);
 
 const $ = id => document.getElementById(id);
 
-    /* ===== 体验额度 & 激活（与风格包同一套发码规则，本页独立计数） ===== */
-    var LICENSE_SALT = 'naji-ark-2026';
+    /* ===== 体验额度 & 激活（一个码只认一个工具：盐里带本工具标记 kc，别处的码在本页无效） ===== */
+    var LICENSE_SALT = 'naji-ark-2026-kc';
     var FREE_LIMIT = 3;
     var WECHAT_ID = 'najia9864';
     var LIC_KEY = 'nj_lic_kc';
@@ -489,7 +489,7 @@ const $ = id => document.getElementById(id);
         var c = (code || '').trim().toUpperCase().replace(/[\s-]/g, '');
         var m = c.match(/^NJ([A-Z0-9]{8})([A-Z0-9]{4})$/);
         if (!m) return false;
-        return licHash(m[1] + LICENSE_SALT) === m[2];
+        return licHash(LICENSE_SALT + m[1]) === m[2]  // 盐放前面：校验位才会带工具标记，别工具的码进不来;
     }
     function isLicensed() {
         try { return localStorage.getItem(LIC_KEY) === '1'; } catch (e) { return false; }
@@ -509,13 +509,16 @@ const $ = id => document.getElementById(id);
         else {
             var l = freeLeft();
             cls = 'quota-tag' + (l === 0 ? ' used' : '');
-            txt = l > 0 ? '免费体验剩 <b>' + l + '</b> 次' : '免费体验已用完';
+            txt = l > 0 ? '免费体验剩 <b>' + l + '</b> 次 · 解锁' : '免费体验已用完 · 点此解锁';
         }
         ids.forEach(function (id) {
             var el = $(id);
             if (!el) return;
             el.className = cls;
             el.innerHTML = txt;
+            // 未解锁时点额度标签即可打开激活窗口（已购买的客户不用先耗完 3 次）
+            if (isLicensed()) { el.onclick = null; el.style.cursor = ''; }
+            else { el.onclick = function () { openBuyDlg(); }; el.style.cursor = 'pointer'; }
         });
     }
     function openBuyDlg() {
@@ -553,8 +556,9 @@ const $ = id => document.getElementById(id);
     function activateLicense() {
         var v = ($('licInput').value || '').trim();
         if (!v) { $('licErr').textContent = '请先填激活码'; return; }
-        if (!licValid(v)) { $('licErr').textContent = '激活码不对，检查一下有没有输错'; return; }
+        if (!licValid(v)) { $('licErr').textContent = '激活码不对，或不是本工具的码'; return; }
         try { localStorage.setItem(LIC_KEY, '1'); } catch (e) {}
+        $('licErr').textContent = '';
         closeBuyDlg();
         renderQuota();
     }
