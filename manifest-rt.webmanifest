@@ -1,0 +1,30 @@
+{
+  "name": "娜家·一键修瑕疵",
+  "short_name": "修瑕疵",
+  "description": "上传产品图，涂哪儿修哪儿：倒影、灰尘、杂物、台面瑕疵，产品本体不动。",
+  "start_url": "/retouch.html",
+  "scope": "/retouch.html",
+  "display": "standalone",
+  "background_color": "#f7f7fa",
+  "theme_color": "#6b5ce7",
+  "icons": [
+    {
+      "src": "/img/icon-rt-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icon-rt-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icon-rt-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
