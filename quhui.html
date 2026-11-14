@@ -138,6 +138,10 @@
     .tips .row + .row { margin-top: 4px; }
     .tips .n { color: var(--blue); font-weight: 750; flex-shrink: 0; }
     .tips b { color: var(--ink); }
+    /* 侧栏底部「体验额度 / 解锁」按钮 */
+    .side-quota { padding: 10px 20px 16px; text-align: center; }
+    .side-quota .quota-tag { display: block; text-align: center; }
+    .side-quota .quota-cta { width: 100%; padding: 9px 12px; white-space: normal; line-height: 1.5; }
 
     /* 移动端 */
     @media (max-width: 900px) {
@@ -216,7 +220,6 @@
                     <div class="step" id="st2">2 调色</div>
                     <div class="step" id="st3">3 下载</div>
                 </div>
-                <div class="quota-tag" id="quotaSide" style="margin:0 0 10px;"></div>
                 <div class="drop" id="drop">
                     <div class="drop-ico">🖼</div>
                     <div class="drop-t">点击上传 · 拖进来 · 粘贴</div>
@@ -247,6 +250,10 @@
                 <div class="row"><span class="n">1</span><span>上传后右边直接是<b>去灰后</b>的效果</span></div>
                 <div class="row"><span class="n">2</span><span>按住「看原图」随时对比调没调过头</span></div>
                 <div class="row"><span class="n">3</span><span>下载保存<b>原尺寸</b>，不压画质</span></div>
+            </div>
+
+            <div class="side-quota">
+                <div class="quota-tag" id="quotaSide"></div>
             </div>
 
         </aside>
