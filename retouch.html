@@ -2549,6 +2549,9 @@
         }
 
         clearRegion();
+        // 手快场景：拖完滑杆 90ms 预览定时器还没跑，点确定后必须掐掉，
+        // 否则预览层会被延迟任务重新盖回画布，导致下载被误拦「先点确定」
+        if (previewTimer) { clearTimeout(previewTimer); previewTimer = null; }
         previewSeq++;
         previewShown = false;
         $('cvPreview').style.display = 'none';
