@@ -463,21 +463,31 @@
         function renderQuota() {
             // 顶栏(topbar.js)与页内各有一处，两处都更新
             var ids = ['quotaTag', 'quotaSide'];
-            var cls, txt;
-            if (isLicensed()) { cls = 'quota-tag'; txt = '已解锁 · 不限次'; }
-            else {
-                var l = freeLeft();
-                cls = 'quota-tag' + (l === 0 ? ' used' : '');
-                txt = l > 0 ? '免费体验剩 <b>' + l + '</b> 次 · 解锁' : '免费体验已用完 · 点此解锁';
-            }
             ids.forEach(function (id) {
                 var el = $(id);
                 if (!el) return;
-                el.className = cls;
-                el.innerHTML = txt;
-                // 未解锁时点额度标签即可打开激活窗口（已购买的客户不用先耗完 3 次）
-                if (isLicensed()) { el.onclick = null; el.style.cursor = ''; }
-                else { el.onclick = function () { openBuyDlg(); }; el.style.cursor = 'pointer'; }
+                // 页内那处做成明显按钮，顶栏那处保持小字
+                var isCta = (id === 'quotaSide');
+                if (isLicensed()) {
+                    el.className = 'quota-tag';
+                    el.innerHTML = '已解锁 · 不限次';
+                    el.onclick = null; el.style.cursor = '';
+                    return;
+                }
+                var l = freeLeft();
+                if (isCta) {
+                    el.className = 'quota-cta' + (l === 0 ? ' used' : '');
+                    el.innerHTML = l > 0
+                        ? '还剩 <b>' + l + '</b> 次免费体验 · 想一直用？点此解锁'
+                        : '免费体验已用完 · 点此解锁 →';
+                } else {
+                    el.className = 'quota-tag' + (l === 0 ? ' used' : '');
+                    el.innerHTML = l > 0
+                        ? '免费体验剩 <b>' + l + '</b> 次 · 解锁'
+                        : '免费体验已用完 · 点此解锁';
+                }
+                el.onclick = function () { openBuyDlg(); };
+                el.style.cursor = 'pointer';
             });
         }
         function openBuyDlg() {
@@ -3080,8 +3090,6 @@
     </div>
 </div>
 
-<!-- ===== 装到桌面：公共脚本（install.js 统一维护，四页共用） ===== -->
-<script src="/install.js" data-name="娜家·一键修瑕疵" data-url="/retouch.html" defer></script>
 
 </body>
 </html>
