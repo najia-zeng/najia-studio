@@ -3,7 +3,7 @@
   "short_name": "提示词",
   "description": "上传产品图，生成专业摄影提示词：光怎么打、背景怎么配、镜头怎么选。",
   "start_url": "/kuociq.html",
-  "scope": "/kuociq.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#f7f7fa",
   "theme_color": "#6b5ce7",
