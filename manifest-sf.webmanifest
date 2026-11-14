@@ -1,0 +1,30 @@
+{
+  "name": "娜家·鲜花氛围风",
+  "short_name": "鲜花氛围",
+  "description": "香氛、精油、香水类产品场景图，花种可选。",
+  "start_url": "/scene-flower.html",
+  "scope": "/scene-flower.html",
+  "display": "standalone",
+  "background_color": "#f7f7fa",
+  "theme_color": "#6b5ce7",
+  "icons": [
+    {
+      "src": "/img/icon-sf-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icon-sf-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icon-sf-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
