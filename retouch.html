@@ -620,8 +620,8 @@
         imgW = img.naturalWidth;
         imgH = img.naturalHeight;
 
-        // 超大图先缩到 2400px 以内，浮点缓冲吃内存，再大移动端会崩
-        var MAX = 2400;
+        // 原图保尺寸：最长边上限 7000（相机原图一般 ≤6000，够用；再大内存会爆）
+        var MAX = 7000;
         var scale = 1;
         if (Math.max(imgW, imgH) > MAX) scale = MAX / Math.max(imgW, imgH);
         imgW = Math.round(imgW * scale);
