@@ -2985,6 +2985,48 @@
         if (d !== originalData) resultData = d;
     };
 
+    // PNG 写入 300dpi（pHYs 块）：像素不变，只是补印刷标记，客户拿去印刷不挨挑
+    var _crcT = null;
+    function crc32(u8) {
+        if (!_crcT) {
+            _crcT = new Uint32Array(256);
+            for (var n = 0; n < 256; n++) {
+                var c = n;
+                for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+                _crcT[n] = c >>> 0;
+            }
+        }
+        var c = 0xFFFFFFFF;
+        for (var i = 0; i < u8.length; i++) c = _crcT[(c ^ u8[i]) & 255] ^ (c >>> 8);
+        return (c ^ 0xFFFFFFFF) >>> 0;
+    }
+    function pngSet300dpi(blob, cb) {
+        try {
+            var fr = new FileReader();
+            fr.onload = function () {
+                var u8 = new Uint8Array(fr.result);
+                // IHDR 固定 13 字节数据：插在它后面（8 签名 + 4 长 + 4 型 + 13 + 4 CRC = 33）
+                var pos = 33;
+                var ppm = 11811; // 300dpi ≈ 11811 像素/米
+                var chunk = new Uint8Array(21);
+                chunk[0] = 0; chunk[1] = 0; chunk[2] = 0; chunk[3] = 9;
+                chunk[4] = 0x70; chunk[5] = 0x48; chunk[6] = 0x59; chunk[7] = 0x73; // "pHYs"
+                chunk[8] = (ppm >>> 24) & 255; chunk[9] = (ppm >>> 16) & 255; chunk[10] = (ppm >>> 8) & 255; chunk[11] = ppm & 255;
+                chunk[12] = (ppm >>> 24) & 255; chunk[13] = (ppm >>> 16) & 255; chunk[14] = (ppm >>> 8) & 255; chunk[15] = ppm & 255;
+                chunk[16] = 1; // 单位：米
+                var crc = crc32(chunk.subarray(4, 17));
+                chunk[17] = (crc >>> 24) & 255; chunk[18] = (crc >>> 16) & 255; chunk[19] = (crc >>> 8) & 255; chunk[20] = crc & 255;
+                var out = new Uint8Array(u8.length + chunk.length);
+                out.set(u8.subarray(0, pos), 0);
+                out.set(chunk, pos);
+                out.set(u8.subarray(pos), pos + chunk.length);
+                cb(new Blob([out], { type: 'image/png' }));
+            };
+            fr.onerror = function () { cb(blob); }; // 读不出来就原样返回，别耽误下载
+            fr.readAsArrayBuffer(blob);
+        } catch (e) { cb(blob); }
+    }
+
     $('btnDl').addEventListener('click', function () {
         if (!imgW) return;
         if (previewShown) {
@@ -2996,16 +3038,18 @@
         if (cvBase.toBlob) {
             cvBase.toBlob(function (blob) {
                 if (!blob) { alert('导出失败，再试一次；还不行就换个浏览器试试'); return; }
-                var url = URL.createObjectURL(blob);
-                var a = document.createElement('a');
-                a.download = 'retouch-' + Date.now() + '.png';
-                a.href = url;
-                document.body.appendChild(a);
-                a.click();
-                a.parentNode.removeChild(a);
-                setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
-                // 下载完成：整页回到初始状态，直接接下一张图
-                resetAll();
+                pngSet300dpi(blob, function (b2) {
+                    var url = URL.createObjectURL(b2);
+                    var a = document.createElement('a');
+                    a.download = 'retouch-' + Date.now() + '.png';
+                    a.href = url;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.parentNode.removeChild(a);
+                    setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
+                    // 下载完成：整页回到初始状态，直接接下一张图
+                    resetAll();
+                });
             }, 'image/png');
         } else {
             // 极老浏览器兜底
