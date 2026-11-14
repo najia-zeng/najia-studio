@@ -112,6 +112,12 @@
 
     .sec { padding: 13px 20px; border-bottom: 1px solid #f0f0f5; }
     .sec:last-child { border-bottom: none; }
+
+    /* 侧栏底部「体验额度 / 解锁」按钮（吸底，侧栏滚动时也钉在底部） */
+    .side-quota { margin-top: auto; position: sticky; bottom: 0; background: var(--card);
+        padding: 12px 20px 16px; text-align: center; border-top: 1px solid #f0f0f5; }
+    .side-quota .quota-tag { display: block; text-align: center; }
+    .side-quota .quota-cta { width: 100%; padding: 10px 12px; white-space: normal; line-height: 1.5; }
     .sec-t { font-size: 13px; font-weight: 750; color: var(--ink); letter-spacing: .2px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
     .sec-t b { color: var(--ink); font-weight: 650; }
 
@@ -342,7 +348,6 @@
                     <div class="step" id="st2">2 修补</div>
                     <div class="step" id="st3">3 下载</div>
                 </div>
-                <div class="quota-tag" id="quotaSide" style="margin:0 0 10px;"></div>
                 <div class="drop" id="drop">
                     <div class="drop-ico">🖼</div>
                     <div class="drop-t">点击上传 · 拖进来 · 粘贴</div>
@@ -385,6 +390,10 @@
                 </div>
                 <button class="btn btn-main" id="btnApply" disabled>确定</button>
                 <div class="hint" id="autoInfo" style="display:none;"></div>
+            </div>
+
+            <div class="side-quota">
+                <div class="quota-tag" id="quotaSide"></div>
             </div>
 
         </aside>
