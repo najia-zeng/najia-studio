@@ -1815,6 +1815,8 @@ document.addEventListener('DOMContentLoaded', () => {
     var msg;
     if (/MicroMessenger/i.test(ua)) {
       msg = '微信里装不了：先点右上角「···」→「在浏览器打开」，再点这个按钮。';
+    } else if (/QIHU|360EE|360SE|QQBrowser|MetaSr|Maxthon|UBrowser|LBBROWSER|2345Explorer|Sogou/i.test(ua)) {
+      msg = '这个浏览器不支持安装网页应用（360/QQ/搜狗等都不行）。\n\n请用电脑自带的 Edge：在任务栏搜索「Edge」打开 → 粘贴这个网址 → 再点「装到桌面」。';
     } else if (/iPhone|iPad|iPod/i.test(ua)) {
       msg = 'iPhone 装：点 Safari 底部中间的「分享」按钮 → 往下滑找到「添加到主屏幕」。';
     } else if (/Edg\//.test(ua)) {
