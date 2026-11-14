@@ -38,6 +38,10 @@
         .left { width: 340px; min-width: 340px; background: var(--card); border-right: 1px solid var(--border); padding: 24px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; box-shadow: 6px 0 28px rgba(27,27,47,.04); position: relative; z-index: 2; }
         .left::-webkit-scrollbar { width: 4px; }
         .left::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+        /* 侧栏底部「体验额度 / 解锁」按钮（吸底，侧栏滚动时也钉在底部） */
+        .side-quota { margin-top: auto; position: sticky; bottom: 0; background: var(--card); text-align: center; }
+        .side-quota .quota-tag { display: block; text-align: center; }
+        .side-quota .quota-cta { width: 100%; box-sizing: border-box; padding: 10px 12px; white-space: normal; line-height: 1.5; }
         .sec-label { font-size: 13px; font-weight: 600; color: var(--text-sec); letter-spacing: 1px; margin-bottom: 8px; }
 
         .up-area { border: 1px dashed var(--border); border-radius: var(--radius-s); padding: 24px 14px; text-align: center; cursor: pointer; transition: all .2s; position: relative; background: #fafafa; min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -257,6 +261,9 @@
             </div>
         </div>
         <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成 4 张场景图</button>
+        <div class="side-quota">
+            <div class="quota-tag" id="quotaSide"></div>
+        </div>
     </div>
     <div class="right" id="right">
         <div class="empty" id="vEmpty">
@@ -456,20 +463,31 @@ function isDev() {
 }
 function freeLeft() { return Math.max(0, FREE_LIMIT - getFreeUsed()); }
 function renderQuota() {
-    const el = $('quotaTag');
-    if (!el) return;
-    if (isLicensed()) {
-        el.className = 'quota-tag';
-        el.innerHTML = '已解锁 · 不限次';
-        el.onclick = null; el.style.cursor = '';
-        return;
-    }
-    const left = freeLeft();
-    el.className = 'quota-tag' + (left === 0 ? ' used' : '');
-    el.innerHTML = left > 0 ? '免费体验剩 <b>' + left + '</b> 次 · 解锁' : '免费体验已用完 · 点此解锁';
-    // 未解锁时点额度标签即可打开激活窗口（已购买的客户不用先耗完 3 次）
-    el.onclick = function () { openBuyDlg(); };
-    el.style.cursor = 'pointer';
+    ['quotaTag', 'quotaSide'].forEach((id) => {
+        const el = $(id);
+        if (!el) return;
+        const isCta = (id === 'quotaSide');
+        if (isLicensed()) {
+            el.className = 'quota-tag';
+            el.innerHTML = '已解锁 · 不限次';
+            el.onclick = null; el.style.cursor = '';
+            return;
+        }
+        const left = freeLeft();
+        if (isCta) {
+            // 页内醒目胶囊（侧栏吸底）
+            el.className = 'quota-cta' + (left === 0 ? ' used' : '');
+            el.innerHTML = left > 0
+                ? '还剩 <b>' + left + '</b> 次免费体验 · 想一直用？点此解锁'
+                : '免费体验已用完 · 点此解锁 →';
+        } else {
+            el.className = 'quota-tag' + (left === 0 ? ' used' : '');
+            el.innerHTML = left > 0 ? '免费体验剩 <b>' + left + '</b> 次 · 解锁' : '免费体验已用完 · 点此解锁';
+        }
+        // 未解锁时点额度标签即可打开激活窗口（已购买的客户不用先耗完 3 次）
+        el.onclick = function () { openBuyDlg(); };
+        el.style.cursor = 'pointer';
+    });
 }
 function openBuyDlg() { $('buyMask').style.display = 'flex'; }
 function closeBuyDlg() { $('buyMask').style.display = 'none'; }
