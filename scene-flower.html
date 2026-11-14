@@ -1791,6 +1791,14 @@ document.addEventListener('DOMContentLoaded', () => {
 <button type="button" id="njInstallBtn">⤓ 装到桌面，双击就能用</button>
 <script>
 (function () {
+  // 注册透明 SW：Chrome 部分版本把它当安装前提；不缓存任何东西
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(function () {});
+  }
+  // 已经在独立窗口里打开（已装过），就不必再提示安装
+  if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
+    return;
+  }
   var dp = null;
   var btn = document.getElementById('njInstallBtn');
   window.addEventListener('beforeinstallprompt', function (e) {
