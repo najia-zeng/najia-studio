@@ -1,0 +1,30 @@
+{
+  "name": "娜家·提示词生成器",
+  "short_name": "提示词",
+  "description": "上传产品图，生成专业摄影提示词：光怎么打、背景怎么配、镜头怎么选。",
+  "start_url": "/kuociq.html",
+  "scope": "/kuociq.html",
+  "display": "standalone",
+  "background_color": "#f7f7fa",
+  "theme_color": "#6b5ce7",
+  "icons": [
+    {
+      "src": "/img/icon-kc-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icon-kc-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icon-kc-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
