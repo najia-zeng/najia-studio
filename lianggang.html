@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一键亮钢 · NaStudio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="/img/icon-192.png" type="image/png">
+<link rel="stylesheet" href="topbar.css">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+        --font: "Space Grotesk", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+        --blue: #6b5ce7; --blue-d: #5a4bd6;
+        --ink: #1a1a2e; --muted: #6a6483; --line: #e8e8ed;
+        --bg: #f7f7fa; --card: #ffffff;
+        --green: #0d9a72; --danger: #e05c5c;
+        --rad: 18px; --rad-s: 12px;
+    }
+    html, body { -webkit-font-smoothing: antialiased; }
+    body {
+        font-family: var(--font); color: var(--ink); background: var(--bg);
+        line-height: 1.6; font-size: 14.5px;
+        display: flex; flex-direction: column; min-height: 100vh;
+    }
+    #ns-topbar { flex-shrink: 0; background: #fff; }
+    @media (min-width: 901px) { body { height: 100vh; overflow: hidden; } }
+    main.content { flex: 1 1 auto; min-height: 0; width: 100%; max-width: none; margin: 0; padding: 0;
+                   display: flex; flex-direction: column; }
+
+    /* ===== 页头 ===== */
+    .hero { text-align: center; padding: 14px 30px 12px; background: #fff; border-bottom: 1px solid var(--line); }
+    .hero h1 { margin: 0 0 7px; font-size: 32px; font-weight: 800; line-height: 1.22; letter-spacing: -.6px; }
+    .hero h1 em { font-style: normal; color: var(--blue); }
+    .hero-note { margin: 0; font-size: 14.5px; color: #56526e; font-weight: 550; line-height: 1.65; }
+
+    /* ===== 工作区 ===== */
+    .work { display: grid; grid-template-columns: 300px 1fr; gap: 0; align-items: stretch;
+            flex: 1 1 auto; min-height: 0; }
+    .stage-card { display: flex; flex-direction: column; height: auto; min-height: 0;
+        background: #fff; border: none; border-radius: 0; overflow: hidden; }
+    .stage-wrap { position: relative; flex: 1 1 auto; min-height: 0;
+        display: flex; align-items: center; justify-content: center;
+        padding: 0; background: #fbfaff; overflow: hidden; }
+    .stage-wrap::-webkit-scrollbar { width: 10px; }
+    .stage-wrap::-webkit-scrollbar-track { background: transparent; }
+    .stage-wrap::-webkit-scrollbar-thumb { background: #d6d1ea; border-radius: 8px; border: 3px solid #fff; }
+    .stage-inner { display: flex; flex-direction: column; align-items: center; width: 100%; }
+    .stage { position: relative; line-height: 0; box-shadow: 0 8px 28px rgba(45,35,110,.12); }
+    .stage canvas { display: block; }
+    .stage-tools { flex: 0 0 auto; display: flex; gap: 14px; justify-content: center; align-items: center;
+        height: 78px; background: #fff; border-top: 1px solid #f5f4fa; }
+    .stage-tools .btn { width: auto; flex: none; padding: 14px 46px; font-size: 15.5px; border-radius: 14px; }
+
+    /* ---------- 侧栏 ---------- */
+    .side { background: var(--card); border: none; border-right: 1px solid var(--line); border-radius: 0;
+        display: flex; flex-direction: column; overflow-y: auto; }
+    .side::-webkit-scrollbar { width: 8px; }
+    .side::-webkit-scrollbar-thumb { background: #e2ddf0; border-radius: 8px; border: 2px solid #fff; }
+    .sec { padding: 13px 20px; border-bottom: 1px solid #f0f0f5; }
+    .sec:last-child { border-bottom: none; }
+    .sec-t { font-size: 13px; font-weight: 750; color: var(--ink); letter-spacing: .2px; margin-bottom: 12px; }
+
+    /* 上传区 */
+    .drop { border: 2px dashed #d8d0fb; border-radius: 14px; padding: 16px 12px; text-align: center;
+        cursor: pointer; transition: all .18s; background: #fbfaff; }
+    .drop:hover, .drop.over { border-color: var(--blue); background: #f6f3ff; }
+    .drop-ico { font-size: 24px; opacity: .6; margin-bottom: 9px; }
+    .drop-t { font-size: 14px; font-weight: 750; }
+    .drop-s { font-size: 11.5px; color: #8a86a3; margin-top: 6px; line-height: 1.65; }
+
+    /* 滑块 */
+    input[type=range] { width: 100%; height: 22px; -webkit-appearance: none; appearance: none;
+        background: transparent; margin: 0; outline: none; }
+    input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: #e8e4fa; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px;
+        border-radius: 50%; background: var(--blue); margin-top: -6px; cursor: pointer;
+        box-shadow: 0 1px 4px rgba(107,92,231,.4); border: none; }
+    input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: #e8e4fa; }
+    input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border: none; border-radius: 50%;
+        background: var(--blue); cursor: pointer; }
+    .sec.off .sld, .sec.off .hint { opacity: .4; }
+    .sld { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+    .sld + .sld { margin-top: 10px; }
+    .sld-l { font-size: 12.5px; color: var(--muted); flex: none; font-weight: 600; }
+    .sld-v { font-size: 13px; color: var(--blue); font-weight: 750; min-width: 28px; text-align: right; font-variant-numeric: tabular-nums; }
+    .sld input[type=range] { flex: 1; }
+
+    /* 按钮 */
+    .btn { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1.5px solid #e6e2f5;
+        background: #fff; color: #56526e; font-size: 14px; font-weight: 650; font-family: inherit;
+        cursor: pointer; transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 7px; }
+    .btn:hover:not(:disabled) { border-color: #c9c1f5; color: var(--blue); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-main { background: var(--blue); border-color: transparent; color: #fff; font-weight: 700;
+        font-size: 15px; padding: 14px; box-shadow: 0 4px 14px rgba(107,92,231,.3); }
+    .btn-main:hover:not(:disabled) { background: var(--blue); color: #fff; transform: translateY(-1px);
+        box-shadow: 0 7px 18px rgba(107,92,231,.36); }
+    .hint { font-size: 11px; color: #a5a1bb; line-height: 1.6; margin-top: 6px; }
+    .hint b { color: #56526e; font-weight: 650; }
+
+    /* 空态 */
+    .empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; text-align: center; color: #8a86a3; padding: 30px 20px; }
+    .empty-ico { font-size: 40px; opacity: .4; margin-bottom: 14px; }
+    .empty-t { font-size: 16px; font-weight: 750; color: #56526e; margin-bottom: 7px; }
+    .empty-s { font-size: 13px; line-height: 1.75; }
+
+    /* 处理中遮罩 */
+    .busy { position: absolute; inset: 0; background: rgba(255,255,255,.78); display: none;
+        align-items: center; justify-content: center; flex-direction: column; gap: 14px; z-index: 20;
+        backdrop-filter: blur(3px); }
+    .busy.on { display: flex; }
+    .spinner { width: 34px; height: 34px; border: 3px solid rgba(107,92,231,.2);
+        border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .busy-t { font-size: 13.5px; color: var(--blue); font-weight: 650; }
+
+    /* 对比提示 */
+    .cmp-badge { position: absolute; left: 50%; top: 16px; transform: translateX(-50%);
+        background: rgba(26,26,46,.78); color: #fff; font-size: 12px; font-weight: 600;
+        padding: 6px 14px; border-radius: 999px; display: none; z-index: 15;
+        border: 1px solid rgba(255,255,255,.14); }
+    .cmp-badge.on { display: block; }
+
+    /* 步骤 */
+    .steps { display: flex; gap: 7px; margin-bottom: 9px; }
+    .step { flex: 1; text-align: center; font-size: 11.5px; padding: 7px 4px; font-weight: 650;
+        border-radius: 9px; background: #fbfaff; color: #8a86a3; border: 1.5px solid #f0eefa; transition: all .2s; }
+    .step.on { background: rgba(107,92,231,.09); color: var(--blue); border-color: rgba(107,92,231,.35); }
+    .step.done { color: var(--green); border-color: rgba(13,154,114,.3); background: rgba(13,154,114,.07); }
+
+    /* 侧栏底部「体验额度 / 解锁」按钮（吸底） */
+    .side-quota { margin-top: auto; position: sticky; bottom: 0; background: #fff;
+        padding: 12px 20px 16px; text-align: center; border-top: 1px solid #f0f0f5; }
+    .side-quota .quota-tag { display: block; text-align: center; }
+    .side-quota .quota-cta { width: 100%; padding: 10px 12px; white-space: normal; line-height: 1.5; }
+
+    /* 移动端 */
+    @media (max-width: 900px) {
+        main.content { padding: 0; }
+        .hero { padding: 14px 16px 12px; }
+        .hero h1 { font-size: 26px; }
+        .hero-note { font-size: 13px; }
+        .work { grid-template-columns: 1fr; gap: 0; min-height: 0; align-items: start; }
+        .stage-card { height: 62vh; min-height: 320px; }
+        .stage-tools { height: 70px; }
+        .stage-tools .btn { padding: 12px 30px; font-size: 15px; }
+        .sec { padding: 14px 16px; }
+        .side { border-radius: 0; border-right: none; border-bottom: 1px solid var(--line); }
+        .side-quota { padding: 10px 16px 14px; }
+    }
+
+    /* ===== 体验额度 & 买断弹窗 ===== */
+    .quota-tag { font-size: 12px; color: #999; white-space: nowrap; }
+    .quota-tag b { font-weight: 500; color: #555; }
+    .quota-tag.used { color: #d9534f; }
+    .nj-dlg-mask { position: fixed; inset: 0; background: rgba(0,0,0,.38); display: flex;
+        align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
+    .nj-dlg { background: #fff; border-radius: 14px; width: 100%; max-width: 420px; max-height: 88vh;
+        overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2); position: relative; }
+    .nj-dlg-b { padding: 34px 26px 4px; }
+    .nj-dlg-t1 { font-size: 23px; font-weight: 700; color: #1a1a2e; text-align: center; letter-spacing: 1.5px; }
+    .nj-dlg-t2 { font-size: 13px; color: #6a6483; text-align: center; margin: 11px 0 22px; line-height: 1.65; }
+    .nj-dlg-x { position: absolute; right: 15px; top: 11px; color: #c9c9d6; font-size: 22px; line-height: 1;
+        cursor: pointer; z-index: 3; background: none; border: none; font-family: inherit; padding: 4px; }
+    .nj-dlg-x:hover { color: #888; }
+    .nj-qr-box { display: block; border: 1px dashed #d9d9e6; border-radius: 16px; background: #fafafd;
+        padding: 22px 18px 15px; }
+    .nj-qr-box img { display: block; width: 180px; height: 180px; object-fit: contain; border-radius: 10px;
+        background: #fff; margin: 0 auto; }
+    .nj-qr-tip { font-size: 13px; color: #9c9cb2; text-align: center; margin-top: 13px; }
+    .nj-qr-or { font-size: 13px; color: #8d8da3; text-align: center; margin: 20px 0 11px; }
+    .nj-qr-id { text-align: center; font-size: 19px; font-weight: 700; letter-spacing: 1.2px; color: #6b5ce7;
+        background: #f4f2fd; border-radius: 10px; padding: 11px; cursor: pointer; user-select: all;
+        transition: background .15s, color .15s; }
+    .nj-qr-id:hover { background: #ebe7fb; }
+    .nj-qr-id.copied { background: #e9f8ee; color: #2f9e57; }
+    .nj-lic-mini { font-size: 11.5px; color: #bcbccb; text-align: center; margin: 20px 0 0; cursor: pointer;
+        text-decoration: underline; text-underline-offset: 3px; }
+    .nj-lic-mini:hover { color: #6b5ce7; }
+    .nj-lic-row { display: flex; gap: 8px; }
+    .nj-lic-row input { flex: 1; min-width: 0; box-sizing: border-box; padding: 10px 12px;
+        border: 1px solid #e8e8ed; border-radius: 8px; font-size: 13px; font-family: inherit; color: #1a1a2e; }
+    .nj-lic-row input:focus { outline: none; border-color: #999; }
+    .nj-lic-row button { padding: 0 17px; border-radius: 8px; border: 1px solid #6b5ce7; background: #fff;
+        color: #6b5ce7; font-size: 13px; cursor: pointer; font-family: inherit; white-space: nowrap; }
+    .nj-lic-err { font-size: 12px; color: #d9534f; min-height: 18px; padding-top: 6px; }
+    .nj-dlg-f { padding: 14px 26px 26px; }
+    .nj-dlg-f button { width: 100%; padding: 13px; border-radius: 9px; border: none;
+        background: linear-gradient(135deg,#6b5ce7 0%,#4a7cf7 100%); color: #fff; font-size: 15px;
+        font-weight: 600; cursor: pointer; font-family: inherit; box-shadow: 0 4px 12px rgba(107,92,231,.22); }
+</style>
+</head>
+<body>
+
+<div id="ns-topbar"></div>
+
+<main class="content">
+
+    <section class="hero">
+        <h1>不锈钢产品图<em>一键亮钢</em></h1>
+        <p class="hero-note">拍完偏灰、表面不匀没质感？一键提亮拉对比、修平细小划痕——形状和材质一点不动。</p>
+    </section>
+
+    <div class="work">
+
+        <!-- ============ 侧栏 ============ -->
+        <aside class="side">
+
+            <div class="sec">
+                <div class="steps">
+                    <div class="step on" id="st1">1 上传</div>
+                    <div class="step" id="st2">2 调钢</div>
+                    <div class="step" id="st3">3 下载</div>
+                </div>
+                <div class="drop" id="drop">
+                    <div class="drop-ico">🔧</div>
+                    <div class="drop-t">点击上传 · 拖进来 · 粘贴</div>
+                    <div class="drop-s">不锈钢 / 五金产品图，原图多大出多大</div>
+                </div>
+                <input type="file" id="file" accept="image/*" hidden>
+            </div>
+
+            <div class="sec off" id="secAdj">
+                <div class="sec-t">亮钢调节</div>
+                <div class="sld">
+                    <span class="sld-l">金属对比</span>
+                    <input type="range" id="slC" min="0" max="100" value="50" step="1" disabled>
+                    <b class="sld-v" id="slCVal">50</b>
+                </div>
+                <div class="sld">
+                    <span class="sld-l">修平滑</span>
+                    <input type="range" id="slS" min="0" max="100" value="60" step="1" disabled>
+                    <b class="sld-v" id="slSVal">60</b>
+                </div>
+                <div class="hint">上传后自动调好了。<b>金属对比</b>让高光更亮、暗部更沉；<b>修平滑</b>压掉表面细小划痕和颗粒，拉到 0 就是只调光不修面。</div>
+                <div class="btn-row" style="margin-top:12px;">
+                    <button class="btn" id="btnReset">恢复默认</button>
+                </div>
+            </div>
+
+            <div class="side-quota">
+                <div class="quota-tag" id="quotaSide"></div>
+            </div>
+
+        </aside>
+
+        <!-- ============ 画布 ============ -->
+        <div class="stage-card">
+            <div class="stage-wrap" id="stageWrap">
+                <div class="empty" id="empty">
+                    <div class="empty-ico">🔧</div>
+                    <div class="empty-t">先上传一张不锈钢产品图</div>
+                    <div class="empty-s">灰蒙蒙的五金件传上来，自动提亮、修平表面<br>想要多亮，自己再拉两下</div>
+                </div>
+
+                <div class="stage-inner">
+                    <div class="stage" id="stage" style="display:none;">
+                        <canvas id="cvView"></canvas>
+                    </div>
+                </div>
+
+                <div class="cmp-badge" id="cmpBadge">原图</div>
+
+                <div class="busy" id="busy">
+                    <div class="spinner"></div>
+                    <div class="busy-t" id="busyTxt">正在处理…</div>
+                </div>
+            </div>
+
+            <div class="stage-tools" id="stageTools" style="display:none;">
+                <button class="btn" id="btnCmp">按住看原图</button>
+                <button class="btn btn-main" id="btnDl">下载</button>
+            </div>
+        </div>
+
+    </div>
+
+</main>
+
+<script src="topbar.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var $ = function (id) { return document.getElementById(id); };
+
+    /* ===== 体验额度 & 激活（一个码只认一个工具：盐里带本工具标记 lg，别处的码在本页无效） ===== */
+    var LICENSE_SALT = 'naji-ark-2026-lg';
+    var FREE_LIMIT = 6;
+    var WECHAT_ID = 'najia9864';
+    var LIC_KEY = 'nj_lic_lg';
+    var USED_KEY = 'nj_free_used_lg';
+    function licHash(x) {
+        var h = 0;
+        for (var i = 0; i < x.length; i++) { h = (h * 31 + x.charCodeAt(i)) >>> 0; }
+        return h.toString(36).toUpperCase().padStart(4, '0').slice(0, 4);
+    }
+    function licValid(code) {
+        var c = (code || '').trim().toUpperCase().replace(/[\s-]/g, '');
+        var m = c.match(/^NJ([A-Z0-9]{8})([A-Z0-9]{4})$/);
+        if (!m) return false;
+        return licHash(LICENSE_SALT + m[1]) === m[2];
+    }
+    function isLicensed() {
+        try { return localStorage.getItem(LIC_KEY) === '1'; } catch (e) { return false; }
+    }
+    function getFreeUsed() {
+        try { return parseInt(localStorage.getItem(USED_KEY) || '0', 10) || 0; } catch (e) { return 0; }
+    }
+    function setFreeUsed(n) {
+        try { localStorage.setItem(USED_KEY, String(n)); } catch (e) {}
+    }
+    function freeLeft() { return Math.max(0, FREE_LIMIT - getFreeUsed()); }
+    function renderQuota() {
+        var ids = ['quotaTag', 'quotaSide'];
+        ids.forEach(function (id) {
+            var el = $(id);
+            if (!el) return;
+            var isCta = (id === 'quotaSide');
+            if (isLicensed()) {
+                el.className = 'quota-tag';
+                el.innerHTML = '已解锁 · 不限次';
+                el.onclick = null; el.style.cursor = '';
+                return;
+            }
+            var l = freeLeft();
+            if (isCta) {
+                el.className = 'quota-cta' + (l === 0 ? ' used' : '');
+                el.innerHTML = l > 0
+                    ? '还剩 <b>' + l + '</b> 次免费体验 · 想一直用？点此解锁'
+                    : '免费体验已用完 · 点此解锁 →';
+            } else {
+                el.className = 'quota-tag' + (l === 0 ? ' used' : '');
+                el.innerHTML = l > 0
+                    ? '免费体验剩 <b>' + l + '</b> 次 · 解锁'
+                    : '免费体验已用完 · 点此解锁';
+            }
+            el.onclick = function () { openBuyDlg(); };
+            el.style.cursor = 'pointer';
+        });
+    }
+    function openBuyDlg() {
+        $('buyMask').style.display = 'flex';
+        $('licErr').textContent = '';
+    }
+    function closeBuyDlg() { $('buyMask').style.display = 'none'; }
+    function toggleLic() {
+        var row = $('licRow'), mini = $('licMini');
+        var show = row.style.display === 'none';
+        row.style.display = show ? 'flex' : 'none';
+        if (mini) mini.style.display = show ? 'none' : 'block';
+        if (show) { var inp = $('licInput'); if (inp) setTimeout(function () { inp.focus(); }, 60); }
+    }
+    function copyWx() {
+        var el = $('qrId');
+        if (!el) return;
+        var ok = function () {
+            el.classList.add('copied');
+            el.textContent = '已复制 ' + WECHAT_ID;
+            setTimeout(function () { el.classList.remove('copied'); el.textContent = WECHAT_ID; }, 1600);
+        };
+        var fallback = function () {
+            var ta = document.createElement('textarea');
+            ta.value = WECHAT_ID;
+            ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); ok(); } catch (e) {}
+            document.body.removeChild(ta);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(WECHAT_ID).then(ok).catch(fallback);
+        } else { fallback(); }
+    }
+    function activateLicense() {
+        var v = ($('licInput').value || '').trim();
+        if (!v) { $('licErr').textContent = '请先填激活码'; return; }
+        if (!licValid(v)) { $('licErr').textContent = '激活码不对，或不是本工具的码'; return; }
+        try { localStorage.setItem(LIC_KEY, '1'); } catch (e) {}
+        $('licErr').textContent = '';
+        closeBuyDlg();
+        renderQuota();
+    }
+    function bindBuyDlg() {
+        var b = $('buyClose'); if (b) b.addEventListener('click', closeBuyDlg);
+        var d = $('buyDone'); if (d) d.addEventListener('click', closeBuyDlg);
+        var q = $('qrId'); if (q) q.addEventListener('click', copyWx);
+        var m = $('licMini'); if (m) m.addEventListener('click', toggleLic);
+        var g = $('licGo'); if (g) g.addEventListener('click', activateLicense);
+        var li = $('licInput');
+        if (li) li.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); activateLicense(); }
+        });
+        li = li && li.addEventListener('input', function () { $('licErr').textContent = ''; });
+    }
+    var curImgFp = '', lastCountedFp = '';
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { bindBuyDlg(); });
+    else bindBuyDlg();
+    renderQuota();
+
+    /* ================= 亮钢核心（分频 + 软阈值修平滑 + 结构门控，与 numpy v9 同一套） ================= */
+
+    var cvView = $('cvView');
+    var ctxView = cvView.getContext('2d', { willReadFrequently: true });
+
+    var fullCanvas = null;
+    var fullCtx = null;
+    var srcImg = null;
+    var imgW = 0, imgH = 0;
+    var pW = 0, pH = 0;
+    var origProxyData = null;
+    var DEF_C = 50, DEF_S = 60;   // 默认：金属对比 50（power=1.0）、修平滑 60（smooth≈0.96）
+    var cmpOn = false;
+    var deco = null;              // 代理图的分解缓存（滑杆实时重算用，不重复跑滤波）
+
+    /* ---------- 基础滤波（积分图法，与像素数线性相关） ---------- */
+
+    var _intBuf = null;           // 复用的积分图缓冲，免得每来一张图都新开大内存
+    function boxF(img, W, H, r) {
+        var iw = W + 1;
+        var need = iw * (H + 1);
+        if (!_intBuf || _intBuf.length < need) _intBuf = new Float64Array(need);
+        var I = _intBuf;
+        I.fill(0);
+        for (var y = 0; y < H; y++) {
+            var rowUp = y * iw, rowNow = (y + 1) * iw;
+            var s = 0;
+            var base = y * W;
+            for (var x = 0; x < W; x++) {
+                s += img[base + x];
+                I[rowNow + x + 1] = I[rowUp + x + 1] + s;
+            }
+        }
+        var out = new Float32Array(W * H);
+        var k = (2 * r + 1) * (2 * r + 1);
+        for (var y2 = 0; y2 < H; y2++) {
+            var y0 = y2 - r; if (y0 < 0) y0 = 0;
+            var y1 = y2 + r; if (y1 > H - 1) y1 = H - 1;
+            var ra = y0 * iw, rb = (y1 + 1) * iw;
+            var base2 = y2 * W;
+            for (var x2 = 0; x2 < W; x2++) {
+                var x0 = x2 - r; if (x0 < 0) x0 = 0;
+                var x1 = x2 + r; if (x1 > W - 1) x1 = W - 1;
+                out[base2 + x2] = (I[rb + x1 + 1] - I[rb + x0] - I[ra + x1 + 1] + I[ra + x0]) / k;
+            }
+        }
+        return out;
+    }
+
+    function guidedF(L, W, H, r, eps) {
+        var n = W * H;
+        var In = new Float32Array(n);
+        for (var i = 0; i < n; i++) In[i] = L[i] / 255;
+        var mI = boxF(In, W, H, r);
+        var II = new Float32Array(n);
+        for (var i2 = 0; i2 < n; i2++) II[i2] = In[i2] * In[i2];
+        var mII = boxF(II, W, H, r);
+        var a = new Float32Array(n), b = new Float32Array(n);
+        for (var i3 = 0; i3 < n; i3++) {
+            var v = mII[i3] - mI[i3] * mI[i3];
+            var av = v / (v + eps);
+            a[i3] = av;
+            b[i3] = mI[i3] - av * mI[i3];
+        }
+        var ma = boxF(a, W, H, r);
+        var mb = boxF(b, W, H, r);
+        var out = new Float32Array(n);
+        for (var i4 = 0; i4 < n; i4++) {
+            var o = (ma[i4] * In[i4] + mb[i4]) * 255;
+            out[i4] = o < 0 ? 0 : (o > 255 ? 255 : o);
+        }
+        return out;
+    }
+
+    function lumaArr(rgba) {
+        var n = rgba.length >> 2;
+        var L = new Float32Array(n);
+        for (var i = 0, j = 0; i < n; i++, j += 4) {
+            L[i] = (rgba[j] * 299 + rgba[j + 1] * 587 + rgba[j + 2] * 114) / 1000;
+        }
+        return L;
+    }
+
+    /* ---------- 分解（一张图只跑一次，结果缓存） ---------- */
+
+    function decompose(L0, W, H) {
+        // 背景参考亮度：边界中位数
+        var edge = [];
+        for (var x = 0; x < W; x += 3) { edge.push(L0[x]); edge.push(L0[(H - 1) * W + x]); }
+        for (var y = 0; y < H; y += 3) { edge.push(L0[y * W]); edge.push(L0[y * W + W - 1]); }
+        edge.sort(function (a, b) { return a - b; });
+        var bg = edge[edge.length >> 1];
+
+        // 产品遮罩 + 包围盒
+        var n = W * H;
+        var m = new Float32Array(n);
+        for (var i = 0; i < n; i++) m[i] = L0[i] < (bg - 10) ? 1 : 0;
+        var cnt = 0;
+        for (var i2 = 0; i2 < n; i2++) if (m[i2]) cnt++;
+        if (cnt < 500) {           // 不是白底产品图：取最暗 40% 当产品
+            var vals = Float32Array.from(L0).sort();
+            var thr = vals[Math.floor(n * 0.6)];
+            for (var i3 = 0; i3 < n; i3++) m[i3] = L0[i3] < thr ? 1 : 0;
+            cnt = 0;
+            for (var i4 = 0; i4 < n; i4++) if (m[i4]) cnt++;
+        }
+        var bx0 = W, bx1 = 0, by0 = H, by1 = 0;
+        for (var y = 0; y < H; y++) {
+            for (var x2 = 0; x2 < W; x2++) {
+                if (m[y * W + x2]) {
+                    if (x2 < bx0) bx0 = x2; if (x2 > bx1) bx1 = x2;
+                    if (y < by0) by0 = y; if (y > by1) by1 = y;
+                }
+            }
+        }
+        var pm = boxF(m, W, H, 10);
+        for (var i5 = 0; i5 < n; i5++) { pm[i5] = Math.min(1, pm[i5] * 1.8); }
+
+        // 产品区对比度（自适应力度用）
+        var sum = 0, sq = 0, c2 = 0;
+        for (var i6 = 0; i6 < n; i6++) {
+            if (m[i6]) { sum += L0[i6]; sq += L0[i6] * L0[i6]; c2++; }
+        }
+        var mean = sum / Math.max(1, c2);
+        var curSd = Math.sqrt(Math.max(0, sq / Math.max(1, c2) - mean * mean));
+
+        // ① 分频：base 结构层 / detail 细节层（划痕、颗粒都在这里）
+        var base = guidedF(L0, W, H, 6, 0.02);
+        var detail = new Float32Array(n);
+        for (var i7 = 0; i7 < n; i7++) detail[i7] = L0[i7] - base[i7];
+
+        // ② 本图噪声尺度（产品区 |detail| 的 25 分位）
+        var hist = new Float64Array(257);
+        var tot = 0;
+        for (var i8 = 0; i8 < n; i8++) {
+            if (pm[i8] > 0.6) {
+                var dv = detail[i8]; if (dv < 0) dv = -dv;
+                var b = dv | 0; if (b > 256) b = 256;
+                hist[b]++; tot++;
+            }
+        }
+        var q25 = 3, acc = 0;
+        for (var v = 0; v <= 256; v++) { acc += hist[v]; if (acc >= tot * 0.25) { q25 = v; break; } }
+        var sigma = q25 / 0.674;
+
+        // ③ 结构门控：结构梯度大的地方（螺纹牙/倒角）几乎不动
+        var gb = guidedF(base, W, H, 4, 0.01);
+        var gbf = boxF(gb, W, H, 8);
+        var gate = new Float32Array(n);
+        for (var i9 = 0; i9 < n; i9++) {
+            var g = (gb[i9] - gbf[i9]) * pm[i9];
+            if (g < 0) g = -g;
+            var gv = g / 8; gate[i9] = gv > 1 ? 1 : gv;
+        }
+
+        // ④ 大尺度低通（对比滑杆实时用）
+        var b60 = boxF(base, W, H, 60);
+
+        return { W: W, H: H, n: n, bg: bg, pm: pm, curSd: curSd,
+                 base: base, detail: detail, gate: gate, b60: b60, sigma: sigma,
+                 bbox: [bx0, by0, bx1, by1] };
+    }
+
+    /* ---------- 渲染（滑杆变化只跑这里，纯逐像素 + 少量小滤波，实时） ---------- */
+
+    function renderSteel(L0, d, power, smooth) {
+        var W = d.W, H = d.H, n = d.n;
+        var k = (50 - d.curSd) / 22; if (k < 0) k = 0; if (k > 1) k = 1;
+        // 力度整体由滑杆 power 控制（0＝完全原图，1＝自动，1.6＝加强）
+        var a1 = power * (0.26 + 0.54 * k);
+        var a2 = power * 0.50 * k;
+        var t0 = 1.6 * d.sigma; if (t0 < 1.8) t0 = 1.8; if (t0 > 11) t0 = 11;
+        t0 *= smooth;
+
+        var base = d.base, pm = d.pm, gate = d.gate, detail = d.detail, b60 = d.b60;
+
+        // ⑤ 对比放大只作用在结构层（划痕不在里面，不会被放大）
+        var bb = new Float32Array(n);
+        for (var i = 0; i < n; i++) {
+            var v = base[i] + a1 * (base[i] - b60[i]) * pm[i];
+            bb[i] = v < 0 ? 0 : (v > 255 ? 255 : v);
+        }
+        if (a2 > 0.004) {
+            var b14 = boxF(bb, W, H, 14);
+            for (var i2 = 0; i2 < n; i2++) {
+                var v2 = bb[i2] + a2 * (bb[i2] - b14[i2]) * pm[i2];
+                bb[i2] = v2 < 0 ? 0 : (v2 > 255 ? 255 : v2);
+            }
+        }
+
+        // ⑥ 结构门控锐化（只在真边缘上锐，颗粒不锐）
+        var b6 = boxF(bb, W, H, 6);
+        var b2 = boxF(bb, W, H, 2);
+        for (var i3 = 0; i3 < n; i3++) {
+            var ge = bb[i3] - b6[i3]; if (ge < 0) ge = -ge;
+            var gk = ge / 12; if (gk > 1) gk = 1;
+            var s = bb[i3] + (bb[i3] - b2[i3]) * gk * 0.22 * pm[i3];
+            bb[i3] = s < 0 ? 0 : (s > 255 ? 255 : s);
+        }
+
+        // ⑦ 修平滑：软阈值收缩（小幅度=划痕→压掉；大幅度=结构→保留），结构区轻手
+        var L = new Float32Array(n);
+        for (var i4 = 0; i4 < n; i4++) {
+            var tLoc = t0 * (1 - 0.85 * gate[i4]);
+            var dd = detail[i4];
+            var ad = dd < 0 ? -dd : dd;
+            var sd = ad - tLoc; if (sd < 0) sd = 0;
+            if (dd < 0) sd = -sd;
+            var l = bb[i4] + sd;
+            L[i4] = l < 0 ? 0 : (l > 255 ? 255 : l);
+        }
+
+        // ⑧ 暗部软膝（不砸死黑）→ 轻提亮 → 背景推白
+        var bx0 = d.bbox[0], by0 = d.bbox[1], bx1 = d.bbox[2], by1 = d.bbox[3];
+        var out = new Float32Array(n);
+        for (var y = 0; y < H; y++) {
+            var inBgW = (y < by0 || y > by1);
+            for (var x = 0; x < W; x++) {
+                var idx = y * W + x;
+                var lv = L[idx];
+                if (lv < 42) lv = 26 + (lv / 42) * (42 - 26);
+                var lg = 255 * Math.pow(lv / 255, 0.95);
+                lv = lv + (lg - lv) * pm[idx];
+                if ((inBgW || x < bx0 || x > bx1)) lv = lv + (253 - lv) * 0.92;
+                out[idx] = lv;
+            }
+        }
+        return out;
+    }
+
+    // 亮度映射回 RGB（保色：只改亮度，不改色相）
+    function applyLumaToRGBA(rgba, L) {
+        var n = L.length;
+        var out = new Uint8ClampedArray(rgba.length);
+        out.set(rgba);
+        for (var i = 0, j = 0; i < n; i++, j += 4) {
+            var oldL = (rgba[j] * 299 + rgba[j + 1] * 587 + rgba[j + 2] * 114) / 1000;
+            var s;
+            if (oldL > 0.001) { s = L[i] / oldL; if (s > 4) s = 4; } else { s = 1; }
+            var r = rgba[j] * s, g = rgba[j + 1] * s, b = rgba[j + 2] * s;
+            if (r > 250) r = 250 + (r - 250) * 0.25;
+            if (g > 250) g = 250 + (g - 250) * 0.25;
+            if (b > 250) b = 250 + (b - 250) * 0.25;
+            out[j] = r; out[j + 1] = g; out[j + 2] = b;
+        }
+        return out;
+    }
+
+    /* ---------- 滑杆参数 ---------- */
+
+    function sliderParams() {
+        var vC = parseInt($('slC').value, 10);
+        var vS = parseInt($('slS').value, 10);
+        // 金属对比：0＝完全原图，50＝自动力度（power 1.0），100＝加强（1.6）
+        var power = vC <= 50 ? vC / 50 : 1.0 + (vC - 50) / 50 * 0.6;
+        return { power: power, smooth: 1.6 * vS / 100 };
+    }
+
+    function applyToProxy() {
+        if (!deco || !origProxyData) return;
+        var p = sliderParams();
+        var L0 = lumaArr(origProxyData.data);
+        var L = renderSteel(L0, deco, p.power, p.smooth);
+        var out = applyLumaToRGBA(origProxyData.data, L);
+        ctxView.putImageData(new ImageData(out, pW, pH), 0, 0);
+    }
+
+    /* ---------------- 上传 ---------------- */
+
+    $('drop').addEventListener('click', function () { $('file').click(); });
+    $('file').addEventListener('change', function (e) {
+        if (e.target.files && e.target.files[0]) loadFile(e.target.files[0]);
+        e.target.value = '';
+    });
+    ['dragenter', 'dragover'].forEach(function (ev) {
+        $('drop').addEventListener(ev, function (e) { e.preventDefault(); $('drop').classList.add('over'); });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+        $('drop').addEventListener(ev, function (e) { e.preventDefault(); $('drop').classList.remove('over'); });
+    });
+    $('drop').addEventListener('drop', function (e) {
+        var f = e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) loadFile(f);
+    });
+
+    document.addEventListener('paste', function (e) {
+        var items = e.clipboardData && e.clipboardData.items;
+        if (!items) return;
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') === 0) {
+                loadFile(items[i].getAsFile());
+                break;
+            }
+        }
+    });
+
+    function loadFile(file) {
+        if (!file || file.type.indexOf('image') !== 0) return;
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            var img = new Image();
+            img.onload = function () { setupImage(img); };
+            img.onerror = function () { alert('图片读不出来，换一张试试'); };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function setupImage(img) {
+        $('busy').classList.add('on');
+        $('busyTxt').textContent = '正在分析图像…';
+        setTimeout(function () {
+            try { setupImageInner(img); }
+            catch (err) {
+                $('busy').classList.remove('on');
+                alert('这张图处理不了，换一张试试');
+            }
+        }, 30);
+    }
+
+    function setupImageInner(img) {
+        srcImg = img;
+        imgW = img.naturalWidth;
+        imgH = img.naturalHeight;
+
+        var MAX = 7000;
+        var scale = 1;
+        if (Math.max(imgW, imgH) > MAX) scale = MAX / Math.max(imgW, imgH);
+        imgW = Math.round(imgW * scale);
+        imgH = Math.round(imgH * scale);
+
+        fullCanvas = document.createElement('canvas');
+        fullCanvas.width = imgW; fullCanvas.height = imgH;
+        fullCtx = fullCanvas.getContext('2d', { willReadFrequently: true });
+        fullCtx.clearRect(0, 0, imgW, imgH);
+        fullCtx.drawImage(img, 0, 0, imgW, imgH);
+
+        var P = 1200;   // 亮钢滤波比去灰重，代理图小一点保证滑杆丝滑
+        var ps = Math.min(1, P / Math.max(imgW, imgH));
+        pW = Math.max(1, Math.round(imgW * ps));
+        pH = Math.max(1, Math.round(imgH * ps));
+        cvView.width = pW; cvView.height = pH;
+        ctxView.clearRect(0, 0, pW, pH);
+        ctxView.imageSmoothingQuality = 'high';
+        ctxView.drawImage(img, 0, 0, pW, pH);
+        origProxyData = ctxView.getImageData(0, 0, pW, pH);
+
+        // 指纹（额度计数：同一张图只计一次）
+        try {
+            var fpd = origProxyData.data, fpStep = Math.max(4, Math.floor(fpd.length / 48));
+            var fp = imgW + 'x' + imgH;
+            for (var fi = 0; fi < fpd.length; fi += fpStep) fp += ',' + fpd[fi];
+            curImgFp = fp;
+        } catch (e) { curImgFp = String(Date.now()); }
+
+        $('busyTxt').textContent = '正在亮钢…';
+        var L0 = lumaArr(origProxyData.data);
+        deco = decompose(L0, pW, pH);
+
+        $('slC').value = DEF_C;
+        $('slS').value = DEF_S;
+        $('slCVal').textContent = DEF_C;
+        $('slSVal').textContent = DEF_S;
+        $('slC').disabled = false;
+        $('slS').disabled = false;
+        $('secAdj').classList.remove('off');
+
+        applyToProxy();
+
+        $('busy').classList.remove('on');
+        $('empty').style.display = 'none';
+        $('stage').style.display = 'block';
+        $('stageTools').style.display = '';
+        cmpOn = false;
+        $('cmpBadge') && $('cmpBadge').classList.remove('on');
+        fitStage();
+        requestAnimationFrame(fitStage);
+        setStep(2);
+    }
+
+    /* ---------------- 滑杆 ---------------- */
+
+    var rafPending = false;
+    function onSlider() {
+        $('slCVal').textContent = $('slC').value;
+        $('slSVal').textContent = $('slS').value;
+        if (cmpOn) { cmpOn = false; $('cmpBadge').classList.remove('on'); }
+        if (rafPending) return;      // rAF 合帧：拖得再快也不卡
+        rafPending = true;
+        requestAnimationFrame(function () {
+            rafPending = false;
+            applyToProxy();
+        });
+    }
+    $('slC').addEventListener('input', onSlider);
+    $('slS').addEventListener('input', onSlider);
+    $('btnReset').addEventListener('click', function () {
+        $('slC').value = DEF_C;
+        $('slS').value = DEF_S;
+        onSlider();
+    });
+
+    /* ---------------- 按住看原图 ---------------- */
+
+    function showOrig() {
+        if (!origProxyData) return;
+        ctxView.putImageData(origProxyData, 0, 0);
+        cmpOn = true;
+        $('cmpBadge').classList.add('on');
+    }
+    function showResult() {
+        if (!origProxyData || !cmpOn) return;
+        cmpOn = false;
+        $('cmpBadge').classList.remove('on');
+        applyToProxy();
+    }
+    var btnCmp = $('btnCmp');
+    btnCmp.addEventListener('pointerdown', function (e) { e.preventDefault(); showOrig(); });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
+        btnCmp.addEventListener(ev, showResult);
+    });
+
+    /* ---------------- 下载 ---------------- */
+
+    // PNG 写入 300dpi（pHYs 块）：像素不变，只是补印刷标记
+    var _crcT = null;
+    function crc32(u8) {
+        if (!_crcT) {
+            _crcT = new Uint32Array(256);
+            for (var n = 0; n < 256; n++) {
+                var c = n;
+                for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+                _crcT[n] = c >>> 0;
+            }
+        }
+        var c = 0xFFFFFFFF;
+        for (var i = 0; i < u8.length; i++) c = _crcT[(c ^ u8[i]) & 255] ^ (c >>> 8);
+        return (c ^ 0xFFFFFFFF) >>> 0;
+    }
+    function pngSet300dpi(blob, cb) {
+        try {
+            var fr = new FileReader();
+            fr.onload = function () {
+                var u8 = new Uint8Array(fr.result);
+                var pos = 33;
+                var ppm = 11811;
+                var chunk = new Uint8Array(21);
+                chunk[0] = 0; chunk[1] = 0; chunk[2] = 0; chunk[3] = 9;
+                chunk[4] = 0x70; chunk[5] = 0x48; chunk[6] = 0x59; chunk[7] = 0x73;
+                chunk[8] = (ppm >>> 24) & 255; chunk[9] = (ppm >>> 16) & 255; chunk[10] = (ppm >>> 8) & 255; chunk[11] = ppm & 255;
+                chunk[12] = (ppm >>> 24) & 255; chunk[13] = (ppm >>> 16) & 255; chunk[14] = (ppm >>> 8) & 255; chunk[15] = ppm & 255;
+                chunk[16] = 1;
+                var crc = crc32(chunk.subarray(4, 17));
+                chunk[17] = (crc >>> 24) & 255; chunk[18] = (crc >>> 16) & 255; chunk[19] = (crc >>> 8) & 255; chunk[20] = crc & 255;
+                var out = new Uint8Array(u8.length + chunk.length);
+                out.set(u8.subarray(0, pos), 0);
+                out.set(chunk, pos);
+                out.set(u8.subarray(pos), pos + chunk.length);
+                cb(new Blob([out], { type: 'image/png' }));
+            };
+            fr.onerror = function () { cb(blob); };
+            fr.readAsArrayBuffer(blob);
+        } catch (e) { cb(blob); }
+    }
+
+    $('btnDl').addEventListener('click', function () {
+        if (!imgW) return;
+        if (!isLicensed() && freeLeft() === 0) { openBuyDlg(); return; }
+        $('busy').classList.add('on');
+        $('busyTxt').textContent = '正在按原尺寸处理…大图要等几秒';
+        setTimeout(function () {
+            try {
+                // 全尺寸完整跑一遍（分解+渲染），不走代理缓存
+                var fd = fullCtx.getImageData(0, 0, imgW, imgH);
+                var L0f = lumaArr(fd.data);
+                var decoF = decompose(L0f, imgW, imgH);
+                var p = sliderParams();
+                var Lf = renderSteel(L0f, decoF, p.power, p.smooth);
+                var outF = applyLumaToRGBA(fd.data, Lf);
+                decoF = null; L0f = null; Lf = null;   // 释放大数组
+                var outImg = new ImageData(outF, imgW, imgH);
+                var tmpCv = document.createElement('canvas');
+                tmpCv.width = imgW; tmpCv.height = imgH;
+                var tmpCtx = tmpCv.getContext('2d');
+                tmpCtx.putImageData(outImg, 0, 0);
+                outF = null; outImg = null; fd = null;
+
+                $('busyTxt').textContent = '正在保存文件…';
+                var done = false;
+                var finish = function (blob) {
+                    if (done) return; done = true;
+                    try {
+                        var url = URL.createObjectURL(blob);
+                        var a = document.createElement('a');
+                        a.download = 'lianggang-' + Date.now() + '.png';
+                        a.href = url;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.parentNode.removeChild(a);
+                        setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
+                        if (!isLicensed() && curImgFp && curImgFp !== lastCountedFp) {
+                            lastCountedFp = curImgFp;
+                            setFreeUsed(getFreeUsed() + 1);
+                            renderQuota();
+                        }
+                        // 下载后保留图片，可继续调再下载（分解缓存仍在，不会叠加处理）
+                        $('busyTxt').textContent = '已保存 ✓ 想再调一点，改完还能继续下载';
+                        setTimeout(function () { $('busy').classList.remove('on'); }, 900);
+                    } catch (e) {
+                        alert('导出失败，再试一次；还不行就换个浏览器试试');
+                        $('busy').classList.remove('on');
+                    }
+                };
+                if (tmpCv.toBlob) {
+                    tmpCv.toBlob(function (blob) {
+                        if (!blob) { $('busy').classList.remove('on'); alert('导出失败，再试一次；还不行就换个浏览器试试'); return; }
+                        pngSet300dpi(blob, finish);
+                    }, 'image/png');
+                } else {
+                    var b64 = atob(tmpCv.toDataURL('image/png').split(',')[1]);
+                    var arr = new Uint8Array(b64.length);
+                    for (var k2 = 0; k2 < b64.length; k2++) arr[k2] = b64.charCodeAt(k2);
+                    pngSet300dpi(new Blob([arr], { type: 'image/png' }), finish);
+                }
+            } catch (err) {
+                alert('导出失败，再试一次；还不行就换个浏览器试试');
+                $('busy').classList.remove('on');
+            }
+        }, 30);
+    });
+
+    /* ---------------- 画布自适应 ---------------- */
+
+    function fitStage() {
+        if (!imgW) return;
+        var wrap = $('stageWrap');
+        var pad = 36;
+        var maxW = wrap.clientWidth - pad;
+        var maxH = wrap.clientHeight - pad;
+        var r = Math.min(maxW / imgW, maxH / imgH, 1);
+        var dw = Math.round(imgW * r), dh = Math.round(imgH * r);
+        cvView.style.width = dw + 'px'; cvView.style.height = dh + 'px';
+        $('stage').style.width = dw + 'px';
+        $('stage').style.height = dh + 'px';
+    }
+    window.addEventListener('resize', fitStage);
+
+    /* ---------------- 步骤条 ---------------- */
+
+    function setStep(n) {
+        for (var i = 1; i <= 3; i++) {
+            var el = $('st' + i);
+            if (!el) continue;
+            el.className = 'step' + (i < n ? ' done' : i === n ? ' on' : '');
+        }
+    }
+    setStep(1);
+
+    /* 暴露上传入口，供整页拖放用 */
+    window.__njLoad = loadFile;
+})();
+
+/* 拖放防误跳 */
+(function () {
+    function stop(e) { e.preventDefault(); }
+    window.addEventListener('dragenter', stop, false);
+    window.addEventListener('dragover', stop, false);
+    window.addEventListener('drop', stop, false);
+    window.addEventListener('drop', function (e) {
+        var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (!f || String(f.type).indexOf('image') !== 0) return;
+        var t = e.target;
+        if (t && t.closest && t.closest('#drop')) return;
+        var fn = window['__njLoad'];
+        if (typeof fn === 'function') fn(f);
+    }, false);
+})();
+</script>
+
+<!-- ===== 体验额度 · 买断弹窗 ===== -->
+<div class="nj-dlg-mask" id="buyMask" style="display:none">
+    <div class="nj-dlg">
+        <button class="nj-dlg-x" type="button" id="buyClose">&times;</button>
+        <div class="nj-dlg-b">
+            <div class="nj-dlg-t1">免费体验已用完</div>
+            <div class="nj-dlg-t2">扫码沟通，一次买断长期用</div>
+            <div class="nj-qr-box">
+                <img src="img/qr-weixin.png" alt="微信二维码">
+                <div class="nj-qr-tip">请使用微信扫码</div>
+            </div>
+            <div class="nj-qr-or">或手动添加我的微信</div>
+            <div class="nj-qr-id" id="qrId" title="点击复制微信号">najia9864</div>
+            <div class="nj-lic-mini" id="licMini">已购买？点此激活</div>
+            <div class="nj-lic-row" id="licRow" style="display:none">
+                <input type="text" id="licInput" placeholder="NJ-XXXXXXXX-XXXX" autocomplete="off">
+                <button type="button" id="licGo">解锁</button>
+            </div>
+            <div class="nj-lic-err" id="licErr"></div>
+        </div>
+        <div class="nj-dlg-f">
+            <button type="button" id="buyDone">我已添加，完成</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
