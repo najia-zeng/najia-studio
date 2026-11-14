@@ -114,14 +114,14 @@
 
   <section class="hero">
     <h1>AI <em>提效</em>工具</h1>
-    <p class="hero-note">先免费体验（修瑕疵 6 次、其他工具各 3 次）；想长期使用，微信解锁。</p>
+    <p class="hero-note">先免费体验（修瑕疵、去灰各 6 次，其余工具 3 次）；想长期使用，微信解锁。</p>
   </section>
 
   <div class="tabs" id="tabs">
     <button class="tab on" data-cat="all">全部</button>
     <button class="tab" data-cat="pack">风格包</button>
     <button class="tab" data-cat="tool">工具</button>
-    <span class="count" id="count">共 4 个</span>
+    <span class="count" id="count">共 5 个</span>
   </div>
 
   <div class="grid" id="grid">
@@ -178,6 +178,19 @@
       </div>
     </a>
 
+    <!-- 工具 · 一键去灰 -->
+    <a class="card" data-cat="tool" data-tool="dg" href="quhui.html">
+      <div class="cover">
+        <img src="img/cover-quhui.jpg" alt="一键去灰 前后对比">
+        <span class="badge" data-badge="dg"></span>
+      </div>
+      <div class="c-body">
+        <h3>工具类 · 一键去灰</h3>
+        <p>相机直出偏灰不通透？一键拉开对比，亮的更亮、暗的更暗，还能自己再调亮度和对比。</p>
+        <div class="c-meta" data-meta="dg">查看详情 <span class="arrow">→</span></div>
+      </div>
+    </a>
+
   </div>
 
   <!-- 收口 -->
@@ -200,12 +213,13 @@
 <script>
 (function () {
   /* ===== 每张卡片实时显示解锁状态（和各工具页存的位置一一对应） ===== */
-  var FREE_LIMIT = { rt: 6, kc: 3, sg: 3, sf: 3 };  // 修瑕疵 6 次当钩子，其余 3 次
+  var FREE_LIMIT = { rt: 6, kc: 3, sg: 3, sf: 3, dg: 6 };  // 零成本工具（修瑕疵/去灰）6 次当钩子，其余 3 次
   var KEYS = {
     rt: { lic: 'nj_lic_rt', used: 'nj_free_used_rt' },
     kc: { lic: 'nj_lic_kc', used: 'nj_free_used_kc' },
     sg: { lic: 'nj_lic_sg', used: 'nj_free_used_sg' },
-    sf: { lic: 'nj_lic_sf', used: 'nj_free_used_sf' }
+    sf: { lic: 'nj_lic_sf', used: 'nj_free_used_sf' },
+    dg: { lic: 'nj_lic_dg', used: 'nj_free_used_dg' }
   };
   function readLS(k) {
     try { return localStorage.getItem(k); } catch (e) { return null; }
