@@ -636,20 +636,47 @@
                     d[i + 2] = lut[d[i + 2]];
                 }
                 fullCtx.putImageData(fd, 0, 0);
-                var a = document.createElement('a');
-                a.download = 'quhui-' + Date.now() + '.png';
-                a.href = fullCanvas.toDataURL('image/png');
-                a.click();
-                // 计一次体验（同一张图只计一次）
-                if (!isLicensed() && curImgFp && curImgFp !== lastCountedFp) {
-                    lastCountedFp = curImgFp;
-                    setFreeUsed(getFreeUsed() + 1);
-                    renderQuota();
+                $('busyTxt').textContent = '正在保存文件…';
+                // 用 toBlob 异步编码：原来的 toDataURL 是同步转大字符串，会把页面冻住几秒
+                var done = false;
+                var finish = function (blob) {
+                    if (done) return; done = true;
+                    try {
+                        var url = URL.createObjectURL(blob);
+                        var a = document.createElement('a');
+                        a.download = 'quhui-' + Date.now() + '.png';
+                        a.href = url;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.parentNode.removeChild(a);
+                        setTimeout(function () { URL.revokeObjectURL(url); }, 30000);
+                        // 计一次体验（同一张图只计一次）
+                        if (!isLicensed() && curImgFp && curImgFp !== lastCountedFp) {
+                            lastCountedFp = curImgFp;
+                            setFreeUsed(getFreeUsed() + 1);
+                            renderQuota();
+                        }
+                        resetAll();
+                    } catch (e) {
+                        alert('导出失败，再试一次；还不行就换个浏览器试试');
+                    } finally {
+                        $('busy').classList.remove('on');
+                    }
+                };
+                if (fullCanvas.toBlob) {
+                    fullCanvas.toBlob(function (blob) {
+                        if (!blob) { $('busy').classList.remove('on'); alert('导出失败，再试一次；还不行就换个浏览器试试'); return; }
+                        finish(blob);
+                    }, 'image/png');
+                } else {
+                    // 极老浏览器兜底
+                    var b64 = atob(fullCanvas.toDataURL('image/png').split(',')[1]);
+                    var arr = new Uint8Array(b64.length);
+                    for (var k = 0; k < b64.length; k++) arr[k] = b64.charCodeAt(k);
+                    finish(new Blob([arr], { type: 'image/png' }));
                 }
-                resetAll();
             } catch (err) {
                 alert('导出失败，再试一次；还不行就换个浏览器试试');
-            } finally {
                 $('busy').classList.remove('on');
             }
         }, 30);
