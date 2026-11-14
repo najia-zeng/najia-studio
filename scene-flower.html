@@ -811,6 +811,8 @@ function activateLicense() {
     try { localStorage.setItem('nj_lic_sf', '1'); } catch (e) {}
     $('licErr').textContent = '';
     closeBuyDlg();
+    // 解锁成功 → 主动提醒装到桌面（客户输完码顺势安装）
+    if (window.__njSuggestInstall) window.__njSuggestInstall();
     renderQuota();
     updateGenBtn();
 }
