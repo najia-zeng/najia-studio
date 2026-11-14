@@ -698,7 +698,8 @@ function showPreview(src) {
 }
 function clearPd() { productSrc = null; productCroppedSrc = null; $('pdFile').value = ''; $('pdArea').classList.remove('has'); $('pdArea').style.borderColor = ''; $('pdContent').innerHTML = '<div class="up-ico">📦</div><div class="up-txt">上传产品白底图</div>'; updateGenBtn(); }
 /* 授权激活：付款后发激活码，输入后解锁「填自己的 Key」入口 */
-const LICENSE_SALT = 'naji-ark-2026';
+/* 一个码只认一个工具：盐里带本工具标记 sf，别处的码在本页无效 */
+const LICENSE_SALT = 'naji-ark-2026-sf';
 function licHash(x) {
     let h = 0;
     for (let i = 0; i < x.length; i++) { h = (h * 31 + x.charCodeAt(i)) >>> 0; }
@@ -708,10 +709,10 @@ function licValid(code) {
     const c = (code || '').trim().toUpperCase().replace(/[\s-]/g, '');
     const m = c.match(/^NJ([A-Z0-9]{8})([A-Z0-9]{4})$/);
     if (!m) return false;
-    return licHash(m[1] + LICENSE_SALT) === m[2];
+    return licHash(LICENSE_SALT + m[1]) === m[2]  // 盐放前面：校验位才会带工具标记，别工具的码进不来;
 }
 function isLicensed() {
-    try { return localStorage.getItem('nj_lic') === '1'; } catch (e) { return false; }
+    try { return localStorage.getItem('nj_lic_sf') === '1'; } catch (e) { return false; }
 }
 
 /* 正式版：3 次免费体验，用完弹购买框。自用版（scene-flower1.html）里这里是 true。 */
@@ -721,10 +722,10 @@ const UNLIMITED = false;
 const FREE_LIMIT = 3;
 const WECHAT_ID = 'najia9864';
 function getFreeUsed() {
-    try { return parseInt(localStorage.getItem('nj_free_used') || '0', 10) || 0; } catch (e) { return 0; }
+    try { return parseInt(localStorage.getItem('nj_free_used_sf') || '0', 10) || 0; } catch (e) { return 0; }
 }
 function setFreeUsed(n) {
-    try { localStorage.setItem('nj_free_used', String(n)); } catch (e) {}
+    try { localStorage.setItem('nj_free_used_sf', String(n)); } catch (e) {}
 }
 function isDev() {
     /* 已废弃：不再支持永久开发者标记，任何人（含站长）都按 3 次限制走。
@@ -744,11 +745,15 @@ function renderQuota() {
     if (isLicensed()) {
         el.className = 'quota-tag';
         el.innerHTML = '已解锁 · 不限次';
+        el.onclick = null; el.style.cursor = '';
         return;
     }
     const left = freeLeft();
     el.className = 'quota-tag' + (left === 0 ? ' used' : '');
-    el.innerHTML = left > 0 ? '免费体验剩 <b>' + left + '</b> 次' : '免费体验已用完';
+    el.innerHTML = left > 0 ? '免费体验剩 <b>' + left + '</b> 次 · 解锁' : '免费体验已用完 · 点此解锁';
+    // 未解锁时点额度标签即可打开激活窗口（已购买的客户不用先耗完 3 次）
+    el.onclick = function () { openBuyDlg(); };
+    el.style.cursor = 'pointer';
 }
 function openBuyDlg() { $('buyMask').style.display = 'flex'; }
 function closeBuyDlg() { $('buyMask').style.display = 'none'; }
@@ -795,8 +800,9 @@ function updateGenBtn() { $('genBtn').disabled = !productCroppedSrc; }
 function activateLicense() {
     const v = ($('licInput').value || '').trim();
     if (!v) { $('licErr').textContent = '请先填激活码'; return; }
-    if (!licValid(v)) { $('licErr').textContent = '激活码不对，检查一下有没有输错'; return; }
-    try { localStorage.setItem('nj_lic', '1'); } catch (e) {}
+    if (!licValid(v)) { $('licErr').textContent = '激活码不对，或不是本工具的码'; return; }
+    try { localStorage.setItem('nj_lic_sf', '1'); } catch (e) {}
+    $('licErr').textContent = '';
     closeBuyDlg();
     renderQuota();
     updateGenBtn();
