@@ -3,7 +3,7 @@
   "short_name": "修瑕疵",
   "description": "上传产品图，涂哪儿修哪儿：倒影、灰尘、杂物、台面瑕疵，产品本体不动。",
   "start_url": "/retouch.html",
-  "scope": "/retouch.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#f7f7fa",
   "theme_color": "#6b5ce7",
