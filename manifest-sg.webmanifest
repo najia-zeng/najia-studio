@@ -3,7 +3,7 @@
   "short_name": "科研医美",
   "description": "护肤、精华、医美类产品，上传白底图一次出四张成套场景图。",
   "start_url": "/scene-gen.html",
-  "scope": "/scene-gen.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#f7f7fa",
   "theme_color": "#6b5ce7",
