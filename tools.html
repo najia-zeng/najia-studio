@@ -121,7 +121,7 @@
     <button class="tab on" data-cat="all">全部</button>
     <button class="tab" data-cat="pack">风格包</button>
     <button class="tab" data-cat="tool">工具</button>
-    <span class="count" id="count">共 5 个</span>
+    <span class="count" id="count">共 6 个</span>
   </div>
 
   <div class="grid" id="grid">
@@ -191,6 +191,19 @@
       </div>
     </a>
 
+    <!-- 工具 · 一键亮钢 -->
+    <a class="card" data-cat="tool" data-tool="lg" href="lianggang.html">
+      <div class="cover">
+        <img src="img/cover-lianggang.jpg" alt="一键亮钢 前后对比">
+        <span class="badge" data-badge="lg"></span>
+      </div>
+      <div class="c-body">
+        <h3>工具类 · 一键亮钢</h3>
+        <p>不锈钢、五金件专用。拍完偏灰、表面不匀？提亮拉对比、修平细小划痕，形状和材质一点不动。</p>
+        <div class="c-meta" data-meta="lg">查看详情 <span class="arrow">→</span></div>
+      </div>
+    </a>
+
   </div>
 
   <!-- 收口 -->
@@ -213,13 +226,14 @@
 <script>
 (function () {
   /* ===== 每张卡片实时显示解锁状态（和各工具页存的位置一一对应） ===== */
-  var FREE_LIMIT = { rt: 6, kc: 3, sg: 3, sf: 3, dg: 6 };  // 零成本工具（修瑕疵/去灰）6 次当钩子，其余 3 次
+  var FREE_LIMIT = { rt: 6, kc: 3, sg: 3, sf: 3, dg: 6, lg: 6 };  // 零成本工具（修瑕疵/去灰/亮钢）6 次当钩子，其余 3 次
   var KEYS = {
     rt: { lic: 'nj_lic_rt', used: 'nj_free_used_rt' },
     kc: { lic: 'nj_lic_kc', used: 'nj_free_used_kc' },
     sg: { lic: 'nj_lic_sg', used: 'nj_free_used_sg' },
     sf: { lic: 'nj_lic_sf', used: 'nj_free_used_sf' },
-    dg: { lic: 'nj_lic_dg', used: 'nj_free_used_dg' }
+    dg: { lic: 'nj_lic_dg', used: 'nj_free_used_dg' },
+    lg: { lic: 'nj_lic_lg', used: 'nj_free_used_lg' }
   };
   function readLS(k) {
     try { return localStorage.getItem(k); } catch (e) { return null; }
