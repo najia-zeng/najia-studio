@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一键去灰 · NaStudio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="/img/icon-192.png" type="image/png">
+<link rel="stylesheet" href="topbar.css">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+        --font: "Space Grotesk", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+        --blue: #6b5ce7; --blue-d: #5a4bd6;
+        --ink: #1a1a2e; --muted: #6a6483; --line: #e8e8ed;
+        --bg: #f7f7fa; --card: #ffffff;
+        --green: #0d9a72; --danger: #e05c5c;
+        --rad: 18px; --rad-s: 12px;
+    }
+    html, body { -webkit-font-smoothing: antialiased; }
+    body {
+        font-family: var(--font); color: var(--ink); background: var(--bg);
+        line-height: 1.6; font-size: 14.5px;
+        display: flex; flex-direction: column; min-height: 100vh;
+    }
+    #ns-topbar { flex-shrink: 0; background: #fff; }
+    @media (min-width: 901px) { body { height: 100vh; overflow: hidden; } }
+    main.content { flex: 1 1 auto; min-height: 0; width: 100%; max-width: none; margin: 0; padding: 0;
+                   display: flex; flex-direction: column; }
+
+    /* ===== 页头 ===== */
+    .hero { text-align: center; padding: 14px 30px 12px; background: #fff; border-bottom: 1px solid var(--line); }
+    .hero h1 { margin: 0 0 7px; font-size: 32px; font-weight: 800; line-height: 1.22; letter-spacing: -.6px; }
+    .hero h1 em { font-style: normal; color: var(--blue); }
+    .hero-note { margin: 0; font-size: 14.5px; color: #56526e; font-weight: 550; line-height: 1.65; }
+
+    /* ===== 工作区 ===== */
+    .work { display: grid; grid-template-columns: 300px 1fr; gap: 0; align-items: stretch;
+            flex: 1 1 auto; min-height: 0; }
+    .stage-card { display: flex; flex-direction: column; height: auto; min-height: 0;
+        background: #fff; border: none; border-radius: 0; overflow: hidden; }
+    .stage-wrap { position: relative; flex: 1 1 auto; min-height: 0;
+        display: flex; align-items: center; justify-content: center;
+        padding: 0; background: #fbfaff; overflow: hidden; }
+    .stage-wrap::-webkit-scrollbar { width: 10px; }
+    .stage-wrap::-webkit-scrollbar-track { background: transparent; }
+    .stage-wrap::-webkit-scrollbar-thumb { background: #d6d1ea; border-radius: 8px; border: 3px solid #fff; }
+    .stage-inner { display: flex; flex-direction: column; align-items: center; width: 100%; }
+    .stage { position: relative; line-height: 0; box-shadow: 0 8px 28px rgba(45,35,110,.12); }
+    .stage canvas { display: block; }
+    .stage-tools { flex: 0 0 auto; display: flex; gap: 10px; justify-content: center; align-items: center;
+        height: 62px; background: #fff; border-top: 1px solid #f5f4fa; }
+    .stage-tools .btn { width: auto; flex: none; padding: 10px 26px; }
+
+    /* ---------- 侧栏 ---------- */
+    .side { background: var(--card); border: none; border-right: 1px solid var(--line); border-radius: 0;
+        display: flex; flex-direction: column; overflow-y: auto; }
+    .side::-webkit-scrollbar { width: 8px; }
+    .side::-webkit-scrollbar-thumb { background: #e2ddf0; border-radius: 8px; border: 2px solid #fff; }
+    .sec { padding: 13px 20px; border-bottom: 1px solid #f0f0f5; }
+    .sec:last-child { border-bottom: none; }
+    .sec-t { font-size: 13px; font-weight: 750; color: var(--ink); letter-spacing: .2px; margin-bottom: 12px; }
+
+    /* 上传区 */
+    .drop { border: 2px dashed #d8d0fb; border-radius: 14px; padding: 16px 12px; text-align: center;
+        cursor: pointer; transition: all .18s; background: #fbfaff; }
+    .drop:hover, .drop.over { border-color: var(--blue); background: #f6f3ff; }
+    .drop-ico { font-size: 24px; opacity: .6; margin-bottom: 9px; }
+    .drop-t { font-size: 14px; font-weight: 750; }
+    .drop-s { font-size: 11.5px; color: #8a86a3; margin-top: 6px; line-height: 1.65; }
+
+    /* 滑块 */
+    input[type=range] { width: 100%; height: 22px; -webkit-appearance: none; appearance: none;
+        background: transparent; margin: 0; outline: none; }
+    input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: #e8e4fa; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px;
+        border-radius: 50%; background: var(--blue); margin-top: -6px; cursor: pointer;
+        box-shadow: 0 1px 4px rgba(107,92,231,.4); border: none; }
+    input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: #e8e4fa; }
+    input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border: none; border-radius: 50%;
+        background: var(--blue); cursor: pointer; }
+    .sec.off .sld, .sec.off .hint { opacity: .4; }
+    .sld { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+    .sld + .sld { margin-top: 10px; }
+    .sld-l { font-size: 12.5px; color: var(--muted); flex: none; font-weight: 600; }
+    .sld-v { font-size: 13px; color: var(--blue); font-weight: 750; min-width: 28px; text-align: right; font-variant-numeric: tabular-nums; }
+    .sld input[type=range] { flex: 1; }
+
+    /* 按钮 */
+    .btn { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1.5px solid #e6e2f5;
+        background: #fff; color: #56526e; font-size: 14px; font-weight: 650; font-family: inherit;
+        cursor: pointer; transition: all .15s; display: flex; align-items: center; justify-content: center; gap: 7px; }
+    .btn:hover:not(:disabled) { border-color: #c9c1f5; color: var(--blue); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-main { background: var(--blue); border-color: transparent; color: #fff; font-weight: 700;
+        font-size: 15px; padding: 14px; box-shadow: 0 4px 14px rgba(107,92,231,.3); }
+    .btn-main:hover:not(:disabled) { background: var(--blue); color: #fff; transform: translateY(-1px);
+        box-shadow: 0 7px 18px rgba(107,92,231,.36); }
+    .hint { font-size: 11px; color: #a5a1bb; line-height: 1.6; margin-top: 6px; }
+    .hint b { color: #56526e; font-weight: 650; }
+
+    /* 空态 */
+    .empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; text-align: center; color: #8a86a3; padding: 30px 20px; }
+    .empty-ico { font-size: 40px; opacity: .4; margin-bottom: 14px; }
+    .empty-t { font-size: 16px; font-weight: 750; color: #56526e; margin-bottom: 7px; }
+    .empty-s { font-size: 13px; line-height: 1.75; }
+
+    /* 处理中遮罩 */
+    .busy { position: absolute; inset: 0; background: rgba(255,255,255,.78); display: none;
+        align-items: center; justify-content: center; flex-direction: column; gap: 14px; z-index: 20;
+        backdrop-filter: blur(3px); }
+    .busy.on { display: flex; }
+    .spinner { width: 34px; height: 34px; border: 3px solid rgba(107,92,231,.2);
+        border-top-color: var(--blue); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .busy-t { font-size: 13.5px; color: var(--blue); font-weight: 650; }
+
+    /* 对比提示 */
+    .cmp-badge { position: absolute; left: 50%; top: 16px; transform: translateX(-50%);
+        background: rgba(26,26,46,.78); color: #fff; font-size: 12px; font-weight: 600;
+        padding: 6px 14px; border-radius: 999px; display: none; z-index: 15;
+        border: 1px solid rgba(255,255,255,.14); }
+    .cmp-badge.on { display: block; }
+
+    /* 步骤 */
+    .steps { display: flex; gap: 7px; margin-bottom: 9px; }
+    .step { flex: 1; text-align: center; font-size: 11.5px; padding: 7px 4px; font-weight: 650;
+        border-radius: 9px; background: #fbfaff; color: #8a86a3; border: 1.5px solid #f0eefa; transition: all .2s; }
+    .step.on { background: rgba(107,92,231,.09); color: var(--blue); border-color: rgba(107,92,231,.35); }
+    .step.done { color: var(--green); border-color: rgba(13,154,114,.3); background: rgba(13,154,114,.07); }
+
+    /* 侧栏底部说明 */
+    .tips { margin-top: auto; padding: 10px 20px 13px; background: #fbfaff; border-top: 1px solid #f0f0f5;
+        font-size: 10.5px; color: #9a95b0; line-height: 1.55; }
+    .tips .row { display: flex; gap: 6px; }
+    .tips .row + .row { margin-top: 4px; }
+    .tips .n { color: var(--blue); font-weight: 750; flex-shrink: 0; }
+    .tips b { color: var(--ink); }
+
+    /* 移动端 */
+    @media (max-width: 900px) {
+        main.content { padding: 0; }
+        .hero { padding: 14px 16px 12px; }
+        .hero h1 { font-size: 26px; }
+        .hero-note { font-size: 13px; }
+        .work { grid-template-columns: 1fr; gap: 0; min-height: 0; align-items: start; }
+        .stage-card { height: 62vh; min-height: 320px; }
+        .stage-tools { height: 56px; }
+        .sec { padding: 14px 16px; }
+        .side { border-radius: 0; border-right: none; border-bottom: 1px solid var(--line); }
+        .tips { padding: 12px 16px 16px; font-size: 11px; }
+    }
+
+    /* ===== 体验额度 & 买断弹窗 ===== */
+    .quota-tag { font-size: 12px; color: #999; white-space: nowrap; }
+    .quota-tag b { font-weight: 500; color: #555; }
+    .quota-tag.used { color: #d9534f; }
+    .nj-dlg-mask { position: fixed; inset: 0; background: rgba(0,0,0,.38); display: flex;
+        align-items: center; justify-content: center; z-index: 9999; padding: 20px; }
+    .nj-dlg { background: #fff; border-radius: 14px; width: 100%; max-width: 420px; max-height: 88vh;
+        overflow: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2); position: relative; }
+    .nj-dlg-b { padding: 34px 26px 4px; }
+    .nj-dlg-t1 { font-size: 23px; font-weight: 700; color: #1a1a2e; text-align: center; letter-spacing: 1.5px; }
+    .nj-dlg-t2 { font-size: 13px; color: #6a6483; text-align: center; margin: 11px 0 22px; line-height: 1.65; }
+    .nj-dlg-x { position: absolute; right: 15px; top: 11px; color: #c9c9d6; font-size: 22px; line-height: 1;
+        cursor: pointer; z-index: 3; background: none; border: none; font-family: inherit; padding: 4px; }
+    .nj-dlg-x:hover { color: #888; }
+    .nj-qr-box { display: block; border: 1px dashed #d9d9e6; border-radius: 16px; background: #fafafd;
+        padding: 22px 18px 15px; }
+    .nj-qr-box img { display: block; width: 180px; height: 180px; object-fit: contain; border-radius: 10px;
+        background: #fff; margin: 0 auto; }
+    .nj-qr-tip { font-size: 13px; color: #9c9cb2; text-align: center; margin-top: 13px; }
+    .nj-qr-or { font-size: 13px; color: #8d8da3; text-align: center; margin: 20px 0 11px; }
+    .nj-qr-id { text-align: center; font-size: 19px; font-weight: 700; letter-spacing: 1.2px; color: #6b5ce7;
+        background: #f4f2fd; border-radius: 10px; padding: 11px; cursor: pointer; user-select: all;
+        transition: background .15s, color .15s; }
+    .nj-qr-id:hover { background: #ebe7fb; }
+    .nj-qr-id.copied { background: #e9f8ee; color: #2f9e57; }
+    .nj-lic-mini { font-size: 11.5px; color: #bcbccb; text-align: center; margin: 20px 0 0; cursor: pointer;
+        text-decoration: underline; text-underline-offset: 3px; }
+    .nj-lic-mini:hover { color: #6b5ce7; }
+    .nj-lic-row { display: flex; gap: 8px; }
+    .nj-lic-row input { flex: 1; min-width: 0; box-sizing: border-box; padding: 10px 12px;
+        border: 1px solid #e8e8ed; border-radius: 8px; font-size: 13px; font-family: inherit; color: #1a1a2e; }
+    .nj-lic-row input:focus { outline: none; border-color: #999; }
+    .nj-lic-row button { padding: 0 17px; border-radius: 8px; border: 1px solid #6b5ce7; background: #fff;
+        color: #6b5ce7; font-size: 13px; cursor: pointer; font-family: inherit; white-space: nowrap; }
+    .nj-lic-err { font-size: 12px; color: #d9534f; min-height: 18px; padding-top: 6px; }
+    .nj-dlg-f { padding: 14px 26px 26px; }
+    .nj-dlg-f button { width: 100%; padding: 13px; border-radius: 9px; border: none;
+        background: linear-gradient(135deg,#6b5ce7 0%,#4a7cf7 100%); color: #fff; font-size: 15px;
+        font-weight: 600; cursor: pointer; font-family: inherit; box-shadow: 0 4px 12px rgba(107,92,231,.22); }
+</style>
+</head>
+<body>
+
+<div id="ns-topbar"></div>
+
+<main class="content">
+
+    <section class="hero">
+        <h1>产品图<em>一键去灰</em></h1>
+        <p class="hero-note">相机直出偏灰不通透？一键拉开对比——亮的更亮、暗的更暗，色彩和细节不伤。</p>
+    </section>
+
+    <div class="work">
+
+        <!-- ============ 侧栏 ============ -->
+        <aside class="side">
+
+            <div class="sec">
+                <div class="steps">
+                    <div class="step on" id="st1">1 上传</div>
+                    <div class="step" id="st2">2 调色</div>
+                    <div class="step" id="st3">3 下载</div>
+                </div>
+                <div class="quota-tag" id="quotaSide" style="margin:0 0 10px;"></div>
+                <div class="drop" id="drop">
+                    <div class="drop-ico">🖼</div>
+                    <div class="drop-t">点击上传 · 拖进来 · 粘贴</div>
+                    <div class="drop-s">支持 JPG / PNG，原图多大出多大</div>
+                </div>
+                <input type="file" id="file" accept="image/*" hidden>
+            </div>
+
+            <div class="sec off" id="secAdj">
+                <div class="sec-t">去灰调节</div>
+                <div class="sld">
+                    <span class="sld-l">对比</span>
+                    <input type="range" id="slC" min="0" max="100" value="45" step="1" disabled>
+                    <b class="sld-v" id="slCVal">45</b>
+                </div>
+                <div class="sld">
+                    <span class="sld-l">亮度</span>
+                    <input type="range" id="slB" min="-50" max="50" value="0" step="1" disabled>
+                    <b class="sld-v" id="slBVal">0</b>
+                </div>
+                <div class="hint">上传后自动去灰好了。<b>对比</b>拉大更通透（亮的更亮、暗的更暗）；觉得暗就用<b>亮度</b>整体提一点。拖到 0 对比＝原图。</div>
+                <div class="btn-row" style="margin-top:12px;">
+                    <button class="btn" id="btnReset">恢复默认</button>
+                </div>
+            </div>
+
+            <div class="tips">
+                <div class="row"><span class="n">1</span><span>上传后右边直接是<b>去灰后</b>的效果</span></div>
+                <div class="row"><span class="n">2</span><span>按住「看原图」随时对比调没调过头</span></div>
+                <div class="row"><span class="n">3</span><span>下载保存<b>原尺寸</b>，不压画质</span></div>
+            </div>
+
+        </aside>
+
+        <!-- ============ 画布 ============ -->
+        <div class="stage-card">
+            <div class="stage-wrap" id="stageWrap">
+                <div class="empty" id="empty">
+                    <div class="empty-ico">🖼</div>
+                    <div class="empty-t">先上传一张产品图</div>
+                    <div class="empty-s">偏灰的照片传上来，自动拉开对比<br>想要多通透，自己再拉两下</div>
+                </div>
+
+                <div class="stage-inner">
+                    <div class="stage" id="stage" style="display:none;">
+                        <canvas id="cvView"></canvas>
+                    </div>
+                </div>
+
+                <div class="cmp-badge" id="cmpBadge">原图</div>
+
+                <div class="busy" id="busy">
+                    <div class="spinner"></div>
+                    <div class="busy-t" id="busyTxt">正在导出…</div>
+                </div>
+            </div>
+
+            <div class="stage-tools" id="stageTools" style="display:none;">
+                <button class="btn" id="btnCmp">按住看原图</button>
+                <button class="btn btn-main" id="btnDl">下载</button>
+            </div>
+        </div>
+
+    </div>
+
+</main>
+
+<script src="topbar.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var $ = function (id) { return document.getElementById(id); };
+
+    /* ===== 体验额度 & 激活（一个码只认一个工具：盐里带本工具标记 dg，别处的码在本页无效） ===== */
+    var LICENSE_SALT = 'naji-ark-2026-dg';
+    var FREE_LIMIT = 6;  // 去灰边际成本为 0，体验次数给足当钩子（同修瑕疵）
+    var WECHAT_ID = 'najia9864';
+    var LIC_KEY = 'nj_lic_dg';
+    var USED_KEY = 'nj_free_used_dg';
+    function licHash(x) {
+        var h = 0;
+        for (var i = 0; i < x.length; i++) { h = (h * 31 + x.charCodeAt(i)) >>> 0; }
+        return h.toString(36).toUpperCase().padStart(4, '0').slice(0, 4);
+    }
+    function licValid(code) {
+        var c = (code || '').trim().toUpperCase().replace(/[\s-]/g, '');
+        var m = c.match(/^NJ([A-Z0-9]{8})([A-Z0-9]{4})$/);
+        if (!m) return false;
+        return licHash(LICENSE_SALT + m[1]) === m[2];  // 盐放前面：校验位才会带工具标记
+    }
+    function isLicensed() {
+        try { return localStorage.getItem(LIC_KEY) === '1'; } catch (e) { return false; }
+    }
+    function getFreeUsed() {
+        try { return parseInt(localStorage.getItem(USED_KEY) || '0', 10) || 0; } catch (e) { return 0; }
+    }
+    function setFreeUsed(n) {
+        try { localStorage.setItem(USED_KEY, String(n)); } catch (e) {}
+    }
+    function freeLeft() { return Math.max(0, FREE_LIMIT - getFreeUsed()); }
+    function renderQuota() {
+        var ids = ['quotaTag', 'quotaSide'];
+        ids.forEach(function (id) {
+            var el = $(id);
+            if (!el) return;
+            var isCta = (id === 'quotaSide');
+            if (isLicensed()) {
+                el.className = 'quota-tag';
+                el.innerHTML = '已解锁 · 不限次';
+                el.onclick = null; el.style.cursor = '';
+                return;
+            }
+            var l = freeLeft();
+            if (isCta) {
+                el.className = 'quota-cta' + (l === 0 ? ' used' : '');
+                el.innerHTML = l > 0
+                    ? '还剩 <b>' + l + '</b> 次免费体验 · 想一直用？点此解锁'
+                    : '免费体验已用完 · 点此解锁 →';
+            } else {
+                el.className = 'quota-tag' + (l === 0 ? ' used' : '');
+                el.innerHTML = l > 0
+                    ? '免费体验剩 <b>' + l + '</b> 次 · 解锁'
+                    : '免费体验已用完 · 点此解锁';
+            }
+            el.onclick = function () { openBuyDlg(); };
+            el.style.cursor = 'pointer';
+        });
+    }
+    function openBuyDlg() {
+        $('buyMask').style.display = 'flex';
+        $('licErr').textContent = '';
+    }
+    function closeBuyDlg() { $('buyMask').style.display = 'none'; }
+    function toggleLic() {
+        var row = $('licRow'), mini = $('licMini');
+        var show = row.style.display === 'none';
+        row.style.display = show ? 'flex' : 'none';
+        if (mini) mini.style.display = show ? 'none' : 'block';
+        if (show) { var inp = $('licInput'); if (inp) setTimeout(function () { inp.focus(); }, 60); }
+    }
+    function copyWx() {
+        var el = $('qrId');
+        if (!el) return;
+        var ok = function () {
+            el.classList.add('copied');
+            el.textContent = '已复制 ' + WECHAT_ID;
+            setTimeout(function () { el.classList.remove('copied'); el.textContent = WECHAT_ID; }, 1600);
+        };
+        var fallback = function () {
+            var ta = document.createElement('textarea');
+            ta.value = WECHAT_ID;
+            ta.style.position = 'fixed'; ta.style.opacity = '0';
+            document.body.appendChild(ta); ta.select();
+            try { document.execCommand('copy'); ok(); } catch (e) {}
+            document.body.removeChild(ta);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(WECHAT_ID).then(ok).catch(fallback);
+        } else { fallback(); }
+    }
+    function activateLicense() {
+        var v = ($('licInput').value || '').trim();
+        if (!v) { $('licErr').textContent = '请先填激活码'; return; }
+        if (!licValid(v)) { $('licErr').textContent = '激活码不对，或不是本工具的码'; return; }
+        try { localStorage.setItem(LIC_KEY, '1'); } catch (e) {}
+        $('licErr').textContent = '';
+        closeBuyDlg();
+        renderQuota();
+    }
+    function bindBuyDlg() {
+        var b = $('buyClose'); if (b) b.addEventListener('click', closeBuyDlg);
+        var d = $('buyDone'); if (d) d.addEventListener('click', closeBuyDlg);
+        var q = $('qrId'); if (q) q.addEventListener('click', copyWx);
+        var m = $('licMini'); if (m) m.addEventListener('click', toggleLic);
+        var g = $('licGo'); if (g) g.addEventListener('click', activateLicense);
+        var li = $('licInput');
+        if (li) li.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.keyCode === 13) { e.preventDefault(); activateLicense(); }
+        });
+        li = li && li.addEventListener('input', function () { $('licErr').textContent = ''; });
+    }
+    var curImgFp = '', lastCountedFp = '';
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { bindBuyDlg(); });
+    else bindBuyDlg();
+    renderQuota();
+
+    /* ================= 去灰核心 ================= */
+
+    var cvView = $('cvView');
+    var ctxView = cvView.getContext('2d', { willReadFrequently: true });
+
+    var fullCanvas = null;      // 原尺寸原图（离屏），下载时用
+    var fullCtx = null;
+    var imgW = 0, imgH = 0;     // 原尺寸
+    var pW = 0, pH = 0;         // 预览代理尺寸（大图缩小，滑杆才丝滑）
+    var origProxyData = null;   // 代理图原始像素（调滑杆都从它重算，不叠加）
+    var loB = 0, hiW = 1;       // 直方图剪切出的黑点/白点（0~1）
+    var DEF_C = 45, DEF_B = 0; // 默认对比/亮度（上传即自动去灰）
+    var cmpOn = false;
+
+    /* ---------------- 上传 ---------------- */
+
+    $('drop').addEventListener('click', function () { $('file').click(); });
+    $('file').addEventListener('change', function (e) {
+        if (e.target.files && e.target.files[0]) loadFile(e.target.files[0]);
+        e.target.value = '';
+    });
+    ['dragenter', 'dragover'].forEach(function (ev) {
+        $('drop').addEventListener(ev, function (e) { e.preventDefault(); $('drop').classList.add('over'); });
+    });
+    ['dragleave', 'drop'].forEach(function (ev) {
+        $('drop').addEventListener(ev, function (e) { e.preventDefault(); $('drop').classList.remove('over'); });
+    });
+    $('drop').addEventListener('drop', function (e) {
+        var f = e.dataTransfer.files && e.dataTransfer.files[0];
+        if (f) loadFile(f);
+    });
+
+    // 粘贴上传
+    document.addEventListener('paste', function (e) {
+        var items = e.clipboardData && e.clipboardData.items;
+        if (!items) return;
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') === 0) {
+                loadFile(items[i].getAsFile());
+                break;
+            }
+        }
+    });
+
+    function loadFile(file) {
+        if (!file || file.type.indexOf('image') !== 0) return;
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+            var img = new Image();
+            img.onload = function () { setupImage(img); };
+            img.onerror = function () { alert('图片读不出来，换一张试试'); };
+            img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function setupImage(img) {
+        imgW = img.naturalWidth;
+        imgH = img.naturalHeight;
+
+        // 原图保尺寸：最长边上限 7000（同修瑕疵）
+        var MAX = 7000;
+        var scale = 1;
+        if (Math.max(imgW, imgH) > MAX) scale = MAX / Math.max(imgW, imgH);
+        imgW = Math.round(imgW * scale);
+        imgH = Math.round(imgH * scale);
+
+        // 原尺寸离屏画布（下载用）
+        fullCanvas = document.createElement('canvas');
+        fullCanvas.width = imgW; fullCanvas.height = imgH;
+        fullCtx = fullCanvas.getContext('2d', { willReadFrequently: true });
+        fullCtx.clearRect(0, 0, imgW, imgH);
+        fullCtx.drawImage(img, 0, 0, imgW, imgH);
+
+        // 预览代理（最长边 ≤1400，滑杆实时重算不卡）
+        var P = 1400;
+        var ps = Math.min(1, P / Math.max(imgW, imgH));
+        pW = Math.max(1, Math.round(imgW * ps));
+        pH = Math.max(1, Math.round(imgH * ps));
+        cvView.width = pW; cvView.height = pH;
+        ctxView.clearRect(0, 0, pW, pH);
+        ctxView.imageSmoothingQuality = 'high';
+        ctxView.drawImage(img, 0, 0, pW, pH);
+        origProxyData = ctxView.getImageData(0, 0, pW, pH);
+
+        // 指纹（额度计数：同一张图只计一次）
+        try {
+            var fpd = origProxyData.data, fpStep = Math.max(4, Math.floor(fpd.length / 48));
+            var fp = imgW + 'x' + imgH;
+            for (var fi = 0; fi < fpd.length; fi += fpStep) fp += ',' + fpd[fi];
+            curImgFp = fp;
+        } catch (e) { curImgFp = String(Date.now()); }
+
+        // 直方图剪切：找出最暗/最亮的真实范围（灰图两头缩着，拉开才有通透感）
+        analyzeHistogram();
+
+        // 换新图：滑杆回默认（上传即自动去灰，不是上一张调的数值）
+        $('slC').value = DEF_C;
+        $('slB').value = DEF_B;
+        $('slCVal').textContent = DEF_C;
+        $('slBVal').textContent = (DEF_B > 0 ? '+' : '') + DEF_B;
+        $('slC').disabled = false;
+        $('slB').disabled = false;
+        $('secAdj').classList.remove('off');
+
+        applyToProxy();
+
+        $('empty').style.display = 'none';
+        $('stage').style.display = 'block';
+        $('stageTools').style.display = '';
+        cmpOn = false;
+        $('cmpBadge') && $('cmpBadge').classList.remove('on');
+        fitStage();
+        requestAnimationFrame(fitStage);
+        setStep(2);
+    }
+
+    // 直方图：亮度累计分布，头尾各 0.5% 剪切
+    function analyzeHistogram() {
+        var hist = new Float64Array(256);
+        var d = origProxyData.data;
+        var n = 0;
+        for (var i = 0; i < d.length; i += 4) {
+            // 采样：图大就隔行取，够算分布
+            hist[(d[i] * 77 + d[i + 1] * 150 + d[i + 2] * 29) >> 8]++;
+            n++;
+        }
+        var cut = n * 0.005;
+        var acc = 0, b = 0, w = 255;
+        for (var v = 0; v < 256; v++) { acc += hist[v]; if (acc >= cut) { b = v; break; } }
+        acc = 0;
+        for (var v2 = 255; v2 >= 0; v2--) { acc += hist[v2]; if (acc >= cut) { w = v2; break; } }
+        loB = b / 255; hiW = w / 255;
+        if (hiW - loB < 0.05) { loB = 0; hiW = 1; }  // 本来就很陡（黑白场已满），不剪切
+    }
+
+    /* ---------------- 曲线（LUT） ---------------- */
+
+    function buildLUT() {
+        var k = parseInt($('slC').value, 10) / 100;         // 对比力度 0~1
+        var br = parseInt($('slB').value, 10) / 100;        // 亮度 -0.5~+0.5
+        var lut = new Uint8Array(256);
+        for (var v = 0; v < 256; v++) {
+            var t = v / 255;
+            // 1) 自动色阶拉伸（跟对比力度挂钩：0 = 完全原图）
+            var st = (t - loB) / Math.max(0.001, hiW - loB);
+            if (st < 0) st = 0; if (st > 1) st = 1;
+            var t1 = t + k * 0.85 * (st - t);
+            // 2) S 曲线：亮的更亮、暗的更暗（去灰的主力）
+            var s = t1 * t1 * (3 - 2 * t1);
+            var t2 = t1 + k * 0.75 * (s - t1);
+            // 3) 亮度：整体提亮/压暗
+            var t3 = t2 + br;
+            if (t3 < 0) t3 = 0; if (t3 > 1) t3 = 1;
+            lut[v] = Math.round(t3 * 255);
+        }
+        return lut;
+    }
+
+    // 代理图重算（每次都从原图像素来，不叠加）
+    function applyToProxy() {
+        if (!origProxyData) return;
+        var lut = buildLUT();
+        var out = new Uint8ClampedArray(origProxyData.data);  // 复制一份原始像素
+        var d = out;
+        for (var i = 0; i < d.length; i += 4) {
+            d[i] = lut[d[i]];
+            d[i + 1] = lut[d[i + 1]];
+            d[i + 2] = lut[d[i + 2]];
+        }
+        ctxView.putImageData(new ImageData(out, pW, pH), 0, 0);
+    }
+
+    /* ---------------- 滑杆 ---------------- */
+
+    function onSlider() {
+        $('slCVal').textContent = $('slC').value;
+        var bv = parseInt($('slB').value, 10);
+        $('slBVal').textContent = (bv > 0 ? '+' : '') + bv;
+        if (cmpOn) { cmpOn = false; $('cmpBadge').classList.remove('on'); }
+        applyToProxy();
+    }
+    $('slC').addEventListener('input', onSlider);
+    $('slB').addEventListener('input', onSlider);
+    $('btnReset').addEventListener('click', function () {
+        $('slC').value = DEF_C;
+        $('slB').value = DEF_B;
+        onSlider();
+    });
+
+    /* ---------------- 按住看原图 ---------------- */
+
+    function showOrig() {
+        if (!origProxyData) return;
+        ctxView.putImageData(origProxyData, 0, 0);
+        cmpOn = true;
+        $('cmpBadge').classList.add('on');
+    }
+    function showResult() {
+        if (!origProxyData || !cmpOn) return;
+        cmpOn = false;
+        $('cmpBadge').classList.remove('on');
+        applyToProxy();
+    }
+    var btnCmp = $('btnCmp');
+    btnCmp.addEventListener('pointerdown', function (e) { e.preventDefault(); showOrig(); });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
+        btnCmp.addEventListener(ev, showResult);
+    });
+
+    /* ---------------- 下载 ---------------- */
+
+    $('btnDl').addEventListener('click', function () {
+        if (!imgW) return;
+        // 未解锁且体验用完 → 弹解锁窗
+        if (!isLicensed() && freeLeft() === 0) { openBuyDlg(); return; }
+        $('busy').classList.add('on');
+        $('busyTxt').textContent = '正在导出…';
+        setTimeout(function () {
+            try {
+                var lut = buildLUT();
+                var fd = fullCtx.getImageData(0, 0, imgW, imgH);
+                var d = fd.data;
+                for (var i = 0; i < d.length; i += 4) {
+                    d[i] = lut[d[i]];
+                    d[i + 1] = lut[d[i + 1]];
+                    d[i + 2] = lut[d[i + 2]];
+                }
+                fullCtx.putImageData(fd, 0, 0);
+                var a = document.createElement('a');
+                a.download = 'quhui-' + Date.now() + '.png';
+                a.href = fullCanvas.toDataURL('image/png');
+                a.click();
+                // 计一次体验（同一张图只计一次）
+                if (!isLicensed() && curImgFp && curImgFp !== lastCountedFp) {
+                    lastCountedFp = curImgFp;
+                    setFreeUsed(getFreeUsed() + 1);
+                    renderQuota();
+                }
+                resetAll();
+            } catch (err) {
+                alert('导出失败，再试一次；还不行就换个浏览器试试');
+            } finally {
+                $('busy').classList.remove('on');
+            }
+        }, 30);
+    });
+
+    // 整页复位（下载完成后用）：清图、滑杆回默认、步骤回 1
+    function resetAll() {
+        imgW = 0; imgH = 0; pW = 0; pH = 0;
+        origProxyData = null;
+        fullCanvas = null; fullCtx = null;
+        loB = 0; hiW = 1;
+        curImgFp = '';
+        cmpOn = false;
+        $('cmpBadge') && $('cmpBadge').classList.remove('on');
+        cvView.width = 0; cvView.height = 0;
+        $('empty').style.display = '';
+        $('stage').style.display = 'none';
+        $('stageTools').style.display = 'none';
+        $('secAdj').classList.add('off');
+        $('slC').disabled = true;
+        $('slB').disabled = true;
+        $('slC').value = DEF_C;
+        $('slB').value = DEF_B;
+        $('slCVal').textContent = DEF_C;
+        $('slBVal').textContent = (DEF_B > 0 ? '+' : '') + DEF_B;
+        setStep(1);
+    }
+
+    /* ---------------- 画布自适应 ---------------- */
+
+    function fitStage() {
+        if (!imgW) return;
+        var wrap = $('stageWrap');
+        var pad = 36;
+        var maxW = wrap.clientWidth - pad;
+        var maxH = wrap.clientHeight - pad;
+        var r = Math.min(maxW / imgW, maxH / imgH, 1);
+        var dw = Math.round(imgW * r), dh = Math.round(imgH * r);
+        cvView.style.width = dw + 'px'; cvView.style.height = dh + 'px';
+        $('stage').style.width = dw + 'px';
+        $('stage').style.height = dh + 'px';
+    }
+    window.addEventListener('resize', fitStage);
+
+    /* ---------------- 步骤条 ---------------- */
+
+    function setStep(n) {
+        for (var i = 1; i <= 3; i++) {
+            var el = $('st' + i);
+            if (!el) continue;
+            el.className = 'step' + (i < n ? ' done' : i === n ? ' on' : '');
+        }
+    }
+    setStep(1);
+
+    /* 暴露上传入口，供整页拖放用 */
+    window.__njLoad = loadFile;
+})();
+
+/* 拖放防误跳：文件拖到页面任意位置，都不让浏览器拿图片替换当前页/开新标签 */
+(function () {
+    function stop(e) { e.preventDefault(); }
+    window.addEventListener('dragenter', stop, false);
+    window.addEventListener('dragover', stop, false);
+    window.addEventListener('drop', stop, false);
+    window.addEventListener('drop', function (e) {
+        var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (!f || String(f.type).indexOf('image') !== 0) return;
+        var t = e.target;
+        if (t && t.closest && t.closest('#drop')) return;
+        var fn = window['__njLoad'];
+        if (typeof fn === 'function') fn(f);
+    }, false);
+})();
+</script>
+
+<!-- ===== 体验额度 · 买断弹窗 ===== -->
+<div class="nj-dlg-mask" id="buyMask" style="display:none">
+    <div class="nj-dlg">
+        <button class="nj-dlg-x" type="button" id="buyClose">&times;</button>
+        <div class="nj-dlg-b">
+            <div class="nj-dlg-t1">免费体验已用完</div>
+            <div class="nj-dlg-t2">扫码沟通，一次买断长期用</div>
+            <div class="nj-qr-box">
+                <img src="img/qr-weixin.png" alt="微信二维码">
+                <div class="nj-qr-tip">请使用微信扫码</div>
+            </div>
+            <div class="nj-qr-or">或手动添加我的微信</div>
+            <div class="nj-qr-id" id="qrId" title="点击复制微信号">najia9864</div>
+            <div class="nj-lic-mini" id="licMini">已购买？点此激活</div>
+            <div class="nj-lic-row" id="licRow" style="display:none">
+                <input type="text" id="licInput" placeholder="NJ-XXXXXXXX-XXXX" autocomplete="off">
+                <button type="button" id="licGo">解锁</button>
+            </div>
+            <div class="nj-lic-err" id="licErr"></div>
+        </div>
+        <div class="nj-dlg-f">
+            <button type="button" id="buyDone">我已添加，完成</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
