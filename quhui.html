@@ -234,8 +234,8 @@
                 <div class="sec-t">去灰调节</div>
                 <div class="sld">
                     <span class="sld-l">对比</span>
-                    <input type="range" id="slC" min="0" max="100" value="25" step="1" disabled>
-                    <b class="sld-v" id="slCVal">25</b>
+                    <input type="range" id="slC" min="0" max="100" value="20" step="1" disabled>
+                    <b class="sld-v" id="slCVal">20</b>
                 </div>
                 <div class="sld">
                     <span class="sld-l">亮度</span>
@@ -419,7 +419,7 @@
     var pW = 0, pH = 0;         // 预览代理尺寸（大图缩小，滑杆才丝滑）
     var origProxyData = null;   // 代理图原始像素（调滑杆都从它重算，不叠加）
     var loB = 0, hiW = 1;       // 直方图剪切出的黑点/白点（0~1）
-    var DEF_C = 25, DEF_B = 0; // 默认对比/亮度（上传即自动去灰）
+    var DEF_C = 20, DEF_B = 0; // 默认对比/亮度（上传即自动去灰）
     var cmpOn = false;
 
     /* ---------------- 上传 ---------------- */
@@ -621,6 +621,48 @@
 
     /* ---------------- 下载 ---------------- */
 
+    // PNG 写入 300dpi（pHYs 块）：像素不变，只是补印刷标记，客户拿去印刷不挨挑
+    var _crcT = null;
+    function crc32(u8) {
+        if (!_crcT) {
+            _crcT = new Uint32Array(256);
+            for (var n = 0; n < 256; n++) {
+                var c = n;
+                for (var k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+                _crcT[n] = c >>> 0;
+            }
+        }
+        var c = 0xFFFFFFFF;
+        for (var i = 0; i < u8.length; i++) c = _crcT[(c ^ u8[i]) & 255] ^ (c >>> 8);
+        return (c ^ 0xFFFFFFFF) >>> 0;
+    }
+    function pngSet300dpi(blob, cb) {
+        try {
+            var fr = new FileReader();
+            fr.onload = function () {
+                var u8 = new Uint8Array(fr.result);
+                // IHDR 固定 13 字节数据：插在它后面（8 签名 + 4 长 + 4 型 + 13 + 4 CRC = 33）
+                var pos = 33;
+                var ppm = 11811; // 300dpi ≈ 11811 像素/米
+                var chunk = new Uint8Array(21);
+                chunk[0] = 0; chunk[1] = 0; chunk[2] = 0; chunk[3] = 9;
+                chunk[4] = 0x70; chunk[5] = 0x48; chunk[6] = 0x59; chunk[7] = 0x73; // "pHYs"
+                chunk[8] = (ppm >>> 24) & 255; chunk[9] = (ppm >>> 16) & 255; chunk[10] = (ppm >>> 8) & 255; chunk[11] = ppm & 255;
+                chunk[12] = (ppm >>> 24) & 255; chunk[13] = (ppm >>> 16) & 255; chunk[14] = (ppm >>> 8) & 255; chunk[15] = ppm & 255;
+                chunk[16] = 1; // 单位：米
+                var crc = crc32(chunk.subarray(4, 17));
+                chunk[17] = (crc >>> 24) & 255; chunk[18] = (crc >>> 16) & 255; chunk[19] = (crc >>> 8) & 255; chunk[20] = crc & 255;
+                var out = new Uint8Array(u8.length + chunk.length);
+                out.set(u8.subarray(0, pos), 0);
+                out.set(chunk, pos);
+                out.set(u8.subarray(pos), pos + chunk.length);
+                cb(new Blob([out], { type: 'image/png' }));
+            };
+            fr.onerror = function () { cb(blob); }; // 读不出来就原样返回，别耽误下载
+            fr.readAsArrayBuffer(blob);
+        } catch (e) { cb(blob); }
+    }
+
     $('btnDl').addEventListener('click', function () {
         if (!imgW) return;
         // 未解锁且体验用完 → 弹解锁窗
@@ -673,14 +715,14 @@
                 if (fullCanvas.toBlob) {
                     fullCanvas.toBlob(function (blob) {
                         if (!blob) { $('busy').classList.remove('on'); alert('导出失败，再试一次；还不行就换个浏览器试试'); return; }
-                        finish(blob);
+                        pngSet300dpi(blob, finish);
                     }, 'image/png');
                 } else {
                     // 极老浏览器兜底
                     var b64 = atob(fullCanvas.toDataURL('image/png').split(',')[1]);
                     var arr = new Uint8Array(b64.length);
                     for (var k = 0; k < b64.length; k++) arr[k] = b64.charCodeAt(k);
-                    finish(new Blob([arr], { type: 'image/png' }));
+                    pngSet300dpi(new Blob([arr], { type: 'image/png' }), finish);
                 }
             } catch (err) {
                 alert('导出失败，再试一次；还不行就换个浏览器试试');
