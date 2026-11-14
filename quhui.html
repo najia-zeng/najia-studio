@@ -234,8 +234,8 @@
                 <div class="sec-t">去灰调节</div>
                 <div class="sld">
                     <span class="sld-l">对比</span>
-                    <input type="range" id="slC" min="0" max="100" value="45" step="1" disabled>
-                    <b class="sld-v" id="slCVal">45</b>
+                    <input type="range" id="slC" min="0" max="100" value="25" step="1" disabled>
+                    <b class="sld-v" id="slCVal">25</b>
                 </div>
                 <div class="sld">
                     <span class="sld-l">亮度</span>
@@ -418,7 +418,7 @@
     var pW = 0, pH = 0;         // 预览代理尺寸（大图缩小，滑杆才丝滑）
     var origProxyData = null;   // 代理图原始像素（调滑杆都从它重算，不叠加）
     var loB = 0, hiW = 1;       // 直方图剪切出的黑点/白点（0~1）
-    var DEF_C = 30, DEF_B = 0; // 默认对比/亮度（上传即自动去灰）
+    var DEF_C = 25, DEF_B = 0; // 默认对比/亮度（上传即自动去灰）
     var cmpOn = false;
 
     /* ---------------- 上传 ---------------- */
