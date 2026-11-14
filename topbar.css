@@ -33,11 +33,6 @@
 #ns-topbar .brand .bt span{
   font-size:14px;color:#9a94b8;margin-top:2px;display:block;
 }
-#ns-topbar .tagline{
-  font-size:18.5px;color:#000;white-space:nowrap;font-weight:600;
-  padding-left:14px;border-left:1px solid #e6e2f5;margin-left:2px;
-}
-
 #ns-topbar .topnav{
   margin-left:auto;display:flex;align-items:center;gap:12px;
 }
@@ -61,7 +56,6 @@
 #ns-topbar .quota-tag.used{color:#d9534f;}
 
 @media (max-width:1180px){
-  #ns-topbar .tagline{display:none;}
 }
 @media (max-width:768px){
   #ns-topbar{height:auto;padding:10px 14px;gap:10px;flex-wrap:wrap;}
