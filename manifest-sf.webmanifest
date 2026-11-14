@@ -3,7 +3,7 @@
   "short_name": "鲜花氛围",
   "description": "香氛、精油、香水类产品场景图，花种可选。",
   "start_url": "/scene-flower.html",
-  "scope": "/scene-flower.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#f7f7fa",
   "theme_color": "#6b5ce7",
