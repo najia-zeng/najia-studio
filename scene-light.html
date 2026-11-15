@@ -387,13 +387,13 @@ const STYLES = [
         light: '画外有枝叶挡着光，光的痕迹以植物形状的影子呈现——影子的形状必须是有机、自然的植物轮廓：枝条、叶脉、叶缘，疏密不均、绝不规整排列。影子的边缘柔和，落在墙面与台面上，像窗外或室内有一棵植物把影子投进来——但那棵植物本身在画外，画面里绝不出现它的本体，只出现它的影子。产品正面保持清晰可读，枝叶的影子不压住产品正面的文字。',
         sets: [
             { name: '树枝疏影', tag: '树枝疏影',
-              props: '几枝疏朗的树枝影子投在背景墙和台面上：枝影细瘦、走势自然、带细小的分叉与小枝梢，疏密不均，像一棵冬天的树在光里。影子边缘柔和，落在墙面的大部分区域，一小部分铺到台面上。产品立在台面中央偏前，枝影从产品身后斜过、不压产品正面文字，产品自己的影子与枝影方向一致。墙面是{C}色略深的整面，台面是{C}色略浅的纯色石膏体或哑光亚克力，细腻干净。' },
+              props: '几枝疏朗的树枝影子投在背景墙和台面上：枝影细瘦、走势自然、带细小的分叉与小枝梢，疏密不均，像一棵冬天的树投下的影子。影子边缘柔和，落在墙面的大部分区域，一小部分铺到台面上。产品立在台面中央偏前，枝影从产品身后斜过、不压产品正面文字，产品自己的影子与枝影方向一致。墙面是{C}色略深的整面，台面是{C}色略浅的纯色石膏体或哑光亚克力，细腻干净。' },
             { name: '小碎叶影', tag: '小碎叶影',
               props: '一丛小碎叶的影子铺在背景墙上：叶片小而碎，影子细密、形状各异、绝不均匀排布，光影斑驳，像阳光穿过一丛细叶。碎影主要落在墙面上半部分与台面上，亮斑与影斑交错，边缘都柔和。产品立在台面上的一块完整亮区里，碎影不进产品正面，产品文字清晰。墙面是{C}色略深的整面，台面是{C}色略浅的哑光亚克力或细腻颗粒纹理的石膏面，干净无瑕。' },
             { name: '大叶婆娑', tag: '大叶婆娑',
-              props: '一两片大叶子的影子投在背景墙上：叶片大而舒展，叶缘的波浪起伏与主叶脉的走向清晰可辨，影子像龟背竹或芭蕉一类的大叶，边缘柔和，占墙面的一侧，另一侧留出{C}色的空墙。产品立在台面上，大叶影在产品身后斜挂着，不与产品交叠。产品的影子与大叶影方向一致，斜向台面一侧。台面是{C}色略浅的纯色石膏体或哑光亚克力整面，细腻、无粗犷纹理。' },
+              props: '一两片大叶子的影子投在背景墙上：叶片大而舒展，叶缘的波浪起伏与主叶脉的走向清晰可辨，影子是典型的阔叶轮廓（只有影子，绝不出现真叶子），边缘柔和，占墙面的一侧，另一侧留出{C}色的空墙。产品立在台面上，大叶影在产品身后斜挂着，不与产品交叠。产品的影子与大叶影方向一致，斜向台面一侧。台面是{C}色略浅的纯色石膏体或哑光亚克力整面，细腻、无粗犷纹理。' },
             { name: '一枝斜影', tag: '一枝斜影',
-              props: '一枝带叶的枝条影子从画面一角斜伸进背景墙：枝影细长、走势松弛自然，枝上几片叶子的影子大小不一、错落有致，影子的末端停在墙面中央偏上的位置，像随手插在光里的一枝。产品立在台面中央，枝影只在产品上方的墙面上，不碰产品。墙面是{C}色略深的整面，台面是{C}色略浅的哑光亚克力或细腻石膏面，干净、留白充足、质感细腻。' }
+              props: '一枝带叶的枝条影子从画面一角斜伸进背景墙：枝影细长、走势松弛自然，枝上几片叶子的影子大小不一、错落有致，影子的末端停在墙面中央偏上的位置，像随手投在光里的一枝影子。产品立在台面中央，枝影只在产品上方的墙面上，不碰产品。墙面是{C}色略深的整面，台面是{C}色略浅的哑光亚克力或细腻石膏面，干净、留白充足、质感细腻。' }
         ]
     },
     {
@@ -856,7 +856,7 @@ async function generateSceneImage(prompt, refImage) {
    ② locateInScene：在生成图里找产品位置（理论位置先验 + 颜色差打分）
    ③ pasteBackProduct：按位置缩放贴回；匹配太差就放弃，绝不硬贴
    ============================================================ */
-const PASTE = { search: 0.06, scales: [0.94, 1.0, 1.06], minScore: 0.52 };
+const PASTE = { search: 0.06, scales: [0.94, 0.97, 1.0, 1.03, 1.06], minScore: 0.60, bleed: 6 };
 const PASTE_BACK = true; /* 产品回贴总开关：false = 只用生成图原样，不做回贴 */
 let spriteCache = { key: '', sprite: null };
 
@@ -873,22 +873,92 @@ async function buildProductSprite() {
     if (!productCroppedSrc) return null;
     if (spriteCache.key === productCroppedSrc && spriteCache.sprite) return spriteCache.sprite;
     const img = await loadImgAsync(productCroppedSrc);
-    const w = img.width, h = img.height;
+    const w = img.width, h = img.height, N = w * h;
     const c = document.createElement('canvas'); c.width = w; c.height = h;
     const ctx = c.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(img, 0, 0);
     const id = ctx.getImageData(0, 0, w, h); const d = id.data;
+
+    /* ① 软 alpha：白底图里越暗越像产品本体 */
+    const alpha = new Uint8Array(N), solid = new Uint8Array(N);
+    for (let k = 0; k < N; k++) {
+        const i = k * 4;
+        const mn = Math.min(d[i], d[i + 1], d[i + 2]);
+        const a = mn >= 246 ? 0 : (mn <= 224 ? 255 : Math.round((246 - mn) / 22 * 255));
+        alpha[k] = a; solid[k] = a > 128 ? 1 : 0;
+    }
+
+    /* ② 从画布四边洪泛，标出"真正的外部背景"——产品内部的浅色面（白字、亮盖）不是外部，不会被抠成洞 */
+    const out = new Uint8Array(N);
+    const stack = new Int32Array(N);
+    let sp = 0;
+    const push = k => { if (!solid[k] && !out[k]) { out[k] = 1; stack[sp++] = k; } };
+    for (let x = 0; x < w; x++) { push(x); push((h - 1) * w + x); }
+    for (let y = 0; y < h; y++) { push(y * w); push(y * w + w - 1); }
+    while (sp > 0) {
+        const k = stack[--sp];
+        const x = k % w, y = (k - x) / w;
+        if (x > 0) push(k - 1);
+        if (x < w - 1) push(k + 1);
+        if (y > 0) push(k - w);
+        if (y < h - 1) push(k + w);
+    }
+
+    /* ③ 切掉白底混色带：白底图的轮廓最外 1~2px 是「产品色×白底」的混色，直接贴就是一圈白边。
+       做法是把紧贴外部背景的 2px 实体整圈剥掉，贴回时再用 0.6~1px 羽化把切口磨平。
+       细长产品（剥 2px 会削断）自动退回 1px。 */
+    const b1 = new Uint8Array(N), b2 = new Uint8Array(N);
+    for (let k = 0; k < N; k++) {
+        if (!solid[k]) continue;
+        const x = k % w, y = (k - x) / w;
+        if ((x > 0 && out[k - 1]) || (x < w - 1 && out[k + 1]) ||
+            (y > 0 && out[k - w]) || (y < h - 1 && out[k + w])) b1[k] = 1;
+    }
+    for (let k = 0; k < N; k++) {
+        if (!solid[k] || b1[k]) continue;
+        const x = k % w, y = (k - x) / w;
+        if ((x > 0 && b1[k - 1]) || (x < w - 1 && b1[k + 1]) ||
+            (y > 0 && b1[k - w]) || (y < h - 1 && b1[k + w])) b2[k] = 1;
+    }
+    let solidCnt = 0, keep2 = 0, keep1 = 0;
+    for (let k = 0; k < N; k++) {
+        if (!solid[k]) continue;
+        solidCnt++;
+        if (!b1[k] && !b2[k]) keep2++;
+        if (!b1[k]) keep1++;
+    }
+    const peel2 = keep2 > solidCnt * 0.75; /* 剥 2px 不会伤到产品本体才用 2px */
+
+    /* 定最终 alpha，并记录产品包围盒 */
     let minX = w, minY = h, maxX = -1, maxY = -1;
-    for (let y = 0; y < h; y++) {
-        for (let x = 0; x < w; x++) {
-            const i = (y * w + x) * 4;
-            const mn = Math.min(d[i], d[i + 1], d[i + 2]);
-            let a;
-            if (mn >= 246) a = 0;                 /* 纯白底：透明 */
-            else if (mn <= 224) a = 255;          /* 产品实体 */
-            else a = Math.round((246 - mn) / 22 * 255); /* 边缘软过渡 */
-            d[i + 3] = a;
-            if (a > 8) { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+    for (let k = 0; k < N; k++) {
+        const i = k * 4;
+        const a = (solid[k] && !b1[k] && !(peel2 && b2[k])) ? 255 : 0;
+        d[i + 3] = a;
+        if (a) { const x = k % w, y = (k - x) / w; if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; }
+    }
+
+    /* ④ 颜色外扩：透明区的 RGB 还留着白底的白色，缩放/羽化插值时白色会渗出来变成一圈白 halo。
+       把透明像素的颜色逐轮用邻近实体色填充（alpha 仍为 0），贴图缩放时就不会带出白色。 */
+    const fillMask = new Uint8Array(N);
+    for (let k = 0; k < N; k++) if (solid[k] && !b1[k] && !(peel2 && b2[k])) fillMask[k] = 1;
+    for (let pass = 0; pass < 5; pass++) {
+        const add = [];
+        for (let k = 0; k < N; k++) {
+            if (fillMask[k]) continue;
+            const x = k % w, y = (k - x) / w;
+            let r = 0, g = 0, b = 0, n = 0;
+            if (x > 0 && fillMask[k - 1]) { const j = (k - 1) * 4; r += d[j]; g += d[j + 1]; b += d[j + 2]; n++; }
+            if (x < w - 1 && fillMask[k + 1]) { const j = (k + 1) * 4; r += d[j]; g += d[j + 1]; b += d[j + 2]; n++; }
+            if (y > 0 && fillMask[k - w]) { const j = (k - w) * 4; r += d[j]; g += d[j + 1]; b += d[j + 2]; n++; }
+            if (y < h - 1 && fillMask[k + w]) { const j = (k + w) * 4; r += d[j]; g += d[j + 1]; b += d[j + 2]; n++; }
+            if (n) add.push(k, r / n, g / n, b / n);
+        }
+        if (!add.length) break;
+        for (let p = 0; p < add.length; p += 4) {
+            const k = add[p], j = k * 4;
+            d[j] = add[p + 1]; d[j + 1] = add[p + 2]; d[j + 2] = add[p + 3];
+            fillMask[k] = 1;
         }
     }
     ctx.putImageData(id, 0, 0);
@@ -910,36 +980,53 @@ function spriteAt(sprite, targetH) {
 }
 
 function locateInScene(sceneData, sw, sh, sprite) {
+    /* 归一化互相关（NCC）匹配：只看明暗结构，不看绝对颜色
+       —— 生成图产品会被背景染色/变灰，颜色匹配会跑偏，结构匹配稳得多 */
     const refH = SIZE_LEVELS[curSize] ? SIZE_LEVELS[curSize].ref : 0.40;
     const baseH = refH * sh;
-    const spanX = Math.max(4, Math.round(sw * PASTE.search / 2));
-    const spanY = Math.max(4, Math.round(sh * PASTE.search / 2));
+    const spanX = Math.max(5, Math.round(sw * PASTE.search / 2));
+    const spanY = Math.max(5, Math.round(sh * PASTE.search / 2));
     let best = null;
+    const lumAt = (px, py) => {
+        const i = (py * sw + px) * 4;
+        return 0.299 * sceneData[i] + 0.587 * sceneData[i + 1] + 0.114 * sceneData[i + 2];
+    };
     PASTE.scales.forEach(s => {
         const sp = spriteAt(sprite, baseH * s);
-        /* 采样：只取产品实体像素（alpha 高），每 4px 抽一个 */
+        /* 采样实体像素（跳过外圈 2px，避开边缘） */
         const pts = [];
-        for (let y = 0; y < sp.h; y += 4) {
-            for (let x = 0; x < sp.w; x += 4) {
+        let sumP = 0;
+        for (let y = 2; y < sp.h - 2; y += 3) {
+            for (let x = 2; x < sp.w - 2; x += 3) {
                 const i = (y * sp.w + x) * 4;
-                if (sp.data[i + 3] > 160) pts.push(x, y, sp.data[i], sp.data[i + 1], sp.data[i + 2]);
+                if (sp.data[i + 3] < 200) continue;
+                const l = 0.299 * sp.data[i] + 0.587 * sp.data[i + 1] + 0.114 * sp.data[i + 2];
+                pts.push(x, y, l); sumP += l;
             }
         }
-        if (pts.length < 300) return; /* 产品太浅/太小，不做匹配 */
+        const n = pts.length / 3;
+        if (n < 200) return;
+        const meanP = sumP / n;
+        let varP = 0;
+        for (let q = 2; q < pts.length; q += 3) varP += (pts[q] - meanP) * (pts[q] - meanP);
+        const sdP = Math.sqrt(varP / n);
+        if (sdP < 8) return; /* 纯色产品没有结构可比，放弃 */
         const cx0 = Math.round(sw / 2 - sp.w / 2), cy0 = Math.round(sh / 2 - sp.h / 2);
-        for (let dy = -spanY; dy <= spanY; dy += 2) {
-            for (let dx = -spanX; dx <= spanX; dx += 2) {
+        for (let dy = -spanY; dy <= spanY; dy += 1) {
+            for (let dx = -spanX; dx <= spanX; dx += 1) {
                 const ox = cx0 + dx, oy = cy0 + dy;
                 if (ox < 0 || oy < 0 || ox + sp.w > sw || oy + sp.h > sh) continue;
-                let sum = 0, n = 0;
-                for (let p = 0; p < pts.length; p += 5) {
-                    const si = ((oy + pts[p + 1]) * sw + (ox + pts[p])) * 4;
-                    sum += Math.abs(sceneData[si] - pts[p + 2]) + Math.abs(sceneData[si + 1] - pts[p + 3]) + Math.abs(sceneData[si + 2] - pts[p + 4]);
-                    n++;
+                let sumS = 0, sumS2 = 0, sumSP = 0;
+                for (let q = 0; q < pts.length; q += 3) {
+                    const l = lumAt(ox + pts[q], oy + pts[q + 1]);
+                    sumS += l; sumS2 += l * l; sumSP += l * pts[q + 2];
                 }
-                if (!n) continue;
-                const score = 1 - (sum / n) / 765;
-                if (!best || score > best.score) best = { score: score, ox: ox, oy: oy, w: sp.w, h: sp.h };
+                const meanS = sumS / n;
+                const varS = sumS2 / n - meanS * meanS;
+                if (varS < 25) continue;
+                const sdS = Math.sqrt(varS);
+                const ncc = (sumSP / n - meanS * meanP) / (sdS * sdP);
+                if (!best || ncc > best.score) best = { score: ncc, ox: ox, oy: oy, w: sp.w, h: sp.h };
             }
         }
     });
@@ -965,7 +1052,14 @@ async function pasteBackProduct(genSrc) {
         const out = document.createElement('canvas'); out.width = W; out.height = H;
         const octx = out.getContext('2d');
         octx.drawImage(img, 0, 0);
-        octx.drawImage(sprite.canvas, best.ox * k, best.oy * k, best.w * k, best.h * k);
+        const dw = Math.round(best.w * k), dh = Math.round(best.h * k);
+        const bl = PASTE.bleed; /* 外扩几个像素，盖住定位误差让旧图产品边缘露出的那条缝 */
+        const pw2 = dw + bl * 2, ph2 = dh + bl * 2;
+        const pc = document.createElement('canvas'); pc.width = pw2; pc.height = ph2;
+        const pctx = pc.getContext('2d');
+        pctx.filter = 'blur(' + Math.max(0.6, Math.min(1.2, pw2 / 800)).toFixed(2) + 'px)';
+        pctx.drawImage(sprite.canvas, 0, 0, pw2, ph2);
+        octx.drawImage(pc, best.ox * k - bl, best.oy * k - bl, pw2, ph2);
         return out.toDataURL('image/jpeg', 0.95);
     } catch (e) {
         console.warn('产品回贴跳过：', e && e.message);
