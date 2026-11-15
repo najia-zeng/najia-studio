@@ -121,7 +121,7 @@
     <button class="tab on" data-cat="all">全部</button>
     <button class="tab" data-cat="pack">风格包</button>
     <button class="tab" data-cat="tool">工具</button>
-    <span class="count" id="count">共 5 个</span>
+    <span class="count" id="count">共 6 个</span>
   </div>
 
   <div class="grid" id="grid">
@@ -149,6 +149,19 @@
         <h3>风格包 · 鲜花氛围场景</h3>
         <p>香氛、精油、香水类产品。花种可选，玫瑰精油配玫瑰，柑橘调配柑橘花。</p>
         <div class="c-meta" data-meta="sf">查看详情 <span class="arrow">→</span></div>
+      </div>
+    </a>
+
+    <!-- 风格包 · 光影氛围风 -->
+    <a class="card" data-cat="pack" data-tool="sl" href="scene-light.html">
+      <div class="cover">
+        <img src="img/cover-light.jpg" alt="光影氛围风 白底图与场景图对比">
+        <span class="badge" data-badge="sl"></span>
+      </div>
+      <div class="c-body">
+        <h3>风格包 · 光影氛围</h3>
+        <p>美妆、个护、礼盒类产品。窗边/树叶/朦胧/渐变四种光影任选，一次出两张，产品用原图回贴。</p>
+        <div class="c-meta" data-meta="sl">查看详情 <span class="arrow">→</span></div>
       </div>
     </a>
 
@@ -213,12 +226,15 @@
 <script>
 (function () {
   /* ===== 每张卡片实时显示解锁状态（和各工具页存的位置一一对应） ===== */
-  var FREE_LIMIT = { rt: 6, kc: 3, sg: 3, sf: 3, dg: 6 };  // 零成本工具（修瑕疵/去灰）6 次当钩子，其余 3 次
+  var FREE_LIMIT = { rt: 6, kc: 3, sg: 3, sf: 3, sl: 3, dg: 6 };  // 零成本工具（修瑕疵/去灰）6 次当钩子，其余 3 次
+  /* 仍在测试期、工具页本身不限次的（与各工具页里的 TEST_UNLIMITED 保持一致，改回 false 时同步删掉这里） */
+  var UNLIMITED = { sl: true };
   var KEYS = {
     rt: { lic: 'nj_lic_rt', used: 'nj_free_used_rt' },
     kc: { lic: 'nj_lic_kc', used: 'nj_free_used_kc' },
     sg: { lic: 'nj_lic_sg', used: 'nj_free_used_sg' },
     sf: { lic: 'nj_lic_sf', used: 'nj_free_used_sf' },
+    sl: { lic: 'nj_lic_sl', used: 'nj_free_used_sl' },
     dg: { lic: 'nj_lic_dg', used: 'nj_free_used_dg' }
   };
   function readLS(k) {
@@ -232,7 +248,11 @@
       var licensed = readLS(KEYS[t].lic) === '1';
       var used = parseInt(readLS(KEYS[t].used) || '0', 10) || 0;
       var left = Math.max(0, FREE_LIMIT[t] - used);
-      if (licensed) {
+      if (UNLIMITED[t]) {
+        meta.className = 'c-meta free';
+        meta.innerHTML = '测试阶段 · 不限次 <span class="arrow">→</span>';
+        if (badge) { badge.className = 'badge on'; badge.textContent = '内测中'; }
+      } else if (licensed) {
         meta.className = 'c-meta free';
         meta.innerHTML = '已解锁 · 不限次 <span class="arrow">→</span>';
         if (badge) { badge.className = 'badge on'; badge.textContent = '已解锁'; }
