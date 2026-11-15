@@ -493,7 +493,7 @@ function licValid(code) {
     return licHash(LICENSE_SALT + m[1]) === m[2]  // 盐放前面：校验位才会带工具标记，别工具的码进不来;
 }
 function isLicensed() {
-    try { return localStorage.getItem('nj_lic_sg') === '1'; } catch (e) { return false; }
+    try { return localStorage.getItem('nj_lic_sl') === '1'; } catch (e) { return false; }
 }
 
 /* 免费体验额度：内置 Key 期间每人 3 次，客户填了自己的 Key 则不限制 */
@@ -501,10 +501,10 @@ const TEST_UNLIMITED = true; /* 测试阶段暂不限次；正式上线前改回
 const FREE_LIMIT = 3;
 const WECHAT_ID = 'najia9864';
 function getFreeUsed() {
-    try { return parseInt(localStorage.getItem('nj_free_used_sg') || '0', 10) || 0; } catch (e) { return 0; }
+    try { return parseInt(localStorage.getItem('nj_free_used_sl') || '0', 10) || 0; } catch (e) { return 0; }
 }
 function setFreeUsed(n) {
-    try { localStorage.setItem('nj_free_used_sg', String(n)); } catch (e) {}
+    try { localStorage.setItem('nj_free_used_sl', String(n)); } catch (e) {}
 }
 function isDev() {
     /* 已废弃：不再支持永久开发者标记，任何人（含站长）都按 3 次限制走。
@@ -592,7 +592,7 @@ function activateLicense() {
     const v = ($('licInput').value || '').trim();
     if (!v) { $('licErr').textContent = '请先填激活码'; return; }
     if (!licValid(v)) { $('licErr').textContent = '激活码不对，或不是本工具的码'; return; }
-    try { localStorage.setItem('nj_lic_sg', '1'); } catch (e) {}
+    try { localStorage.setItem('nj_lic_sl', '1'); } catch (e) {}
     $('licErr').textContent = '';
     closeBuyDlg();
     // 解锁成功 → 主动提醒装到桌面（客户输完码顺势安装）
