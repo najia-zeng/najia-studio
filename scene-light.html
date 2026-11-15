@@ -16,9 +16,9 @@
             --grad: linear-gradient(135deg, #6b5ce7 0%, #4a7cf7 100%);
             --radius: 16px; --radius-s: 12px;
         }
-        body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--text); height: 100vh; overflow: hidden;
+        body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column;
             background: radial-gradient(1100px 480px at 50% -90px, #EDE9FF 0%, rgba(237,233,255,0) 62%), #f6f6fb; }
-        .page { max-width: 1400px; margin: 0 auto; height: calc(100vh - 66px); }
+        .page { max-width: 1400px; margin: 0 auto; flex: 1; min-height: 0; display: flex; flex-direction: column; width: 100%; }
 
         .hdr { height: 92px; background: linear-gradient(100deg, #ffffff 0%, #fbfaff 42%, #f2efff 100%); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; position: relative; flex-shrink: 0; }
         .hdr::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--grad); opacity: .5; }
@@ -34,7 +34,7 @@
             .hdr-tag { display: none; }
         }
 
-        .wrap { display: flex; height: calc(100vh - 122px); }
+        .wrap { display: flex; flex: 1; min-height: 0; }
         .left { width: 340px; min-width: 340px; background: var(--card); border-right: 1px solid var(--border); padding: 24px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; box-shadow: 6px 0 28px rgba(27,27,47,.04); position: relative; z-index: 2; }
         .left::-webkit-scrollbar { width: 4px; }
         .left::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
@@ -157,6 +157,14 @@
         .style-card.active { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(107,92,231,.14); }
         .style-card b { font-size: 14px; display: block; margin-bottom: 2px; font-weight: 500; }
         .style-card span { font-size: 12px; color: var(--text-sec); line-height: 1.4; }
+        .style-row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+        .style-btn { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 9px 10px; border: 1px solid var(--border); background: #fafafa; border-radius: 8px; cursor: pointer; font-family: inherit; color: var(--text-sec); transition: all .15s; text-align: left; }
+        .style-btn b { font-size: 13px; font-weight: 600; color: var(--text); }
+        .style-btn span { font-size: 10.5px; line-height: 1.3; color: #9c9cb2; }
+        .style-btn:hover { border-color: #bbb; }
+        .style-btn.active { border-color: transparent; background: var(--grad); box-shadow: 0 4px 12px rgba(107,92,231,.24); }
+        .style-btn.active b { color: #fff; }
+        .style-btn.active span { color: rgba(255,255,255,.82); }
         .ratio-row { display: flex; gap: 7px; }
         .ratio-btn { flex: 1; padding: 9px 0; border: 1px solid var(--border); background: #fafafa; border-radius: 8px; font-size: 12px; cursor: pointer; font-family: inherit; color: var(--text-sec); transition: all .15s; }
         .ratio-btn:hover { border-color: #bbb; }
@@ -180,9 +188,12 @@
 
 
         @media (max-width: 860px) {
+            body { height: auto; overflow: auto; display: block; }   /* 堆叠布局下解除"锁死一屏"，让整页正常滚动 */
+            .page { height: auto; }
             .wrap { flex-direction: column; height: auto; }
-            .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
-            .right { min-height: 50vh; }
+            .left { width: 100%; min-width: 0; border-right: none; border-bottom: 1px solid var(--border); max-height: none; overflow: visible; }
+            .side-quota { position: static; margin-top: 16px; }
+            .right { min-height: 50vh; overflow: visible; }
         }
     </style>
 <style>
@@ -231,7 +242,7 @@
 <div class="hdr">
     <div class="hdr-l">
         <div class="hdr-title">光影氛围风 · 场景生图</div>
-        <div class="hdr-sub">上传产品白底图，一次出 4 张不同光影的氛围场景图</div>
+        <div class="hdr-sub">上传产品白底图，选一种光影风格，一次出 2 张该风格的不同变体</div>
     </div>
     <div class="hdr-tag"><i></i>礼盒 · 美妆 · 个护通用</div>
 </div>
@@ -245,7 +256,11 @@
             </div>
         </div>
         <div>
-            <div class="sec-label">② 画幅</div>
+            <div class="sec-label">② 光影风格</div>
+            <div class="style-row" id="styleRow"></div>
+        </div>
+        <div>
+            <div class="sec-label">③ 画幅</div>
             <div class="ratio-row" id="ratioRow">
                 <button class="ratio-btn active" data-r="1:1" onclick="pickRatio('1:1')">1:1 主图</button>
                 <button class="ratio-btn" data-r="3:4" onclick="pickRatio('3:4')">3:4 竖版</button>
@@ -253,14 +268,14 @@
             </div>
         </div>
         <div>
-            <div class="sec-label">③ 产品大小</div>
+            <div class="sec-label">④ 产品大小</div>
             <div class="ratio-row" id="sizeRow">
                 <button class="ratio-btn" data-s="small" onclick="pickSize('small')">小</button>
                 <button class="ratio-btn active" data-s="medium" onclick="pickSize('medium')">中</button>
                 <button class="ratio-btn" data-s="large" onclick="pickSize('large')">大</button>
             </div>
         </div>
-        <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成 4 张场景图</button>
+        <button class="gen-btn" id="genBtn" onclick="generate()" disabled>生成 2 张场景图</button>
         <div class="side-quota">
             <div class="quota-tag" id="quotaSide"></div>
         </div>
@@ -269,7 +284,7 @@
         <div class="empty" id="vEmpty">
             <div class="empty-ico"><span>◇</span></div>
             <div class="empty-t">准备开始</div>
-            <div class="empty-d">上传产品白底图，一次出 4 张光影氛围场景图</div>
+            <div class="empty-d">上传产品白底图，选一种光影风格，一次出 2 张同风格不同变体</div>
         </div>
         <div class="ldg" id="vLoad" style="display:none">
             <div class="spin"></div>
@@ -277,14 +292,14 @@
             <div class="ldg-sub" id="ldgSub">大约需要20-40秒</div>
             <div class="ldg-steps">
                 <div class="ldg-step" id="step1"><div class="step-ico wait">1</div>分析图片生成提示词</div>
-                <div class="ldg-step" id="step2"><div class="step-ico wait">2</div>生成 4 张不同道具的场景图</div>
+                <div class="ldg-step" id="step2"><div class="step-ico wait">2</div>生成 2 张同风格的不同变体</div>
             </div>
         </div>
         <div class="res-wrap" id="vRes" style="display:none">
             <div class="res-top">
-                <h2>成套场景图</h2>
+                <h2>场景图 · <span id="resStyleName"></span></h2>
                 <div class="res-actions-top">
-                    <button class="new-btn" onclick="regenerateProps()">换一批光影</button>
+                    <button class="new-btn" onclick="regenerateProps()">换两个变体</button>
                     <button class="new-btn" onclick="generate()">重新分析</button>
                     <button class="new-btn" onclick="resetAll()">重新开始</button>
                 </div>
@@ -323,7 +338,7 @@ const IMAGE_MODELS = ['doubao-seedream-4-0-250828', 'doubao-seedream-4-0-2026041
 const CROP_THRESHOLD = 240;
 const CROP_PADDING = 20;
 const REF_IMAGE_MAX = 1536;
-const SHOTS_PER_RUN = 4;
+const SHOTS_PER_RUN = 2;   // 一次出 2 张：同风格、两个不同变体
 
 // 画幅：产品只占画面 1/3，画布不用太大
 // 产品只占画面 1/3，画布要给足像素，否则产品细节会糊
@@ -341,46 +356,80 @@ const RATIOS = {
    产品位置、尺寸、光影在同一风格内锁死，只有道具变化
    ============================================================ */
 /* ============================================================
-   场景风格：光影氛围风（固定）
-   摆法统一（产品居中、干净、完整可读），每张换一种光影
-   12 种光影：帘影/窗格/斜射光束/叶影/光斑/切光/聚光/逆光/纱帘/水波/光洞/长影
-   背景色由产品主色派生（同色系低饱和深化），整片有色
+   光影风格：四大类（客户自选一种，一次出 2 张该风格的不同变体）
+   ① 窗边光影：光被窗切割——无图案斜切光 / 田字窗格 / 竖条窗棂 / 百叶帘影 / 半开窗影
+   ② 树叶光影：枝叶挡光——树枝疏影 / 小碎叶 / 大叶婆娑 / 一枝斜影
+   ③ 朦胧光影：影子失焦雾化，产品小居下、背景大片留白
+   ④ 渐变光影：背景本身上下渐变——同色明暗 / 邻近色 / 对角渐变
+   背景色统一由产品主色派生（同色系低饱和深浅两层）
    ============================================================ */
-const SCENE_PACK = {
-    name: '光影氛围风',
-    tone: '整片背景有颜色，色系跟着产品主色走：背景取产品主色的同色系、低饱和、略深一档的颜色——产品红则背景砖红或陶土红，产品金橙则背景琥珀或焦糖，产品蓝则背景暮蓝或灰蓝，产品绿则背景墨绿或灰绿，产品紫则背景雾紫或暗紫灰，产品白金灰则背景暖灰或米褐。背景与产品像同一个色域里的深浅两层，同调协调、绝不撞色。背景可以有朦胧的空气感和由光塑造的明暗层次。整体低饱和、安静，像高级摄影画册里的静物页。',
-    light: '光影是这个画面的灵魂。光必须有明确的来源方向和形态——从窗、从帘、从叶隙、从一盏看不见的灯——并且在背景与产品上留下可辨认的痕迹：影纹、光束、光斑或明暗分界。光影的边缘要真实：硬边光留一点柔和的过渡，柔光也不能糊成没有形状的一团。产品正面必须保持足够的可读亮度，光影可以扫过产品表面制造质感，但不能把产品吞进阴影。光源本体不可见，只留光的痕迹。',
-    sets: [
-        { name: '百叶帘影', tag: '百叶帘影',
-          props: '整片{C}色背景前方挂着一副虚化的白色百叶帘，水平帘片把光切成平行的横条纹，条纹光影从画面左上方斜投下来，在背景上形成明暗相间的横纹，最亮的条纹与最暗的条纹之间过渡自然、不生硬。产品立在光影中央偏下，有几道条纹光扫过产品表面，产生明暗相间的光泽变化，但产品正面文字区必须落在亮条纹里、完整可读。百叶帘本身虚化，只见帘影不见帘片的细节。' },
-        { name: '窗格投影', tag: '窗格投影',
-          props: '一扇田字格木窗的影子投在整片{C}色的背景上，格影清晰、边缘略柔，占背景的左半侧，右半侧留出同色系渐变的空背景。产品立在格影与空背景的交界处，恰好有一格窗影套住产品，像被窗光框在画框里。格影的线条干净利落、比例匀称。产品正面完整清晰，光影扫过但不遮字。' },
-        { name: '一束斜射窗光', tag: '斜射窗光',
-          props: '一束清晰的光从画面左上方斜射进来，光束有明确的方向感和极轻微的体积感，像穿过一间有薄薄空气感的房间。光束在背景上照亮一片平行四边形亮区，亮区边界明确、边缘柔和过渡到暗部。产品立在光束末端，正好被这束光罩住，产品表面顺着光向有自然的明暗渐变，正面文字清晰。画面其余部分沉在较深的同色系暗部。' },
-        { name: '叶影碎光', tag: '叶影碎光',
-          props: '几片植物的叶影落在整片{C}色的背景上，叶影边缘自然、疏密不均，像窗外有一棵树在光里。每一片叶影是单独的叶片轮廓，互相不粘连、不连成一大片。产品立在碎影之间的一块完整亮区里，叶影完全不进产品正面，产品文字清晰。叶影的颜色只是背景色的深化，不引入第二种颜色。' },
-        { name: '背景光斑', tag: '背景光斑',
-          props: '产品在前景清晰实焦，背景是整片{C}色的虚化光域，上面浮着若干大小不一、虚化的圆形光斑，光斑亮度柔和、边缘晕开，像大光圈镜头拍出的远处灯或反光。光斑只存在于背景，绝不进产品。产品正面文字锐利清晰，与虚化背景形成明确的焦平面分离。整体朦胧、安静、梦幻。' },
-        { name: '半遮挡切光', tag: '切光',
-          props: '光从画面左侧来，被一个看不见的物体挡住一部分，阴影的边缘干脆利落地在背景上竖切一刀：画面左侧是清晰暗部、右侧是亮部，明暗分界线穿过产品身后的背景。产品立在亮部，产品左缘被这道分界线轻轻擦过，形成半明半暗的立体转折，但产品正面文字完整落在亮部、清晰可读。暗部不是死黑，是背景色的自然深化。' },
-        { name: '聚光筒', tag: '聚光',
-          props: '一束顶光从画面正上方垂直打下来，只照亮产品与其四周一小圈背景，形成一片柔和的椭圆亮区；亮区之外，整片{C}色背景渐渐沉入较深的同色系暗部。产品在亮区正中、被光托出来，表面从上到下有自然的明暗衰减，顶部最亮，正面文字清晰可读。四周暗部干净、无杂物，有舞台聚光的仪式感。' },
-        { name: '逆光轮廓', tag: '逆光',
-          props: '主光从产品正后方来，产品边缘有一圈细窄的亮边光，完整勾出轮廓线。产品正面靠环境反光保持可读，亮度略低但均匀，文字仍然清晰。背景中央因逆光形成一片较亮的{C}色光晕，向四周渐深，光晕边缘柔和不刺眼。产品底部有一小片柔和的接触阴影。整体是安静的逆光静物感。' },
-        { name: '纱帘柔光', tag: '纱帘柔光',
-          props: '产品立在一层柔纱帘前，帘面在背景一侧有虚化的纱纹，纱帘后面透出{C}色的漫射光，帘纹在光里若隐若现、不抢产品。产品清晰可见，纱帘在产品身前的部分极薄、几乎透明，不遮挡产品正面文字。整体柔和、朦胧、安静，像清晨隔着纱帘的房间。' },
-        { name: '水波反射', tag: '水波反射',
-          props: '产品的侧下方仿佛有一片看不见的水面，水面反射的波动光影晃上整片{C}色背景，形成不规则、柔和起伏的波纹亮纹，波纹缓慢、连绵、不剧烈，像水边墙面上晃动的光。产品表面下缘也有一两道水光反射的细亮纹。产品正面文字清晰。整体像水边的静物。' },
-        { name: '拱形光洞', tag: '光洞',
-          props: '背景是一片较深的{C}色，中央偏上开着一个拱门形（或圆形）的亮区，像一扇看不见的门洞透进光来，亮区边缘柔和、形状规整。产品立在拱形亮区的前下方，被亮区的光罩住，身后是拱形光的柔和包围，身前的背景有拱形对称的余光。产品正面清晰可读。画面安静、有仪式感。' },
-        { name: '晨昏长影', tag: '长影',
-          props: '低角度的暖光从画面左侧贴着台面平射进来，产品在{C}色背景纸面上拉出一条很长的斜影，影子边缘清晰、略柔，向画面右侧延伸出去，长度明显超过产品本身。产品表面左侧被低光镀了一道暖亮边，右侧沉入柔和的暗部，正面文字仍可读。背景靠近光源的一侧亮、另一侧暗，像清晨或傍晚贴着窗台的斜光。' }
-    ]
-};
+const STYLES = [
+    {
+        id: 'win', name: '窗边光影', brief: '光被窗切割，明暗分明',
+        tone: '整片背景有颜色，色系跟着产品主色走：背景取产品主色的同色系、低饱和、略深一档的颜色，背景与产品像同一个色域里的深浅两层，同调协调、绝不撞色。整体低饱和、安静，像高级摄影画册里的静物页。',
+        light: '光从画面外的一扇窗斜射进来，光源本体不可见。光影有明确的方向和形态：亮区与暗区分明，过渡干净；影子边缘真实——硬边光留一点柔和的渐变过渡，但绝不糊成没有形状的一团。产品正面保持足够的可读亮度，光影可以扫过产品表面制造质感，但不能把产品吞进阴影。',
+        sets: [
+            { name: '斜切光', tag: '斜切光',
+              props: '光从画面左上方斜射进来，被一个看不见的物体挡住一部分，在背景上干脆利落地斜切出明暗分界：分界线一侧是清晰的亮区、另一侧沉入同色系的暗部，中间是干净平滑的明暗渐变过渡。产品立在亮区中央，表面顺着光向有自然的明暗过渡，左缘被分界线轻轻擦出半明半暗的立体转折，正面文字完整落在亮区、清晰可读。产品在台面上向右下方拉出一条方向一致、边缘清晰而略柔的长影，影子里能看出产品的轮廓。台面与背景是整片{C}色的哑光纸面或布面，无任何图案。' },
+            { name: '田字窗格', tag: '田字窗格',
+              props: '一扇田字格木窗的影子投在背景上：窗格影清晰、比例匀称，横竖窗棂把光切成规整的格子，格影边缘略带柔和的过渡，占背景的大部分，留出一侧的同色系渐变空背景。产品立在格影之间的亮格里，恰好有一格窗影框在产品身后，像被窗光框在画框里；产品的影子与窗格影方向一致，斜向画面右下方。窗格的线条干净利落，不弯曲、不断裂。产品正面文字清晰，光影扫过但不遮字。' },
+            { name: '竖条窗棂', tag: '竖条窗棂',
+              props: '一排竖直窗棂的影子投在背景上：竖直的影条等宽、平行、干净利落，条与条之间是明亮的光带，光影从画面一侧斜向铺开，影条边缘略柔。产品立在光影中央，竖直的光带与影条交替扫过背景与产品的表面，产品正面文字区恰好落在一条明亮的光带里、完整可读。产品影子与影条方向一致。背景是整片{C}色，安静、无杂物。' },
+            { name: '百叶帘影', tag: '百叶帘影',
+              props: '画面上方挂着一副虚化的百叶帘，水平帘片把光切成平行的横条纹：明暗相间的横纹从画面上方斜投下来，铺满背景的上半部分，向下渐弱，最亮的条纹与最暗的条纹之间过渡自然、不生硬。产品立在光影中央偏下，几道条纹光扫过产品表面，产生明暗相间的光泽变化，但产品正面文字区完整落在亮条纹里、清晰可读。百叶帘本身虚化，只见帘影不见帘片的细节。产品向右下方投出与条纹同向的长影。' },
+            { name: '半开窗影', tag: '半开窗影',
+              props: '一扇半开的窗只透进一半的光：背景上明暗对比强烈——靠窗的一侧被照亮，窗框的直边在背景上投出笔直的分界线，另一扇窗页的影子斜压在暗部；亮区干净、暗部沉稳，都还是{C}色的深浅两层。产品立在亮区里，向着窗的方向有一道柔和的亮边，背面沉入暗部，正面文字清晰。产品的影子贴着台面拉向暗部一侧。像午后一扇没开全的窗。' }
+        ]
+    },
+    {
+        id: 'leaf', name: '树叶光影', brief: '枝叶挡光，影子是植物形状',
+        tone: '整片背景有颜色，色系跟着产品主色走：背景取产品主色的同色系、低饱和、略深一档的颜色，背景与产品像同一个色域里的深浅两层。画面是"一面背景墙 + 一块台面"的墙角结构：墙与台面同色系，墙略深、台面略浅，交界处有一条柔和的过渡线。整体安静、自然，像有植物生长的空间。',
+        light: '画外有枝叶挡着光，光的痕迹以植物形状的影子呈现——影子的形状必须是有机、自然的植物轮廓：枝条、叶脉、叶缘，疏密不均、绝不规整排列。影子的边缘柔和，落在墙面与台面上，像窗外或室内真的有一棵植物。产品正面保持清晰可读，枝叶的影子不压住产品正面的文字。',
+        sets: [
+            { name: '树枝疏影', tag: '树枝疏影',
+              props: '几枝疏朗的树枝影子投在背景墙和台面上：枝影细瘦、走势自然、带细小的分叉与小枝梢，疏密不均，像一棵冬天的树在光里。影子边缘柔和，落在墙面的大部分区域，一小部分铺到台面上。产品立在台面中央偏前，枝影从产品身后斜过、不压产品正面文字，产品自己的影子与枝影方向一致。墙面与台面是{C}色的深浅两层。' },
+            { name: '小碎叶影', tag: '小碎叶影',
+              props: '一丛小碎叶的影子铺在背景墙上：叶片小而碎，影子细密、形状各异、绝不均匀排布，光影斑驳，像阳光穿过一丛细叶。碎影主要落在墙面上半部分与台面上，亮斑与影斑交错，边缘都柔和。产品立在台面上的一块完整亮区里，碎影不进产品正面，产品文字清晰。墙与台面是{C}色的深浅两层。' },
+            { name: '大叶婆娑', tag: '大叶婆娑',
+              props: '一两片大叶子的影子投在背景墙上：叶片大而舒展，叶缘的波浪起伏与主叶脉的走向清晰可辨，影子像龟背竹或芭蕉一类的大叶，边缘柔和，占墙面的一侧，另一侧留出{C}色的空墙。产品立在台面上，大叶影在产品身后斜挂着，不与产品交叠。产品的影子与大叶影方向一致，斜向台面一侧。' },
+            { name: '一枝斜影', tag: '一枝斜影',
+              props: '一枝带叶的枝条影子从画面一角斜伸进背景墙：枝影细长、走势松弛自然，枝上几片叶子的影子大小不一、错落有致，影子的末端停在墙面中央偏上的位置，像随手插在光里的一枝。产品立在台面中央，枝影只在产品上方的墙面上，不碰产品。墙面与台面是{C}色的深浅两层，干净、留白充足。' }
+        ]
+    },
+    {
+        id: 'mist', name: '朦胧光影', brief: '影子是虚的，背景大片留白',
+        tone: '整片背景跟产品主色同色系，但取浅一档、低饱和的高调：发白、发灰、几乎不出现重色。影子不是实的，是雾化、失焦的色块。整体干净、安静、通透，有空气感，像清晨隔着雾与柔纱的光。背景上方留出大片干净的浅色区域，天然留好放文字的位置。',
+        light: '光影是虚的：墙上只有雾化的暗色块、失焦的植物剪影或一团柔和的光晕，任何影子都没有清晰锐利的边缘。光的对比极低，没有硬投影、没有明暗切割线，全靠朦胧的空气感和柔和的明暗起伏塑造氛围。',
+        layout: '产品高度约占画面总高度的四分之一到三分之一，位于画面下方三分之一处水平居中，产品底部贴近画面的下缘，站在一小块清晰的台面上；产品上方是大片朦胧的浅色背景，留白面积超过画面高度的二分之一。产品正面文字清晰可读，实焦锐利，与虚化的背景形成明确的焦平面分离。',
+        sets: [
+            { name: '失焦枝影', tag: '失焦枝影',
+              props: '产品的背景墙上是一片雾化的植物剪影：枝条与叶子的影子完全失焦，只有轮廓的虚影、没有清晰边界，疏密不均地散在墙上部，像隔着一层雾看植物。产品立在画面下方三分之一的台面上，实焦清晰，与虚影形成明确的虚实分离。整体是{C}色的浅色高调，低对比、安静。' },
+            { name: '柔光雾晕', tag: '柔光雾晕',
+              props: '背景墙上是柔和的明暗起伏：一团模糊的光晕浮在墙上部，光晕边缘晕开、没有边界，周围是发白的{C}色雾面，光晕的亮与雾面的浅之间只有极柔和的过渡。没有影子、没有切割线。产品立在画面下方的台面上，实焦清晰，正面文字可读，上方大片留白干净。整体像隔着一层薄雾的柔光。' },
+            { name: '纱影朦胧', tag: '纱影朦胧',
+              props: '产品前方像隔着一层极薄的柔纱：背景的一切都带着纱感——墙面是发虚的{C}色浅雾面，墙上有一两块极柔和的浅影，帘纱的竖纹在光里若隐若现、几乎透明。产品本身不受纱感影响，实焦、清晰、正面文字可读。产品位于画面下方，上方是朦胧的浅色纱面留白。整体轻盈、安静。' }
+        ]
+    },
+    {
+        id: 'grad', name: '渐变光影', brief: '背景本身的颜色渐变，无投影',
+        tone: '背景不是被光打亮的，而是背景自身的颜色做上下渐变：从上到下平滑过渡，无纹理、无影纹、没有方向性的光。光是平的、均匀的，产品几乎不投影，只在底部有一条极淡的接触影。渐变的色域跟产品主色走：背景的上部取产品主色同色系、略深的一档，下部过渡到更浅更亮的同色，产品像被渐变托着。整体干净、高级，像品牌海报的底。',
+        light: '没有可辨认的光源与光向：背景是纯净的色彩渐变，过渡完全平滑；光是平柔均匀的，产品表面受光均匀，没有长投影、没有明暗切割。空间纵深全部由背景渐变本身撑起来。',
+        layout: '产品高度约占画面总高度的 30%~38%，位于画面下三分之一处水平居中，立在渐变最明亮的部分，产品底部与画面底缘之间留出适当边距；产品上方留出大片渐变背景，留白面积超过画面高度的三分之一。产品必须完整出现在画面内，不得被裁切、不得贴边。',
+        sets: [
+            { name: '同色明暗渐变', tag: '同色明暗渐变',
+              props: '背景从上到下做同一色系的明暗渐变：上部是{C}色略深、沉稳的一档，向下平滑变浅变亮，到画面底部过渡到接近亮的台面感，过渡无任何色带、无接缝、无纹理。产品立在画面下三分之一的明亮处，受光均匀、几乎不投影，底部只有一条极淡的接触影。产品正面清晰，整体是同色域的深浅两层，安静高级。' },
+            { name: '邻近色渐变', tag: '邻近色渐变',
+              props: '背景从上到下做邻近色渐变：上部取产品主色同色系略深的一档，向下平滑过渡到色环上相邻的一格浅色（如深酒红向上过渡到暖粉、深墨绿过渡到浅豆绿），过渡完全平滑、无色带、无接缝。下部是明亮的一档，产品立在画面下三分之一的明亮处，受光均匀、只有极淡接触影。产品自身的颜色准确干净，与渐变同调、绝不相撞。' },
+            { name: '对角渐变', tag: '对角渐变',
+              props: '背景沿对角线方向渐变：一角是{C}色深的一档，向对角平滑过渡到浅亮的一档，过渡完全平滑、无边界。产品立在偏亮的一角，深色的一角沉在产品身后成为背景，产品像从浅色里浮出来。光平柔均匀，产品几乎不投影，底部一条极淡的接触影。整体干净、有版式感。' }
+        ]
+    }
+];
 
 let productSrc = null, productCroppedSrc = null, busy = false;
 let sceneProduct = '', sceneTone = '', sceneAccent = '';
-let curPack = SCENE_PACK, curRatio = '1:1', curSize = 'medium';
+let curStyleIdx = 0, curRatio = '1:1', curSize = 'medium';
+function curStyle() { return STYLES[curStyleIdx]; }
 let lastRefImage = null, lastItems = [];
 
 /* 成本估算：火山方舟官方单价
@@ -550,6 +599,22 @@ function closeKeyDlg() {}
 function saveKey() {}
 function clearKey() {}
 
+function pickStyle(i) {
+    curStyleIdx = i;
+    document.querySelectorAll('#styleRow .style-btn').forEach((el, k) => el.classList.toggle('active', k === i));
+    if (lastItems && lastItems.length) { $('resStyleName').textContent = STYLES[i].name; }
+}
+function renderStyleRow() {
+    const row = $('styleRow');
+    row.innerHTML = '';
+    STYLES.forEach((st, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'style-btn' + (i === curStyleIdx ? ' active' : '');
+        btn.innerHTML = '<b>' + st.name + '</b><span>' + st.brief + '</span>';
+        btn.onclick = () => pickStyle(i);
+        row.appendChild(btn);
+    });
+}
 function pickSize(v) {
     curSize = v;
     document.querySelectorAll('#sizeRow .ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.s === v));
@@ -631,7 +696,7 @@ function buildScenePrompt(productDesc, toneDesc, accent, pack, set) {
     return '专业商业产品摄影，单张成品图。\n\n' +
         '【主体锁定】' + productDesc + '\n' +
         '产品必须完整呈现，外形轮廓、长宽比例、材质、精确颜色、表面质感、标签位置与标签文字完全保持原样，禁止替换、美化或重新设计产品本身的任何特征。\n\n' +
-        '【尺寸与位置】产品高度约占画面总高度的 ' + (SIZE_LEVELS[curSize] ? SIZE_LEVELS[curSize].text : '40%~46%') + '，不要更大也不要更小。产品必须位于画面正中央：水平居中，左右留白相等；垂直居中，产品中心与画面中心重合。产品必须完整出现在画面内，任何部位都不得被画面边缘裁切、不得贴边、不得被道具遮挡。\n\n' +
+        '【尺寸与位置】' + (pack.layout || ('产品高度约占画面总高度的 ' + (SIZE_LEVELS[curSize] ? SIZE_LEVELS[curSize].text : '40%~46%') + '，不要更大也不要更小。产品必须位于画面正中央：水平居中，左右留白相等；垂直居中，产品中心与画面中心重合。产品必须完整出现在画面内，任何部位都不得被画面边缘裁切、不得贴边、不得被道具遮挡。')) + '\n\n' +
         '【机位】标准商业产品摄影机位：正面或微侧，左右偏转不超过 15 度；镜头略高于产品中心，向下俯 8 到 15 度，能看清产品正面/盒面的完整版式。产品必须直立。禁止仰视、禁止大幅俯视、禁止正上方顶视、禁止大角度侧视、禁止倾斜构图、禁止鱼眼或广角畸变。产品的标签必须正对镜头、完整可读、字迹清晰，标签平面与镜头基本平行；不允许因俯仰角导致标签被压扁、变形或看不清。\n\n' +
         '【构图】产品是画面唯一的视觉焦点，光影是第二层叙事。光影落在背景与空气里，实体道具极少——每个场景最多一处实体元素（帘、纱、窗影或一段台面），且必须虚化。判断标准是视觉重量而不是物理高度：光影元素可以大，但产品的实焦清晰度、正面文字可读性必须压过一切。产品上方留白不少于画面高度的五分之一。禁止实体道具平铺排列、禁止等距对称摆放、禁止体积大且实焦的道具、禁止任何物体遮挡产品正面标签。\n\n' +
         '【场景道具】' + propsText + '\n' +
@@ -779,7 +844,7 @@ function setStep(n) {
 
 // 抽 N 套不重复的道具
 function pickSets() {
-    const pool = curPack.sets.slice();
+    const pool = curStyle().sets.slice();
     for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
     return pool.slice(0, Math.min(SHOTS_PER_RUN, pool.length));
 }
@@ -837,7 +902,7 @@ function toSceneRef(src) {
 
 // 按某个 view 组装最终提示词
 function promptForView(item, view) {
-    return withTune(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, item.set), view.tune);
+    return withTune(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curStyle(), item.set), view.tune);
 }
 
 // 只跑出图，不重新分析（换一批道具用这个，省掉分析的钱和时间）
@@ -850,11 +915,11 @@ async function runShots() {
         lastRefImage = await prepareRefImage(productCroppedSrc);
         const picked = pickSets();
         setStep(2);
-        $('ldgTxt').textContent = '正在生成 ' + picked.length + ' 张场景图...';
-        $('ldgSub').textContent = curPack.name + ' · ' + RATIOS[curRatio].label + ' · 大约需要 40-70 秒';
+        $('ldgTxt').textContent = '正在生成 2 张「' + curStyle().name + '」场景图...';
+        $('ldgSub').textContent = curStyle().name + ' · ' + RATIOS[curRatio].label + ' · 大约需要 30-50 秒';
 
         const settled = await Promise.allSettled(
-            picked.map(set => generateSceneImage(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, set), lastRefImage))
+            picked.map(set => generateSceneImage(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curStyle(), set), lastRefImage))
         );
 
         const items = [];
@@ -880,7 +945,7 @@ async function runShots() {
     } finally { busy = false; updateGenBtn(); }
 }
 
-// 换一批道具：跳过分析，直接重抽 N 套
+// 换两个变体：跳过分析（省掉分析与时间），同风格重抽 2 个不同变体
 async function regenerateProps() {
     if (busy) return;
     await runShots();
@@ -923,7 +988,7 @@ async function submitTune(idx) {
     try {
         const sceneRef = await toSceneRef(v.src);
         const prodRef = await resizeForAPI(productCroppedSrc, 1024);
-        const tuned = withTuneLocked(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curPack, it.set), v.tune);
+        const tuned = withTuneLocked(buildScenePrompt(sceneProduct, sceneTone, sceneAccent, curStyle(), it.set), v.tune);
         const src = await generateSceneImage(tuned, [prodRef, sceneRef]);
         v.src = src;
         showResults();
@@ -957,6 +1022,7 @@ async function generate() {
 
 function showResults() {
     showView('r');
+    $('resStyleName').textContent = curStyle().name;
     const container = $('resContent');
     container.innerHTML = '';
     const grid = document.createElement('div');
@@ -975,7 +1041,7 @@ function showResults() {
             '<textarea class="tune-box" data-tune="' + idx + '" placeholder="调颜色、明暗、虚化。比如：水的颜色加深 / 整体亮一点 / 背景再虚一点">' + (v.tune || '') + '</textarea>' +
             '<button class="tune-btn" onclick="submitTune(' + idx + ')">提交</button>' +
             '</div>' +
-            '<div class="tune-hint">微调只改颜色 / 明暗 / 虚化；想换道具和摆放，点「重出这张」重新抽</div>' +
+            '<div class="tune-hint">微调只改颜色 / 明暗 / 虚化；想换光影变体，点「换两个变体」</div>' +
             '<div class="res-links">' +
             '<a href="' + v.src + '" download="scene-' + (idx + 1) + '.jpg">下载</a>' +
             '<a onclick="regenerateOne(' + idx + ')">重出这张</a>' +
@@ -1001,7 +1067,7 @@ function resetAll() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    showView('e'); pickRatio('1:1'); pickSize('medium'); loadCostStat(); updateGenBtn(); renderQuota();
+    showView('e'); renderStyleRow(); pickRatio('1:1'); pickSize('medium'); loadCostStat(); updateGenBtn(); renderQuota();
 });
 
 
