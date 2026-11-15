@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>不锈钢精修 · NaStudio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="topbar.css">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+        --bg: #f7f7fb; --panel: #ffffff; --panel-2: #fafaff;
+        --border: #e7e7f0; --text: #1b1b2f; --text-sec: #7b7b93;
+        --accent: #6b5ce7; --accent-h: #5a4bd6;
+        --grad: linear-gradient(135deg, #6b5ce7 0%, #4a7cf7 100%);
+        --danger: #e05c5c; --ok: #10a06a;
+        --radius: 16px; --radius-s: 12px;
+    }
+    body {
+        font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text); background: var(--bg);
+        height: 100vh; overflow: hidden; display: flex; flex-direction: column;
+    }
+    #ns-topbar { flex-shrink: 0; background: #fff; }
+
+    .pg-hdr {
+        flex-shrink: 0; height: 92px; display: flex; align-items: center; gap: 20px;
+        padding: 0 32px; position: relative;
+        background: linear-gradient(100deg, #ffffff 0%, #fbfaff 42%, #f2efff 100%);
+        border-bottom: 1px solid var(--border);
+    }
+    .pg-hdr::after {
+        content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+        background: var(--grad); opacity: .5;
+    }
+    .pg-hd-l { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+    .pg-title {
+        font-size: 27px; font-weight: 750; letter-spacing: -.6px; line-height: 1.12;
+        background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .pg-sub { font-size: 13px; color: var(--text-sec); letter-spacing: .2px; font-weight: 400; }
+    .pg-tag {
+        margin-left: auto; flex-shrink: 0; display: flex; align-items: center; gap: 7px;
+        font-size: 12.5px; color: #6b5ce7; background: rgba(107,92,231,.08);
+        border: 1px solid rgba(107,92,231,.18); border-radius: 999px;
+        padding: 7px 15px; font-weight: 500;
+    }
+    .pg-tag i { width: 6px; height: 6px; border-radius: 50%; background: var(--grad); display: block; }
+
+    .work { flex: 1; display: flex; min-height: 0; }
+
+    /* ---------- 侧栏 ---------- */
+    .side {
+        width: 330px; flex-shrink: 0; background: var(--panel);
+        border-right: 1px solid var(--border);
+        display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .side::-webkit-scrollbar { width: 8px; }
+    .side::-webkit-scrollbar-thumb { background: #dcdce8; border-radius: 4px; }
+    .sec { padding: 18px 20px; border-bottom: 1px solid var(--border); }
+    .sec-t { font-size: 14px; font-weight: 700; margin-bottom: 13px; display: flex; justify-content: space-between; align-items: center; }
+    .sec-t span { font-size: 11.5px; font-weight: 500; color: var(--text-sec); }
+
+    /* 上传 */
+    .drop {
+        border: 2px dashed #d9d5f0; border-radius: var(--radius-s);
+        padding: 26px 16px; text-align: center; cursor: pointer;
+        background: var(--panel-2); transition: .18s;
+    }
+    .drop:hover, .drop.over { border-color: var(--accent); background: #f4f2ff; }
+    .drop-ic { width: 40px; height: 40px; margin: 0 auto 10px; border-radius: 12px;
+               background: var(--grad); display: flex; align-items: center; justify-content: center;
+               color: #fff; font-size: 20px; font-weight: 300; }
+    .drop-t { font-size: 13.5px; font-weight: 600; margin-bottom: 4px; }
+    .drop-s { font-size: 11.5px; color: var(--text-sec); line-height: 1.6; }
+
+    /* 参数 */
+    .row { margin-bottom: 15px; }
+    .row:last-child { margin-bottom: 0; }
+    .row-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+    .row-l { font-size: 12.5px; font-weight: 500; color: var(--text); }
+    .row-v { font-size: 11.5px; color: var(--accent); font-weight: 600; font-variant-numeric: tabular-nums; }
+    input[type=range] {
+        -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px;
+        background: #e8e6f5; outline: none; cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%;
+        background: var(--accent); cursor: pointer; border: 2px solid #fff;
+        box-shadow: 0 1px 4px rgba(107,92,231,.4);
+    }
+    input[type=range]::-moz-range-thumb {
+        width: 13px; height: 13px; border-radius: 50%; background: var(--accent);
+        cursor: pointer; border: 2px solid #fff;
+    }
+
+    .seg { display: flex; gap: 6px; margin-bottom: 12px; }
+    .seg-b { flex: 1; padding: 8px 0; font-size: 12px; border: 1px solid var(--border);
+             background: var(--panel-2); border-radius: 9px; cursor: pointer;
+             color: var(--text-sec); font-family: inherit; transition: .15s; font-weight: 500; }
+    .seg-b:hover { border-color: #cfc9f0; color: var(--text); }
+    .seg-b.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+    .btn {
+        width: 100%; padding: 12px; border-radius: 11px; border: none;
+        font-family: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer;
+        transition: .15s;
+    }
+    .btn-main { background: var(--grad); color: #fff; box-shadow: 0 4px 14px rgba(107,92,231,.28); }
+    .btn-main:hover { filter: brightness(1.06); }
+    .btn-main:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+    .btn-ghost { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: #cfc9f0; background: #f4f2ff; }
+
+    /* ---------- 主区 ---------- */
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--bg); }
+    .toolbar {
+        flex-shrink: 0; height: 52px; display: flex; align-items: center; gap: 12px;
+        padding: 0 22px; border-bottom: 1px solid var(--border); background: #fff;
+    }
+    .tb-info { font-size: 12.5px; color: var(--text-sec); }
+    .tb-info b { color: var(--text); font-weight: 600; }
+    .tb-sp { flex: 1; }
+    .mini {
+        padding: 7px 14px; font-size: 12.5px; border-radius: 9px; cursor: pointer;
+        border: 1px solid var(--border); background: #fff; color: var(--text);
+        font-family: inherit; font-weight: 500; transition: .15s;
+    }
+    .mini:hover { border-color: #cfc9f0; background: #f9f8ff; }
+    .mini.pri { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .mini.pri:hover { background: var(--accent-h); }
+    .mini:disabled { opacity: .4; cursor: not-allowed; }
+
+    .stage {
+        flex: 1; display: flex; align-items: center; justify-content: center;
+        padding: 26px; overflow: auto; position: relative;
+    }
+    .stage::-webkit-scrollbar { width: 10px; height: 10px; }
+    .stage::-webkit-scrollbar-thumb { background: #dcdce8; border-radius: 5px; }
+
+    .empty {
+        text-align: center; color: var(--text-sec);
+    }
+    .empty-ic {
+        width: 72px; height: 72px; margin: 0 auto 18px; border-radius: 20px;
+        background: #fff; border: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: center; font-size: 30px;
+        box-shadow: 0 4px 20px rgba(27,27,47,.05);
+    }
+    .empty-t { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .empty-s { font-size: 12.5px; line-height: 1.7; }
+
+    .canvas-wrap {
+        position: relative; display: none; box-shadow: 0 8px 40px rgba(27,27,47,.12);
+        border-radius: 6px; overflow: hidden; background: #fff;
+    }
+    .canvas-wrap.on { display: block; }
+    .canvas-wrap canvas { display: block; max-width: 100%; }
+    #cvOrig { position: absolute; left: 0; top: 0; z-index: 3; pointer-events: none; }
+    #cv { position: relative; z-index: 1; }
+
+    /* 对比滑块 */
+    .cmp {
+        position: absolute; top: 0; bottom: 0; width: 2px; background: #fff;
+        box-shadow: 0 0 0 1px rgba(0,0,0,.12); cursor: ew-resize; z-index: 5;
+    }
+    .cmp::after {
+        content: '‹ ›'; position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%,-50%); width: 34px; height: 34px; border-radius: 50%;
+        background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.18);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; color: #6b5ce7; letter-spacing: 2px;
+    }
+    .cmp-tag {
+        position: absolute; top: 12px; padding: 4px 10px; border-radius: 7px;
+        background: rgba(27,27,47,.72); color: #fff; font-size: 11px; font-weight: 600;
+        letter-spacing: .5px; z-index: 4; backdrop-filter: blur(6px);
+    }
+    .cmp-tag.l { left: 12px; }
+    .cmp-tag.r { right: 12px; background: rgba(107,92,231,.85); }
+
+    /* 进度 */
+    .prog {
+        position: absolute; inset: 0; background: rgba(247,247,251,.9);
+        display: none; align-items: center; justify-content: center; flex-direction: column;
+        gap: 16px; z-index: 20; backdrop-filter: blur(4px);
+    }
+    .prog.on { display: flex; }
+    .prog-bar { width: 240px; height: 5px; background: #e8e6f5; border-radius: 3px; overflow: hidden; }
+    .prog-in { height: 100%; width: 0%; background: var(--grad); border-radius: 3px; transition: width .2s; }
+    .prog-t { font-size: 12.5px; color: var(--text-sec); font-weight: 500; }
+
+    /* 底部队列 */
+    .queue {
+        flex-shrink: 0; border-top: 1px solid var(--border); background: #fff;
+        padding: 12px 22px; display: none; gap: 10px; overflow-x: auto;
+    }
+    .queue.on { display: flex; }
+    .qi {
+        flex-shrink: 0; width: 62px; height: 62px; border-radius: 9px; overflow: hidden;
+        border: 2px solid transparent; cursor: pointer; position: relative; background: #f2f2f8;
+    }
+    .qi.on { border-color: var(--accent); }
+    .qi img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .qi-x {
+        position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%;
+        background: rgba(27,27,47,.65); color: #fff; font-size: 11px; line-height: 16px;
+        text-align: center; display: none;
+    }
+    .qi:hover .qi-x { display: block; }
+
+    .toast {
+        position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+        background: rgba(27,27,47,.92); color: #fff; padding: 11px 22px; border-radius: 11px;
+        font-size: 13px; opacity: 0; transition: .25s; pointer-events: none; z-index: 100;
+        backdrop-filter: blur(8px);
+    }
+    .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 860px) {
+        .pg-hdr { height: auto; padding: 14px 18px; flex-wrap: wrap; gap: 10px; }
+        .pg-title { font-size: 21px; }
+        .pg-tag { display: none; }
+        .work { flex-direction: column; }
+        .side { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 46vh; }
+        .stage { padding: 16px; }
+    }
+</style>
+</head>
+<body>
+<div id="ns-topbar"></div>
+
+<div class="pg-hdr">
+    <div class="pg-hd-l">
+        <div class="pg-title">不锈钢精修</div>
+        <div class="pg-sub">五金件一键出白底主图 · 全程本地处理，图片不上传</div>
+    </div>
+    <div class="pg-tag"><i></i>内测版</div>
+</div>
+
+<div class="work">
+    <!-- 侧栏 -->
+    <aside class="side">
+        <div class="sec">
+            <div class="drop" id="drop">
+                <div class="drop-ic">+</div>
+                <div class="drop-t">拖入图片 / 点击选择</div>
+                <div class="drop-s">支持 JPG PNG · 可多选批量<br>建议白底或浅灰底拍摄</div>
+            </div>
+            <input type="file" id="file" accept="image/*" multiple hidden>
+        </div>
+
+        <div class="sec">
+            <div class="sec-t">预设 <span id="presetName">五金标准</span></div>
+            <div class="seg" id="preset">
+                <button class="seg-b on" data-p="0">五金标准</button>
+                <button class="seg-b" data-p="1">强对比</button>
+                <button class="seg-b" data-p="2">柔和</button>
+            </div>
+        </div>
+
+        <div class="sec">
+            <div class="sec-t">参数 <span>拖动即时预览</span></div>
+
+            <div class="row">
+                <div class="row-h"><div class="row-l">背景纯白</div><div class="row-v" id="v-bg">100</div></div>
+                <input type="range" id="p-bg" min="0" max="100" value="100">
+            </div>
+            <div class="row">
+                <div class="row-h"><div class="row-l">金属对比</div><div class="row-v" id="v-con">55</div></div>
+                <input type="range" id="p-con" min="0" max="100" value="55">
+            </div>
+            <div class="row">
+                <div class="row-h"><div class="row-l">清晰度</div><div class="row-v" id="v-sharp">50</div></div>
+                <input type="range" id="p-sharp" min="0" max="100" value="50">
+            </div>
+            <div class="row">
+                <div class="row-h"><div class="row-l">轮廓压边</div><div class="row-v" id="v-edge">60</div></div>
+                <input type="range" id="p-edge" min="0" max="100" value="60">
+            </div>
+            <div class="row">
+                <div class="row-h"><div class="row-l">落地阴影</div><div class="row-v" id="v-shadow">55</div></div>
+                <input type="range" id="p-shadow" min="0" max="100" value="55">
+            </div>
+            <div class="row">
+                <div class="row-h"><div class="row-l">边缘柔度</div><div class="row-v" id="v-feather">45</div></div>
+                <input type="range" id="p-feather" min="0" max="100" value="45">
+            </div>
+        </div>
+
+        <div class="sec">
+            <div class="sec-t">输出尺寸</div>
+            <div class="seg" id="size">
+                <button class="seg-b" data-s="800">800</button>
+                <button class="seg-b on" data-s="1200">1200</button>
+                <button class="seg-b" data-s="1600">1600</button>
+            </div>
+            <button class="btn btn-main" id="dl" disabled>下载当前图</button>
+        </div>
+
+        <div class="sec" style="border-bottom:none">
+            <button class="btn btn-ghost" id="reset">恢复默认参数</button>
+        </div>
+    </aside>
+
+    <!-- 主区 -->
+    <main class="main">
+        <div class="toolbar">
+            <div class="tb-info" id="info">未加载图片</div>
+            <div class="tb-sp"></div>
+            <button class="mini" id="toggleCmp">对比：开</button>
+            <button class="mini pri" id="reRender" disabled>重新处理</button>
+        </div>
+
+        <div class="stage" id="stage">
+            <div class="empty" id="empty">
+                <div class="empty-ic">🔩</div>
+                <div class="empty-t">还没有图片</div>
+                <div class="empty-s">左侧拖入不锈钢、螺丝、五金件照片<br>自动去背 + 纯白底 + 金属调性</div>
+            </div>
+            <div class="canvas-wrap" id="wrap">
+                <canvas id="cvOrig"></canvas>
+                <canvas id="cv"></canvas>
+                <div class="cmp" id="cmp" style="left:50%"></div>
+                <div class="cmp-tag l">原图</div>
+                <div class="cmp-tag r">精修后</div>
+            </div>
+            <div class="prog" id="prog">
+                <div class="prog-bar"><div class="prog-in" id="progIn"></div></div>
+                <div class="prog-t" id="progT">处理中…</div>
+            </div>
+        </div>
+
+        <div class="queue" id="queue"></div>
+    </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="topbar.js"></script>
+<script>
+/* ============================================================
+   不锈钢精修 —— 全部在浏览器本地跑，不联网
+   算法链：灰度→背景估计→阈值→开闭运算→连通域筛选→凸包补凹
+          →洞分类→背景漂白→S曲线→局部对比→轮廓压边→落地阴影→合成
+   ============================================================ */
+
+const $ = id => document.getElementById(id);
+
+/* ---------- 全局状态 ---------- */
+const state = {
+    files: [],        // {file, url, img}
+    cur: 0,
+    rendering: false,
+    showCmp: true,
+    maxSide: 1200,    // 处理尺寸
+    outSize: 1200,
+    params: {
+        bg: 100, con: 55, sharp: 50, edge: 60, shadow: 55, feather: 45
+    }
+};
+
+const PRESETS = [
+    { name: '五金标准', bg: 100, con: 55, sharp: 50, edge: 60, shadow: 55, feather: 45 },
+    { name: '强对比',   bg: 100, con: 85, sharp: 70, edge: 75, shadow: 65, feather: 30 },
+    { name: '柔和',     bg: 95,  con: 32, sharp: 32, edge: 35, shadow: 45, feather: 65 }
+];
+
+/* ============================================================
+   图像处理基础工具
+   ============================================================ */
+
+// 灰度
+function toGray(d, w, h) {
+    const g = new Float32Array(w * h);
+    for (let i = 0, j = 0; j < w * h; i += 4, j++) {
+        g[j] = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+    }
+    return g;
+}
+
+// 中值（采样排序，够用）
+function median(arr) {
+    const a = Array.from(arr);
+    a.sort((x, y) => x - y);
+    const n = a.length;
+    return n % 2 ? a[(n - 1) >> 1] : (a[n / 2 - 1] + a[n / 2]) / 2;
+}
+
+// 背景亮度：取四边 5% 区域的中值
+function estimateBg(g, w, h) {
+    const b = Math.max(4, Math.floor(Math.min(w, h) * 0.05));
+    const vals = [];
+    for (let y = 0; y < b; y++) {
+        for (let x = 0; x < w; x++) {
+            vals.push(g[y * w + x]);
+            vals.push(g[(h - 1 - y) * w + x]);
+        }
+    }
+    for (let x = 0; x < b; x++) {
+        for (let y = 0; y < h; y++) {
+            vals.push(g[y * w + x]);
+            vals.push(g[y * w + (w - 1 - x)]);
+        }
+    }
+    return median(vals);
+}
+
+// 分离式腐蚀（方形核）
+function erode(m, w, h, r) {
+    if (r < 1) return m.slice();
+    const tmp = new Uint8Array(w * h), out = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) {
+        const row = y * w;
+        for (let x = 0; x < w; x++) {
+            let v = 255;
+            if (x - r < 0 || x + r >= w) { v = 0; }
+            else {
+                for (let k = -r; k <= r; k++) { const t = m[row + x + k]; if (t < v) v = t; if (v === 0) break; }
+            }
+            tmp[row + x] = v;
+        }
+    }
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            let v = 255;
+            if (y - r < 0 || y + r >= h) { v = 0; }
+            else {
+                for (let k = -r; k <= r; k++) { const t = tmp[(y + k) * w + x]; if (t < v) v = t; if (v === 0) break; }
+            }
+            out[y * w + x] = v;
+        }
+    }
+    return out;
+}
+
+// 分离式膨胀
+function dilate(m, w, h, r) {
+    if (r < 1) return m.slice();
+    const inv = new Uint8Array(w * h);
+    for (let i = 0; i < w * h; i++) inv[i] = 255 - m[i];
+    const e = erode(inv, w, h, r);
+    const out = new Uint8Array(w * h);
+    for (let i = 0; i < w * h; i++) out[i] = 255 - e[i];
+    return out;
+}
+
+// 连通域标记（8 邻域，迭代栈）
+function label(m, w, h) {
+    const lab = new Int32Array(w * h).fill(0);
+    const stack = new Int32Array(w * h);
+    let cur = 0;
+    const sizes = [0];
+    for (let i = 0; i < w * h; i++) {
+        if (!m[i] || lab[i]) continue;
+        cur++;
+        let sp = 0, cnt = 0;
+        stack[sp++] = i; lab[i] = cur;
+        while (sp) {
+            const p = stack[--sp];
+            cnt++;
+            const x = p % w, y = (p / w) | 0;
+            for (let dy = -1; dy <= 1; dy++) {
+                const yy = y + dy;
+                if (yy < 0 || yy >= h) continue;
+                for (let dx = -1; dx <= 1; dx++) {
+                    const xx = x + dx;
+                    if (xx < 0 || xx >= w) continue;
+                    const q = yy * w + xx;
+                    if (m[q] && !lab[q]) { lab[q] = cur; stack[sp++] = q; }
+                }
+            }
+        }
+        sizes.push(cnt);
+    }
+    return { lab, n: cur, sizes };
+}
+
+// 逐行 + 逐列填凹（在给定 bbox 内），用于补镜面高光造成的缺口
+function fillConcaveInBox(m, w, h, x0, y0, x1, y1) {
+    const tmp = m.slice();
+    // 水平
+    for (let y = y0; y <= y1; y++) {
+        let l = -1, r = -1;
+        for (let x = x0; x <= x1; x++) { if (tmp[y * w + x]) { if (l < 0) l = x; r = x; } }
+        if (l >= 0 && r > l) for (let x = l; x <= r; x++) m[y * w + x] = 255;
+    }
+    // 垂直
+    const tmp2 = m.slice();
+    for (let x = x0; x <= x1; x++) {
+        let t = -1, b = -1;
+        for (let y = y0; y <= y1; y++) { if (tmp2[y * w + x]) { if (t < 0) t = y; b = y; } }
+        if (t >= 0 && b > t) for (let y = t; y <= b; y++) m[y * w + x] = 255;
+    }
+}
+
+// 距离变换（两遍 chamfer 3-4）
+function distanceTransform(m, w, h) {
+    const INF = 1e9;
+    const d = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) d[i] = m[i] ? INF : 0;
+    // 前向
+    for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+            const i = y * w + x;
+            if (d[i] === 0) continue;
+            let v = d[i];
+            if (x > 0) v = Math.min(v, d[i - 1] + 1);
+            if (y > 0) {
+                v = Math.min(v, d[i - w] + 1);
+                if (x > 0) v = Math.min(v, d[i - w - 1] + 1.414);
+                if (x < w - 1) v = Math.min(v, d[i - w + 1] + 1.414);
+            }
+            d[i] = v;
+        }
+    }
+    // 后向
+    for (let y = h - 1; y >= 0; y--) {
+        for (let x = w - 1; x >= 0; x--) {
+            const i = y * w + x;
+            if (d[i] === 0) continue;
+            let v = d[i];
+            if (x < w - 1) v = Math.min(v, d[i + 1] + 1);
+            if (y < h - 1) {
+                v = Math.min(v, d[i + w] + 1);
+                if (x < w - 1) v = Math.min(v, d[i + w + 1] + 1.414);
+                if (x > 0) v = Math.min(v, d[i + w - 1] + 1.414);
+            }
+            d[i] = v;
+        }
+    }
+    return d;
+}
+
+// 分离式 box blur（对 Float32 RGB 平面），近似高斯
+function boxBlurPlane(src, w, h, r) {
+    if (r < 1) return src.slice();
+    const tmp = new Float32Array(w * h), out = new Float32Array(w * h);
+    const win = 2 * r + 1;
+    // 水平
+    for (let y = 0; y < h; y++) {
+        const row = y * w;
+        let sum = 0;
+        for (let k = -r; k <= r; k++) {
+            const x = Math.min(w - 1, Math.max(0, k));
+            sum += src[row + x];
+        }
+        for (let x = 0; x < w; x++) {
+            tmp[row + x] = sum / win;
+            const xa = Math.min(w - 1, Math.max(0, x - r));
+            const xb = Math.min(w - 1, Math.max(0, x + r + 1));
+            sum += src[row + xb] - src[row + xa];
+        }
+    }
+    // 垂直
+    for (let x = 0; x < w; x++) {
+        let sum = 0;
+        for (let k = -r; k <= r; k++) {
+            const y = Math.min(h - 1, Math.max(0, k));
+            sum += tmp[y * w + x];
+        }
+        for (let y = 0; y < h; y++) {
+            out[y * w + x] = sum / win;
+            const ya = Math.min(h - 1, Math.max(0, y - r));
+            const yb = Math.min(h - 1, Math.max(0, y + r + 1));
+            sum += tmp[yb * w + x] - tmp[ya * w + x];
+        }
+    }
+    return out;
+}
+
+// 三次 box blur ≈ 高斯
+function gaussApprox(src, w, h, r) {
+    let a = src;
+    for (let i = 0; i < 3; i++) a = boxBlurPlane(a, w, h, Math.max(1, Math.round(r / 1.8)));
+    return a;
+}
+
+// S 曲线查表
+function makeCurve(strength) {
+    const lut = new Uint8Array(256);
+    // 基准对比曲线
+    const xp = [0, 60, 110, 150, 200, 240, 255];
+    const fp = [0, 40, 100, 148, 216, 252, 255];
+    for (let v = 0; v < 256; v++) {
+        // 找区间插值
+        let out = v;
+        for (let i = 0; i < xp.length - 1; i++) {
+            if (v >= xp[i] && v <= xp[i + 1]) {
+                const t = (v - xp[i]) / (xp[i + 1] - xp[i]);
+                out = fp[i] + t * (fp[i + 1] - fp[i]);
+                break;
+            }
+        }
+        // 按强度混合回原值
+        lut[v] = Math.round(v + (out - v) * strength);
+    }
+    return lut;
+}
+
+/* ============================================================
+   主算法
+   ============================================================ */
+function processImage(img, P) {
+    // 1. 缩放（处理尺寸不低于输出尺寸）
+    const maxSide = Math.max(1200, state.outSize);
+    let W = img.naturalWidth, H = img.naturalHeight;
+    const sc = Math.min(1, maxSide / Math.max(W, H));
+    W = Math.round(W * sc); H = Math.round(H * sc);
+
+    const cvA = document.createElement('canvas');
+    cvA.width = W; cvA.height = H;
+    const ctxA = cvA.getContext('2d', { willReadFrequently: true });
+    ctxA.drawImage(img, 0, 0, W, H);
+    const srcData = ctxA.getImageData(0, 0, W, H);
+    const d = srcData.data;
+    const N = W * H;
+
+    // 2. 灰度 + 背景
+    const g = toGray(d, W, H);
+    const bg = estimateBg(g, W, H);
+
+    // 3. 阈值 → mask（0/255）
+    const T = 10;
+    let m = new Uint8Array(N);
+    for (let i = 0; i < N; i++) m[i] = g[i] < bg - T ? 255 : 0;
+
+    // 4. 开运算去噪点（3x3）
+    m = erode(m, W, H, 1);
+    m = dilate(m, W, H, 1);
+
+    // 5. 连通域筛选（保留 > 总面积 3% 的）
+    const { lab, n, sizes } = label(m, W, H);
+    let total = 0;
+    for (let i = 1; i <= n; i++) total += sizes[i];
+    const keep = new Uint8Array(N);
+    const boxes = [];  // 每个保留连通域的 bbox
+    for (let i = 1; i <= n; i++) {
+        if (sizes[i] < total * 0.03) continue;
+        let x0 = W, y0 = H, x1 = 0, y1 = 0;
+        for (let p = 0; p < N; p++) {
+            if (lab[p] === i) {
+                const x = p % W, y = (p / W) | 0;
+                if (x < x0) x0 = x; if (x > x1) x1 = x;
+                if (y < y0) y0 = y; if (y > y1) y1 = y;
+                keep[p] = 255;
+            }
+        }
+        boxes.push({ x0, y0, x1, y1, size: sizes[i] });
+    }
+
+    // 6. 闭运算补小缝（7x7，避免粘连）
+    let k2 = dilate(keep, W, H, 3);
+    k2 = erode(k2, W, H, 3);
+
+    // 7. 每个连通域单独填凹（补镜面高光缺口），但保留真孔
+    //    先找"洞"，分类：贴边=外部；扩张后碰外部=高光洞（填）；否则=真孔（留空）
+    const isIn = new Uint8Array(N);
+    for (let i = 0; i < N; i++) isIn[i] = k2[i] ? 0 : 255;   // 取反
+    const hLab = label(isIn, W, H);
+    const outsideHole = new Uint8Array(N);
+    const holeList = [];
+    for (let i = 1; i <= hLab.n; i++) {
+        let touch = false;
+        let x0 = W, y0 = H, x1 = 0, y1 = 0;
+        for (let p = 0; p < N; p++) {
+            if (hLab.lab[p] !== i) continue;
+            const x = p % W, y = (p / W) | 0;
+            if (x === 0 || y === 0 || x === W - 1 || y === H - 1) touch = true;
+            if (x < x0) x0 = x; if (x > x1) x1 = x;
+            if (y < y0) y0 = y; if (y > y1) y1 = y;
+        }
+        if (touch) {
+            for (let p = 0; p < N; p++) if (hLab.lab[p] === i) outsideHole[p] = 255;
+        } else {
+            holeList.push({ id: i, x0, y0, x1, y1, size: hLab.sizes[i] });
+        }
+    }
+
+    // 高光洞判定：洞向外扩 22px 后能碰到外部背景 → 说明是镜面反光漏判，要填
+    const realHoles = [];   // 真孔，稍后挖回来
+    let filled = k2.slice();
+    for (const hl of holeList) {
+        const pad = 24;
+        const ax0 = Math.max(0, hl.x0 - pad), ay0 = Math.max(0, hl.y0 - pad);
+        const ax1 = Math.min(W - 1, hl.x1 + pad), ay1 = Math.min(H - 1, hl.y1 + pad);
+        let hit = 0;
+        for (let y = ay0; y <= ay1; y++) {
+            for (let x = ax0; x <= ax1; x++) {
+                if (outsideHole[y * W + x]) {
+                    // 到洞的近似距离
+                    const dx = Math.max(hl.x0 - x, 0, x - hl.x1);
+                    const dy = Math.max(hl.y0 - y, 0, y - hl.y1);
+                    if (dx * dx + dy * dy <= 22 * 22) hit++;
+                }
+            }
+        }
+        if (hit > 80) {
+            // 高光洞 → 填
+            for (let p = 0; p < N; p++) if (hLab.lab[p] === hl.id) filled[p] = 255;
+        } else {
+            realHoles.push(hl);
+        }
+    }
+
+    // 8. 局部闭运算补外缘小缺口，再用面积筛掉误补（保护产品之间的空隙）
+    const fillArr = filled.slice();
+    {
+        const RCL = 18;
+        const closed = erode(dilate(filled, W, H, RCL), W, H, RCL);
+        const gap = new Uint8Array(N);
+        for (let j = 0; j < N; j++) gap[j] = (closed[j] && !filled[j]) ? 255 : 0;
+        const gl = label(gap, W, H);
+        const limit = total * 0.045;
+        for (let i = 1; i <= gl.n; i++) {
+            if (gl.sizes[i] > limit) continue;
+            for (let p = 0; p < N; p++) if (gl.lab[p] === i) fillArr[p] = 255;
+        }
+    }
+
+    // 9. 真孔挖回来
+    for (const hl of realHoles) {
+        for (let p = 0; p < N; p++) if (hLab.lab[p] === hl.id) fillArr[p] = 0;
+    }
+
+    // 10. 最终 mask
+    const mask = fillArr;
+
+    // 11. 距离场（向内）
+    const distIn = distanceTransform(mask, W, H);
+
+    // 12. 背景漂白
+    const bgScale = 255 / bg;
+    const R = new Float32Array(N), G = new Float32Array(N), B = new Float32Array(N);
+    for (let i = 0, j = 0; j < N; i += 4, j++) {
+        R[j] = Math.min(255, d[i] * bgScale);
+        G[j] = Math.min(255, d[i + 1] * bgScale);
+        B[j] = Math.min(255, d[i + 2] * bgScale);
+    }
+
+    // 13. 金属曲线（core 区域）
+    const lut = makeCurve(P.con / 100);
+    const coreR = 2.0, coreSpan = 2.5;
+    for (let j = 0; j < N; j++) {
+        if (!mask[j]) continue;
+        const c = Math.min(1, Math.max(0, (distIn[j] - coreR) / coreSpan));
+        if (c <= 0) continue;
+        R[j] = R[j] + (lut[Math.round(R[j])] - R[j]) * c;
+        G[j] = G[j] + (lut[Math.round(G[j])] - G[j]) * c;
+        B[j] = B[j] + (lut[Math.round(B[j])] - B[j]) * c;
+    }
+
+    // 14. 局部对比（clarity）+ 锐化，只在 core 内
+    const blurR = Math.max(2, Math.round(Math.min(W, H) * 0.008));
+    const Rb = gaussApprox(R, W, H, blurR);
+    const Gb = gaussApprox(G, W, H, blurR);
+    const Bb = gaussApprox(B, W, H, blurR);
+    const cl = P.sharp / 100 * 1.1;
+    for (let j = 0; j < N; j++) {
+        if (!mask[j]) continue;
+        const c = Math.min(1, Math.max(0, (distIn[j] - coreR) / coreSpan));
+        if (c <= 0) continue;
+        R[j] = R[j] + (R[j] - Rb[j]) * cl * c;
+        G[j] = G[j] + (G[j] - Gb[j]) * cl * c;
+        B[j] = B[j] + (B[j] - Bb[j]) * cl * c;
+    }
+    // 小半径锐化
+    const Rs = gaussApprox(R, W, H, 1);
+    const Gs = gaussApprox(G, W, H, 1);
+    const Bs = gaussApprox(B, W, H, 1);
+    const sh = P.sharp / 100 * 0.5;
+    for (let j = 0; j < N; j++) {
+        if (!mask[j]) continue;
+        const c = Math.min(1, Math.max(0, (distIn[j] - coreR) / coreSpan));
+        if (c <= 0) continue;
+        R[j] = R[j] + (R[j] - Rs[j]) * sh * c;
+        G[j] = G[j] + (G[j] - Gs[j]) * sh * c;
+        B[j] = B[j] + (B[j] - Bs[j]) * sh * c;
+    }
+    for (let j = 0; j < N; j++) {
+        R[j] = Math.min(255, Math.max(0, R[j]));
+        G[j] = Math.min(255, Math.max(0, G[j]));
+        B[j] = Math.min(255, Math.max(0, B[j]));
+    }
+
+    // 15. 轮廓压边：骑在轮廓上的细暗线，吃掉原图边缘的白
+    const dil = dilate(mask, W, H, 2);
+    const ero = erode(mask, W, H, 1);
+    const edgeAmp = P.edge / 100 * 0.6;
+    if (edgeAmp > 0.01) {
+        const outline = new Float32Array(N);
+        for (let j = 0; j < N; j++) outline[j] = (dil[j] && !ero[j]) ? 1 : 0;
+        const outlineB = gaussApprox(outline, W, H, 1);
+        for (let j = 0; j < N; j++) {
+            const k = 1 - outlineB[j] * edgeAmp;
+            R[j] *= k; G[j] *= k; B[j] *= k;
+        }
+    }
+    // 内侧轻微暗边，加立体感
+    const ero3 = erode(mask, W, H, 1);
+    const ero7 = erode(mask, W, H, 3);
+    const innerAmp = P.edge / 100 * 0.16;
+    if (innerAmp > 0.01) {
+        const inner = new Float32Array(N);
+        for (let j = 0; j < N; j++) inner[j] = (ero3[j] && !ero7[j]) ? 1 : 0;
+        const innerB = gaussApprox(inner, W, H, 2);
+        for (let j = 0; j < N; j++) {
+            const k = 1 - innerB[j] * innerAmp;
+            R[j] *= k; G[j] *= k; B[j] *= k;
+        }
+    }
+
+    // 16. 合成：白底 + 向外羽化（产品色向外延展，避免硬边白圈）
+    const featherW = 0.4 + P.feather / 100 * 2.2;   // 0.4 ~ 2.6 px
+    const invMask = new Uint8Array(N);
+    for (let j = 0; j < N; j++) invMask[j] = mask[j] ? 0 : 255;
+    const distOut = distanceTransform(invMask, W, H);
+    const out = new Uint8ClampedArray(N * 4);
+    const bgWhite = P.bg / 100;
+    for (let j = 0; j < N; j++) {
+        let k;
+        if (mask[j]) {
+            k = 1;
+        } else {
+            const dOut = distOut[j];
+            k = dOut < featherW ? (1 - dOut / featherW) * 0.9 : 0;
+        }
+        const i4 = j * 4;
+        out[i4]     = R[j] * k + 255 * bgWhite * (1 - k);
+        out[i4 + 1] = G[j] * k + 255 * bgWhite * (1 - k);
+        out[i4 + 2] = B[j] * k + 255 * bgWhite * (1 - k);
+        out[i4 + 3] = 255;
+    }
+
+    // 17. 落地阴影
+    const shAmp = P.shadow / 100;
+    if (shAmp > 0.01) {
+        const mm = new Float32Array(N);
+        for (let j = 0; j < N; j++) mm[j] = mask[j] ? 1 : 0;
+        const shiftY = Math.max(2, Math.round(H * 0.004));
+        const near = new Float32Array(N);
+        for (let y = 0; y < H; y++) {
+            const sy = y - shiftY;
+            for (let x = 0; x < W; x++) {
+                near[y * W + x] = (sy >= 0 && sy < H) ? mm[sy * W + x] : 0;
+            }
+        }
+        const nearB = gaussApprox(near, W, H, Math.max(2, Math.round(H * 0.004)));
+        const farB = gaussApprox(near, W, H, Math.max(6, Math.round(H * 0.018)));
+        for (let j = 0; j < N; j++) {
+            if (mask[j]) continue;
+            const s = Math.min(1, nearB[j] * 0.24 + farB[j] * 0.08) * shAmp;
+            const k = 1 - s * 0.62;
+            const i4 = j * 4;
+            out[i4] *= k; out[i4 + 1] *= k; out[i4 + 2] *= k;
+        }
+    }
+
+    // 18. 输出
+    const cvOut = document.createElement('canvas');
+    cvOut.width = W; cvOut.height = H;
+    const ctxOut = cvOut.getContext('2d');
+    ctxOut.putImageData(new ImageData(out, W, H), 0, 0);
+
+    // 如果需要更大的输出尺寸，等比放大（Lanczos 近似用 browser 的高质量缩放）
+    if (state.outSize !== Math.max(W, H)) {
+        const s2 = state.outSize / Math.max(W, H);
+        const W2 = Math.round(W * s2), H2 = Math.round(H * s2);
+        const cvBig = document.createElement('canvas');
+        cvBig.width = W2; cvBig.height = H2;
+        const c2 = cvBig.getContext('2d');
+        c2.imageSmoothingEnabled = true;
+        c2.imageSmoothingQuality = 'high';
+        c2.drawImage(cvOut, 0, 0, W2, H2);
+        return { canvas: cvBig, w: W2, h: H2, maskCover: mask.reduce((a, v) => a + (v ? 1 : 0), 0) / N };
+    }
+    return { canvas: cvOut, w: W, h: H, maskCover: mask.reduce((a, v) => a + (v ? 1 : 0), 0) / N };
+}
+
+/* ============================================================
+   UI 逻辑
+   ============================================================ */
+function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('on');
+    clearTimeout(t._h);
+    t._h = setTimeout(() => t.classList.remove('on'), 2200);
+}
+
+function setProgress(pct, text) {
+    $('progIn').style.width = pct + '%';
+    if (text) $('progT').textContent = text;
+}
+
+function readParams() {
+    state.params = {
+        bg: +$('p-bg').value,
+        con: +$('p-con').value,
+        sharp: +$('p-sharp').value,
+        edge: +$('p-edge').value,
+        shadow: +$('p-shadow').value,
+        feather: +$('p-feather').value
+    };
+    $('v-bg').textContent = state.params.bg;
+    $('v-con').textContent = state.params.con;
+    $('v-sharp').textContent = state.params.sharp;
+    $('v-edge').textContent = state.params.edge;
+    $('v-shadow').textContent = state.params.shadow;
+    $('v-feather').textContent = state.params.feather;
+}
+
+function applyPreset(p) {
+    const P = PRESETS[p];
+    $('p-bg').value = P.bg; $('p-con').value = P.con; $('p-sharp').value = P.sharp;
+    $('p-edge').value = P.edge; $('p-shadow').value = P.shadow; $('p-feather').value = P.feather;
+    $('presetName').textContent = P.name;
+    document.querySelectorAll('#preset .seg-b').forEach(b => b.classList.toggle('on', +b.dataset.p === p));
+    readParams();
+    scheduleRender();
+}
+
+let renderTimer = null;
+function scheduleRender() {
+    clearTimeout(renderTimer);
+    renderTimer = setTimeout(() => doRender(), 220);
+}
+
+async function doRender() {
+    if (state.rendering) return;
+    const item = state.files[state.cur];
+    if (!item || !item.img) return;
+    state.rendering = true;
+    $('prog').classList.add('on');
+    setProgress(5, '读取图片…');
+    await new Promise(r => setTimeout(r, 30));
+
+    try {
+        setProgress(25, '分离产品轮廓…');
+        await new Promise(r => setTimeout(r, 20));
+        const P = state.params;
+        setProgress(45, '处理金属调性…');
+        await new Promise(r => setTimeout(r, 20));
+        const res = processImage(item.img, P);
+        setProgress(90, '合成输出…');
+        await new Promise(r => setTimeout(r, 20));
+
+        // 原图
+        const co = $('cvOrig');
+        co.width = res.w; co.height = res.h;
+        co.getContext('2d').drawImage(item.img, 0, 0, res.w, res.h);
+
+        // 结果
+        const c = $('cv');
+        c.width = res.w; c.height = res.h;
+        c.getContext('2d').drawImage(res.canvas, 0, 0);
+
+        $('wrap').classList.add('on');
+        $('empty').style.display = 'none';
+        $('dl').disabled = false;
+        $('reRender').disabled = false;
+        $('info').innerHTML = `<b>${item.file.name}</b> · ${res.w}×${res.h} · 产品占比 ${(res.maskCover * 100).toFixed(1)}%`;
+        $('prog').classList.remove('on');
+        applyCmp();
+    } catch (e) {
+        console.error(e);
+        $('prog').classList.remove('on');
+        toast('处理失败：' + e.message);
+    }
+    state.rendering = false;
+}
+
+function applyCmp() {
+    const on = state.showCmp;
+    $('cmp').style.display = on ? 'block' : 'none';
+    document.querySelectorAll('.cmp-tag').forEach(e => e.style.display = on ? 'block' : 'none');
+    const pct = parseFloat($('cmp').style.left) || 50;
+    $('cvOrig').style.clipPath = on ? `inset(0 ${100 - pct}% 0 0)` : 'none';
+}
+
+// 对比滑块拖动
+(function () {
+    const cmp = $('cmp');
+    let drag = false;
+    const wrap = $('wrap');
+    function move(e) {
+        if (!drag) return;
+        const r = wrap.getBoundingClientRect();
+        const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+        let pct = Math.max(0, Math.min(100, x / r.width * 100));
+        cmp.style.left = pct + '%';
+        applyCmp();
+    }
+    cmp.addEventListener('mousedown', e => { drag = true; e.preventDefault(); });
+    cmp.addEventListener('touchstart', e => { drag = true; }, { passive: true });
+    window.addEventListener('mousemove', move);
+    window.addEventListener('touchmove', move, { passive: true });
+    window.addEventListener('mouseup', () => drag = false);
+    window.addEventListener('touchend', () => drag = false);
+})();
+
+/* 文件加载 */
+function addFiles(list) {
+    const arr = Array.from(list).filter(f => f.type.startsWith('image/'));
+    if (!arr.length) return;
+    const had = state.files.length > 0;
+    let pending = arr.length;
+    arr.forEach(f => {
+        const url = URL.createObjectURL(f);
+        const img = new Image();
+        img.onload = () => {
+            state.files.push({ file: f, url, img });
+            pending--;
+            if (pending === 0) {
+                renderQueue();
+                if (!had) { state.cur = 0; doRender(); }
+            }
+        };
+        img.onerror = () => { pending--; toast('有图片读取失败'); };
+        img.src = url;
+    });
+}
+
+function renderQueue() {
+    const q = $('queue');
+    if (state.files.length <= 1) { q.classList.remove('on'); return; }
+    q.classList.add('on');
+    q.innerHTML = '';
+    state.files.forEach((it, i) => {
+        const div = document.createElement('div');
+        div.className = 'qi' + (i === state.cur ? ' on' : '');
+        div.innerHTML = `<img src="${it.url}"><div class="qi-x">×</div>`;
+        div.onclick = (e) => {
+            if (e.target.classList.contains('qi-x')) {
+                state.files.splice(i, 1);
+                if (state.cur >= state.files.length) state.cur = state.files.length - 1;
+                renderQueue();
+                if (state.files.length) doRender();
+                else { $('wrap').classList.remove('on'); $('empty').style.display = ''; $('dl').disabled = true; $('info').textContent = '未加载图片'; }
+                return;
+            }
+            state.cur = i;
+            renderQueue();
+            doRender();
+        };
+        q.appendChild(div);
+    });
+}
+
+/* 下载 */
+$('dl').onclick = () => {
+    const c = $('cv');
+    if (!c.width) return;
+    const item = state.files[state.cur];
+    const name = (item ? item.file.name.replace(/\.[^.]+$/, '') : 'steel') + '_精修.png';
+    c.toBlob(b => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(b);
+        a.download = name;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+        toast('已下载：' + name);
+    }, 'image/png');
+};
+
+/* 事件绑定 */
+$('drop').onclick = () => $('file').click();
+$('file').onchange = e => { addFiles(e.target.files); e.target.value = ''; };
+['dragover', 'dragenter'].forEach(ev => {
+    $('drop').addEventListener(ev, e => { e.preventDefault(); $('drop').classList.add('over'); });
+});
+['dragleave', 'drop'].forEach(ev => {
+    $('drop').addEventListener(ev, e => { e.preventDefault(); $('drop').classList.remove('over'); });
+});
+$('drop').addEventListener('drop', e => { if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+
+['p-bg', 'p-con', 'p-sharp', 'p-edge', 'p-shadow', 'p-feather'].forEach(id => {
+    $(id).addEventListener('input', () => { readParams(); scheduleRender(); });
+});
+
+document.querySelectorAll('#preset .seg-b').forEach(b => {
+    b.onclick = () => applyPreset(+b.dataset.p);
+});
+
+document.querySelectorAll('#size .seg-b').forEach(b => {
+    b.onclick = () => {
+        document.querySelectorAll('#size .seg-b').forEach(x => x.classList.remove('on'));
+        b.classList.add('on');
+        state.outSize = +b.dataset.s;
+        scheduleRender();
+    };
+});
+
+$('reset').onclick = () => applyPreset(0);
+
+$('reRender').onclick = () => doRender();
+
+$('toggleCmp').onclick = () => {
+    state.showCmp = !state.showCmp;
+    $('toggleCmp').textContent = '对比：' + (state.showCmp ? '开' : '关');
+    applyCmp();
+};
+
+readParams();
+</script>
+</body>
+</html>
