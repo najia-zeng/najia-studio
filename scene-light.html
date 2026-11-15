@@ -497,6 +497,7 @@ function isLicensed() {
 }
 
 /* 免费体验额度：内置 Key 期间每人 3 次，客户填了自己的 Key 则不限制 */
+const TEST_UNLIMITED = true; /* 测试阶段暂不限次；正式上线前改回 false */
 const FREE_LIMIT = 3;
 const WECHAT_ID = 'najia9864';
 function getFreeUsed() {
@@ -517,6 +518,12 @@ function renderQuota() {
         const el = $(id);
         if (!el) return;
         const isCta = (id === 'quotaSide');
+        if (TEST_UNLIMITED) {
+            el.className = isCta ? 'quota-cta' : 'quota-tag';
+            el.innerHTML = '测试阶段 · 暂不限次';
+            el.onclick = null; el.style.cursor = '';
+            return;
+        }
         if (isLicensed()) {
             el.className = 'quota-tag';
             el.innerHTML = '已解锁 · 不限次';
@@ -1001,7 +1008,7 @@ async function submitTune(idx) {
 
 async function generate() {
     if (busy || !productCroppedSrc) return;
-    if (!isLicensed() && freeLeft() <= 0) { openBuyDlg(); return; }
+    if (!TEST_UNLIMITED && !isLicensed() && freeLeft() <= 0) { openBuyDlg(); return; }
     busy = true; $('genBtn').disabled = true;
     try {
         showView('l');
@@ -1015,7 +1022,7 @@ async function generate() {
     }
     busy = false;
     await runShots();
-    if (!isLicensed() && lastItems && lastItems.length > 0) {
+    if (!TEST_UNLIMITED && !isLicensed() && lastItems && lastItems.length > 0) {
         setFreeUsed(getFreeUsed() + 1);
         renderQuota();
     }
