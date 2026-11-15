@@ -411,7 +411,7 @@
     var imgW = 0, imgH = 0;
     var pW = 0, pH = 0;
     var origProxyData = null;
-    var DEF_C = 50, DEF_S = 60;   // 默认：金属对比 50（power=1.0）、修平滑 60（smooth≈0.96）
+    var DEF_C = 50, DEF_S = 57;   // v10.1：金属对比 50（power 1.0）、修平滑 57（smooth 1.8 → 联动锐化 0.57）
     var cmpOn = false;
     var deco = null;              // 代理图的分解缓存（滑杆实时重算用，不重复跑滤波）
 
@@ -558,8 +558,16 @@
         // ④ 大尺度低通（对比滑杆实时用）
         var b60 = boxF(base, W, H, 60);
 
+        // ⑤ v10.1 阴影/倒影保护带：产品核向外 ~0.5%W 的环带不推白（保留原图阴影/倒影）
+        var core = new Float32Array(n);
+        for (var i10 = 0; i10 < n; i10++) core[i10] = pm[i10] > 0.5 ? 1 : 0;
+        var bandR = Math.max(3, Math.round(W * 0.005));
+        var proximity = boxF(core, W, H, bandR);
+        for (var i11 = 0; i11 < n; i11++) { if (proximity[i11] > 1) proximity[i11] = 1; }
+
         return { W: W, H: H, n: n, bg: bg, pm: pm, curSd: curSd,
                  base: base, detail: detail, gate: gate, b60: b60, sigma: sigma,
+                 proximity: proximity,
                  bbox: [bx0, by0, bx1, by1] };
     }
 
@@ -567,7 +575,7 @@
 
     function renderSteel(L0, d, power, smooth) {
         var W = d.W, H = d.H, n = d.n;
-        var k = (50 - d.curSd) / 22; if (k < 0) k = 0; if (k > 1) k = 1;
+        var k = (54 - d.curSd) / 22; if (k < 0) k = 0; if (k > 1) k = 1;
         // 力度整体由滑杆 power 控制（0＝完全原图，1＝自动，1.6＝加强）
         var a1 = power * (0.26 + 0.54 * k);
         var a2 = power * 0.50 * k;
@@ -600,38 +608,68 @@
             bb[i3] = s < 0 ? 0 : (s > 255 ? 255 : s);
         }
 
-        // ⑦ 修平滑：软阈值收缩（小幅度=划痕→压掉；大幅度=结构→保留），结构区轻手
+        // ⑦ 修平滑（蒙尘与划痕）：软阈值收缩，结构区轻手
+        //    v10.1：①平坦面残留划痕再压一档（flat_suppress 0.45）
+        //           ②细节层锐化（USM）联动——修得越狠补得越多，但锐化按结构门控加权：
+        //             螺纹/轮廓/边缘满额，平坦面只 25%（否则会把麻点一起放大，越修越脏）
+        var usm = 0.25 + 0.40 * (smooth > 1 ? smooth - 1 : 0);
         var L = new Float32Array(n);
         for (var i4 = 0; i4 < n; i4++) {
             var tLoc = t0 * (1 - 0.85 * gate[i4]);
             var dd = detail[i4];
             var ad = dd < 0 ? -dd : dd;
             var sd = ad - tLoc; if (sd < 0) sd = 0;
+            // 门控加权（gate≥0.625 视为结构边缘，满额）
+            var gs = gate[i4] * 1.6; if (gs > 1) gs = 1;
+            sd *= 1 - 0.45 * (1 - gs);                    // 平坦面残留划痕再压
+            sd *= 1 + usm * (0.25 + 0.75 * gs);           // 门控锐化
+            if (sd > 48) sd = 48;                          // 防光晕
             if (dd < 0) sd = -sd;
             var l = bb[i4] + sd;
             L[i4] = l < 0 ? 0 : (l > 255 ? 255 : l);
         }
 
-        // ⑧ 暗部软膝（不砸死黑）→ 轻提亮 → 背景推白
-        var bx0 = d.bbox[0], by0 = d.bbox[1], bx1 = d.bbox[2], by1 = d.bbox[3];
+        // ⑧ v10：暗部软膝 → 轻压暗(gamma 1.05) → 高光肩部 → 背景推白（v10.1 带阴影保护）
+        var bg0 = d.bg, prox = d.proximity;
         var out = new Float32Array(n);
-        for (var y = 0; y < H; y++) {
-            var inBgW = (y < by0 || y > by1);
-            for (var x = 0; x < W; x++) {
-                var idx = y * W + x;
-                var lv = L[idx];
-                if (lv < 42) lv = 26 + (lv / 42) * (42 - 26);
-                var lg = 255 * Math.pow(lv / 255, 0.95);
-                lv = lv + (lg - lv) * pm[idx];
-                if ((inBgW || x < bx0 || x > bx1)) lv = lv + (253 - lv) * 0.92;
-                out[idx] = lv;
-            }
+        for (var i5 = 0; i5 < n; i5++) {
+            var lv = L[i5], p = pm[i5];
+            if (lv < 42) lv = 26 + (lv / 42) * (42 - 26);
+            var lg = 255 * Math.pow(lv / 255, 1.05);
+            lv = lv + (lg - lv) * p;
+            if (lv > 236) { var sh = 236 + (lv - 236) * 0.5; lv = lv + (sh - lv) * p; }
+            var bgm = (lv - (bg0 - 14)) / 14;
+            if (bgm < 0) bgm = 0; if (bgm > 1) bgm = 1;
+            bgm *= (1 - p);
+            if (prox) bgm *= (1 - prox[i5]);               // v10.1：轮廓环带保留原生阴影/倒影
+            out[i5] = lv + (255 - lv) * bgm;
         }
         return out;
     }
 
-    // 亮度映射回 RGB（保色：只改亮度，不改色相）
-    function applyLumaToRGBA(rgba, L) {
+    // v10 新增：色偏修正增益（只取低饱和金属像素作参考，只作用产品区）
+    function neutralGains(rgba, pm) {
+        var sr = 0, sg = 0, sb = 0, c = 0, ar = 0, ag = 0, ab = 0, ac = 0;
+        for (var i = 0, j = 0; i < pm.length; i++, j += 4) {
+            if (pm[i] < 0.5) continue;
+            var r = rgba[j], g = rgba[j + 1], b = rgba[j + 2];
+            var mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
+            var mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+            ar += r; ag += g; ab += b; ac++;
+            if (mx - mn < 12) { sr += r; sg += g; sb += b; c++; }
+        }
+        if (ac < 300) return [1, 1, 1];
+        if (c < 300) { sr = ar; sg = ag; sb = ab; c = ac; }
+        var mr = sr / c, mg = sg / c, mb = sb / c;
+        var mt = (mr + mg + mb) / 3;
+        var st = 0.6;
+        return [1 + (mt / Math.max(mr, 1) - 1) * st,
+                1 + (mt / Math.max(mg, 1) - 1) * st,
+                1 + (mt / Math.max(mb, 1) - 1) * st];
+    }
+
+    // 亮度映射回 RGB（保色：只改亮度，不改色相）；gains/pm 用于 v10 色偏修正
+    function applyLumaToRGBA(rgba, L, gains, pm) {
         var n = L.length;
         var out = new Uint8ClampedArray(rgba.length);
         out.set(rgba);
@@ -640,6 +678,12 @@
             var s;
             if (oldL > 0.001) { s = L[i] / oldL; if (s > 4) s = 4; } else { s = 1; }
             var r = rgba[j] * s, g = rgba[j + 1] * s, b = rgba[j + 2] * s;
+            if (gains) {
+                var w = pm ? pm[i] : 1;
+                r *= 1 + (gains[0] - 1) * w;
+                g *= 1 + (gains[1] - 1) * w;
+                b *= 1 + (gains[2] - 1) * w;
+            }
             if (r > 250) r = 250 + (r - 250) * 0.25;
             if (g > 250) g = 250 + (g - 250) * 0.25;
             if (b > 250) b = 250 + (b - 250) * 0.25;
@@ -655,7 +699,8 @@
         var vS = parseInt($('slS').value, 10);
         // 金属对比：0＝完全原图，50＝自动力度（power 1.0），100＝加强（1.6）
         var power = vC <= 50 ? vC / 50 : 1.0 + (vC - 50) / 50 * 0.6;
-        return { power: power, smooth: 1.6 * vS / 100 };
+        // 修平滑：0 → smooth 1.0（只微修）；100 → 2.4（狠修，锐化联动补回清晰度）
+        return { power: power, smooth: 1.0 + 1.4 * vS / 100 };
     }
 
     function applyToProxy() {
@@ -663,7 +708,7 @@
         var p = sliderParams();
         var L0 = lumaArr(origProxyData.data);
         var L = renderSteel(L0, deco, p.power, p.smooth);
-        var out = applyLumaToRGBA(origProxyData.data, L);
+        var out = applyLumaToRGBA(origProxyData.data, L, neutralGains(origProxyData.data, deco.pm), deco.pm);
         ctxView.putImageData(new ImageData(out, pW, pH), 0, 0);
     }
 
@@ -758,6 +803,7 @@
         $('busyTxt').textContent = '正在亮钢…';
         var L0 = lumaArr(origProxyData.data);
         deco = decompose(L0, pW, pH);
+        window.__deco = deco; window.__L0 = L0; window.__render = renderSteel;   // 调试钩子（测试用）
 
         $('slC').value = DEF_C;
         $('slS').value = DEF_S;
@@ -878,7 +924,7 @@
                 var decoF = decompose(L0f, imgW, imgH);
                 var p = sliderParams();
                 var Lf = renderSteel(L0f, decoF, p.power, p.smooth);
-                var outF = applyLumaToRGBA(fd.data, Lf);
+                var outF = applyLumaToRGBA(fd.data, Lf, neutralGains(fd.data, decoF.pm), decoF.pm);
                 decoF = null; L0f = null; Lf = null;   // 释放大数组
                 var outImg = new ImageData(outF, imgW, imgH);
                 var tmpCv = document.createElement('canvas');
