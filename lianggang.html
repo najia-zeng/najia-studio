@@ -240,12 +240,7 @@
                     <input type="range" id="slR" min="0" max="100" value="57" step="1" disabled>
                     <b class="sld-v" id="slRVal">57</b>
                 </div>
-                <div class="sld">
-                    <span class="sld-l">去划痕</span>
-                    <input type="range" id="slD" min="0" max="100" value="100" step="1" disabled>
-                    <b class="sld-v" id="slDVal">100</b>
-                </div>
-                <div class="hint">上传后自动调好了。<b>金属对比</b>让高光更亮、暗部更沉；<b>修平滑</b>压掉表面细小划痕和颗粒；<b>锐化</b>把修平滑压糊的边缘补回来（只在轮廓和螺纹上锐，不会放大麻点）；<b>去划痕</b>修长划痕和灰尘黑点——默认全修，只动脏点和干净面上的划痕，螺纹、反光、刻字不动；觉得修过头往左拉。</div>
+                <div class="hint">上传后自动调好了。<b>金属对比</b>让高光更亮、暗部更沉；<b>修平滑</b>压掉表面细小划痕和颗粒；<b>锐化</b>把修平滑压糊的边缘补回来（只在轮廓和螺纹上锐，不会放大麻点）。</div>
                 <div class="btn-row" style="margin-top:12px;">
                     <button class="btn" id="btnReset">恢复默认</button>
                 </div>
@@ -421,12 +416,9 @@
     var imgW = 0, imgH = 0;
     var pW = 0, pH = 0;
     var origProxyData = null;
-    var DEF_C = 50, DEF_S = 57, DEF_R = 57, DEF_D = 100;   // v10.3：金属对比 50、修平滑 57、锐化 57、去划痕 100（默认全修，只修能安全修的）
+    var DEF_C = 50, DEF_S = 57, DEF_R = 57;   // v10.2：金属对比 50、修平滑 57、锐化 57（独立滑杆）
     var cmpOn = false;
     var deco = null;              // 代理图的分解缓存（滑杆实时重算用，不重复跑滤波）
-    var decoC = null;             // v10.3 去划痕版分解缓存（干净底图再走一遍分解）
-    var scrBlend = null;          // v10.3 去划痕拉满时的"干净混合亮度"
-    var scrW = null;              // v10.3 划痕权重掩膜（0~1，滑杆只缩放它）
 
     /* ---------- 基础滤波（积分图法，与像素数线性相关） ---------- */
 
@@ -494,120 +486,6 @@
             L[i] = (rgba[j] * 299 + rgba[j + 1] * 587 + rgba[j + 2] * 114) / 1000;
         }
         return L;
-    }
-
-    /* ---------- v10.3 去划痕：中值干净底图 + 瑕疵权重（一张图只算一次，滑杆只做实时混合） ---------- */
-
-    function med3(a, b, c) {
-        var t;
-        if (a > b) { t = a; a = b; b = t; }
-        if (b > c) { t = b; b = c; c = t; }
-        if (a > b) { t = a; a = b; b = t; }
-        return b;
-    }
-    // 五值中值：先冒出最小、次小，剩三个取中位（构造保证正确）
-    function med5(a, b, c, d, e) {
-        var t;
-        if (a > b) { t = a; a = b; b = t; }
-        if (a > c) { t = a; a = c; c = t; }
-        if (a > d) { t = a; a = d; d = t; }
-        if (a > e) { t = a; a = e; e = t; }      // a = 最小
-        if (b > c) { t = b; b = c; c = t; }
-        if (b > d) { t = b; b = d; d = t; }
-        if (b > e) { t = b; b = e; e = t; }      // b = 次小
-        return med3(c, d, e);                    // 中位
-    }
-    // 水平 5 宽中值 pass（边界复制）
-    function medPassX(L, W, H) {
-        var out = new Float32Array(W * H);
-        for (var y = 0; y < H; y++) {
-            var r = y * W;
-            for (var x = 0; x < W; x++) {
-                var xl = x - 2; if (xl < 0) xl = 0;
-                var xr = x + 2; if (xr > W - 1) xr = W - 1;
-                var v0 = L[r + xl], v4 = L[r + xr];
-                out[r + x] = med5(v0, L[r + Math.max(x - 1, 0)], L[r + x], L[r + Math.min(x + 1, W - 1)], v4);
-            }
-        }
-        return out;
-    }
-    // 垂直 5 宽中值 pass（边界复制）
-    function medPassY(L, W, H) {
-        var out = new Float32Array(W * H);
-        for (var x = 0; x < W; x++) {
-            for (var y = 0; y < H; y++) {
-                var yt = y - 2; if (yt < 0) yt = 0;
-                var yb = y + 2; if (yb > H - 1) yb = H - 1;
-                var v0 = L[yt * W + x], v4 = L[yb * W + x];
-                out[y * W + x] = med5(v0, L[Math.max(y - 1, 0) * W + x], L[y * W + x], L[Math.min(y + 1, H - 1) * W + x], v4);
-            }
-        }
-        return out;
-    }
-
-    /* v10.3 核心：干净底图（三轮可分离 5 宽中值，细划痕/灰点/5px 内污点被抹掉、宽结构保留）
-        单套权重（不做"无视纹理"的强修——试过，会把螺纹牙峰的高光一起抹掉、牙变麻点）：
-         只修背景脏点 + 干净面上的划痕；螺纹/拉丝/反光条纹/细刻字一律只给 6%
-       判定规则（不能用 gate——导向滤波把细线也当结构，会拦下真划痕）：
-       ① 幅度窗：|原图-干净底图| < 9 当噪声（交给「修平滑」）；9~36 线性升到全额
-       ② 细长判定：在干净底图 M 上比 ±4 两侧——M 上划痕/灰点已被抹掉 → 两侧同一个面；
-          物体边界在 M 上仍是台阶 → 两侧差 > 45 → 拒修（保轮廓）
-       ③ 周期判定（仅安全版）：±3~12 有"幅度相近"的同类瑕疵 → 螺纹/拉丝/反光条纹/细刻字，只给 6%
-       ④ 产品内的亮点（细小高光斑）只按 6 成力度修，避免把金属高光点抹平 */
-    function buildScratch(L0, W, H, d) {
-        var n = W * H;
-        var M = medPassY(medPassX(L0, W, H), W, H);
-        M = medPassY(medPassX(M, W, H), W, H);   // 第二轮：能吃掉 ~4px 宽的划痕（再多吃就会伤螺纹牙）
-        var pm = d.pm;
-        // 瑕疵幅度图（周期判定要用）
-        var cf = new Float32Array(n);
-        for (var i0 = 0; i0 < n; i0++) {
-            var c0 = L0[i0] - M[i0]; if (c0 < 0) c0 = -c0;
-            cf[i0] = c0;
-        }
-        var wS = new Float32Array(n);
-        var TS = 45;                              // 细长判定：两侧亮度差阈值
-        for (var y = 0; y < H; y++) {
-            for (var x = 0; x < W; x++) {
-                var i = y * W + x;
-                var c1 = cf[i];
-                if (c1 < 9) continue;             // 噪声级，交给「修平滑」
-                var cw = (c1 - 9) / 27; if (cw > 1) cw = 1;
-                // ③ 细长判定：在干净底图 M 上比较 ±4（M 上划痕/灰点已被抹掉 → 两侧是同一个面；
-                //    物体边界在 M 上仍是台阶 → 两侧亮度差大 → 拒修）
-                var xl = x - 4; if (xl < 0) xl = 0;
-                var xr = x + 4; if (xr > W - 1) xr = W - 1;
-                var yt = y - 4; if (yt < 0) yt = 0;
-                var yb = y + 4; if (yb > H - 1) yb = H - 1;
-                var dxs = M[y * W + xr] - M[y * W + xl]; if (dxs < 0) dxs = -dxs;
-                var dys = M[yb * W + x] - M[yt * W + x]; if (dys < 0) dys = -dys;
-                if (dxs > TS || dys > TS) continue;
-                // ⑤ 产品内亮斑留情
-                if (L0[i] > M[i] && pm[i] > 0.35) cw *= 0.6;
-                // ④ 周期判定：±3~12 有幅度相近的同类瑕疵 → 螺纹/拉丝/反光条纹/细刻字，只给 6%
-                var vS = cw, perMax = 0;
-                if (pm[i] > 0.35) {
-                    for (var o = 3; o <= 12; o++) {
-                        if (y - o >= 0) { var q1 = cf[(y - o) * W + x]; if (q1 > perMax) perMax = q1; }
-                        if (y + o < H) { var q2 = cf[(y + o) * W + x]; if (q2 > perMax) perMax = q2; }
-                        if (x - o >= 0) { var q3 = cf[y * W + x - o]; if (q3 > perMax) perMax = q3; }
-                        if (x + o < W) { var q4 = cf[y * W + x + o]; if (q4 > perMax) perMax = q4; }
-                    }
-                    if (perMax > 0.7 * c1) vS = cw * 0.06;
-                }
-                wS[i] = vS;
-            }
-        }
-        // 膨胀两圈：划痕边缘（幅度不足的半截）也一起补掉
-        var wd = boxF(wS, W, H, 2);
-        for (var i2 = 0; i2 < n; i2++) {
-            var vg = wS[i2] + wd[i2] * 0.9;
-            wS[i2] = vg > 1 ? 1 : vg;
-        }
-        // 干净混合图（去划痕拉满时的输入）
-        var blend = new Float32Array(n);
-        for (var i3 = 0; i3 < n; i3++) blend[i3] = L0[i3] + (M[i3] - L0[i3]) * wS[i3];
-        return { blend: blend, w: wS, M: M, cf: cf };   // M/cf 仅调试用
     }
 
     /* ---------- 分解（一张图只跑一次，结果缓存） ---------- */
@@ -825,40 +703,19 @@
         var vC = parseInt($('slC').value, 10);
         var vS = parseInt($('slS').value, 10);
         var vR = parseInt($('slR').value, 10);
-        var vD = parseInt($('slD').value, 10);
         // 金属对比：0＝完全原图，50＝自动力度（power 1.0），100＝加强（1.6）
         var power = vC <= 50 ? vC / 50 : 1.0 + (vC - 50) / 50 * 0.6;
         // 修平滑：0 → smooth 1.0（只微修）；100 → 2.4（狠修）
         // 锐化：0 → 完全不锐；57（默认）→ 0.57（与上一版自动联动值一致）；100 → 1.8（明显更利）
         var usm = vR <= 57 ? 0.57 * vR / 57 : 0.57 + (vR - 57) / 43 * 1.23;
-        // 去划痕：0 → 关闭（与 v10.2 完全一致）；100 → 掩膜满额替换
-        return { power: power, smooth: 1.0 + 1.4 * vS / 100, usm: usm, sr: vD / 100 };
+        return { power: power, smooth: 1.0 + 1.4 * vS / 100, usm: usm };
     }
 
-    // v10.3 渲染缓存：三根调色滑杆没变时，原图版/干净版渲染结果直接复用，
-    // 拖「去划痕」只跑逐像素混合（最轻的一步）
-    var _loCache = null, _lcCache = null, _loKey = '';
     function applyToProxy() {
         if (!deco || !origProxyData) return;
         var p = sliderParams();
         var L0 = lumaArr(origProxyData.data);
-        var key = p.power.toFixed(4) + '|' + p.smooth.toFixed(4) + '|' + p.usm.toFixed(4);
-        if (_loKey !== key) {
-            _loCache = renderSteel(L0, deco, p.power, p.smooth, p.usm);
-            _lcCache = null;
-            _loKey = key;
-        }
-        var L;
-        if (p.sr > 0 && decoC && scrBlend && scrW) {
-            if (!_lcCache) _lcCache = renderSteel(scrBlend, decoC, p.power, p.smooth, p.usm);
-            L = new Float32Array(_loCache.length);
-            for (var i = 0; i < L.length; i++) {
-                var wv = scrW[i] * p.sr; if (wv > 1) wv = 1;
-                L[i] = wv > 0 ? _loCache[i] + (_lcCache[i] - _loCache[i]) * wv : _loCache[i];
-            }
-        } else {
-            L = _loCache;
-        }
+        var L = renderSteel(L0, deco, p.power, p.smooth, p.usm);
         var out = applyLumaToRGBA(origProxyData.data, L, neutralGains(origProxyData.data, deco.pm), deco.pm);
         ctxView.putImageData(new ImageData(out, pW, pH), 0, 0);
     }
@@ -954,26 +811,17 @@
         $('busyTxt').textContent = '正在亮钢…';
         var L0 = lumaArr(origProxyData.data);
         deco = decompose(L0, pW, pH);
-        // v10.3 去划痕：干净底图 + 权重掩膜 + 干净版分解（一次性缓存，拖滑杆不重算）
-        var sc = buildScratch(L0, pW, pH, deco);
-        scrBlend = sc.blend; scrW = sc.w;
-        decoC = decompose(scrBlend, pW, pH);
-        _loKey = ''; _loCache = null; _lcCache = null;   // 渲染缓存失效，换图重算
         window.__deco = deco; window.__L0 = L0; window.__render = renderSteel;   // 调试钩子（测试用）
-        window.__scr = sc; window.__decoC = decoC;                               // v10.3 测试钩子
 
         $('slC').value = DEF_C;
         $('slS').value = DEF_S;
         $('slR').value = DEF_R;
-        $('slD').value = DEF_D;
         $('slCVal').textContent = DEF_C;
         $('slSVal').textContent = DEF_S;
         $('slRVal').textContent = DEF_R;
-        $('slDVal').textContent = DEF_D;
         $('slC').disabled = false;
         $('slS').disabled = false;
         $('slR').disabled = false;
-        $('slD').disabled = false;
         $('secAdj').classList.remove('off');
 
         applyToProxy();
@@ -996,7 +844,6 @@
         $('slCVal').textContent = $('slC').value;
         $('slSVal').textContent = $('slS').value;
         $('slRVal').textContent = $('slR').value;
-        $('slDVal').textContent = $('slD').value;
         if (cmpOn) { cmpOn = false; $('cmpBadge').classList.remove('on'); }
         if (rafPending) return;      // rAF 合帧：拖得再快也不卡
         rafPending = true;
@@ -1008,12 +855,10 @@
     $('slC').addEventListener('input', onSlider);
     $('slS').addEventListener('input', onSlider);
     $('slR').addEventListener('input', onSlider);
-    $('slD').addEventListener('input', onSlider);
     $('btnReset').addEventListener('click', function () {
         $('slC').value = DEF_C;
         $('slS').value = DEF_S;
         $('slR').value = DEF_R;
-        $('slD').value = DEF_D;
         onSlider();
     });
 
@@ -1090,22 +935,9 @@
                 // 全尺寸完整跑一遍（分解+渲染），不走代理缓存
                 var fd = fullCtx.getImageData(0, 0, imgW, imgH);
                 var L0f = lumaArr(fd.data);
+                var decoF = decompose(L0f, imgW, imgH);
                 var p = sliderParams();
-                var Lin = L0f;
-                if (p.sr > 0) {
-                    // v10.3：全尺寸去划痕——先拿原图的 gate/pm 做检测，再把混合图重新分解
-                    var decoT = decompose(L0f, imgW, imgH);
-                    var scF = buildScratch(L0f, imgW, imgH, decoT);
-                    decoT = null;
-                    Lin = new Float32Array(L0f.length);
-                    for (var si = 0; si < L0f.length; si++) {
-                        var wvF = scF.w[si] * p.sr; if (wvF > 1) wvF = 1;
-                        Lin[si] = L0f[si] + (scF.blend[si] - L0f[si]) * wvF;
-                    }
-                    scF = null;
-                }
-                var decoF = decompose(Lin, imgW, imgH);
-                var Lf = renderSteel(Lin, decoF, p.power, p.smooth, p.usm);
+                var Lf = renderSteel(L0f, decoF, p.power, p.smooth, p.usm);
                 var outF = applyLumaToRGBA(fd.data, Lf, neutralGains(fd.data, decoF.pm), decoF.pm);
                 decoF = null; L0f = null; Lf = null;   // 释放大数组
                 var outImg = new ImageData(outF, imgW, imgH);
