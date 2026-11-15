@@ -232,10 +232,15 @@
                 </div>
                 <div class="sld">
                     <span class="sld-l">修平滑</span>
-                    <input type="range" id="slS" min="0" max="100" value="60" step="1" disabled>
-                    <b class="sld-v" id="slSVal">60</b>
+                    <input type="range" id="slS" min="0" max="100" value="57" step="1" disabled>
+                    <b class="sld-v" id="slSVal">57</b>
                 </div>
-                <div class="hint">上传后自动调好了。<b>金属对比</b>让高光更亮、暗部更沉；<b>修平滑</b>压掉表面细小划痕和颗粒，拉到 0 就是只调光不修面。</div>
+                <div class="sld">
+                    <span class="sld-l">锐化</span>
+                    <input type="range" id="slR" min="0" max="100" value="57" step="1" disabled>
+                    <b class="sld-v" id="slRVal">57</b>
+                </div>
+                <div class="hint">上传后自动调好了。<b>金属对比</b>让高光更亮、暗部更沉；<b>修平滑</b>压掉表面细小划痕和颗粒；<b>锐化</b>把修平滑压糊的边缘补回来（只在轮廓和螺纹上锐，不会放大麻点）。</div>
                 <div class="btn-row" style="margin-top:12px;">
                     <button class="btn" id="btnReset">恢复默认</button>
                 </div>
@@ -411,7 +416,7 @@
     var imgW = 0, imgH = 0;
     var pW = 0, pH = 0;
     var origProxyData = null;
-    var DEF_C = 50, DEF_S = 57;   // v10.1：金属对比 50（power 1.0）、修平滑 57（smooth 1.8 → 联动锐化 0.57）
+    var DEF_C = 50, DEF_S = 57, DEF_R = 57;   // v10.2：金属对比 50、修平滑 57、锐化 57（独立滑杆）
     var cmpOn = false;
     var deco = null;              // 代理图的分解缓存（滑杆实时重算用，不重复跑滤波）
 
@@ -573,7 +578,8 @@
 
     /* ---------- 渲染（滑杆变化只跑这里，纯逐像素 + 少量小滤波，实时） ---------- */
 
-    function renderSteel(L0, d, power, smooth) {
+    function renderSteel(L0, d, power, smooth, usmIn) {
+        var usm = (typeof usmIn === 'number') ? usmIn : 0.57;   // v10.2：锐化独立滑杆（0～1.0）
         var W = d.W, H = d.H, n = d.n;
         var k = (54 - d.curSd) / 22; if (k < 0) k = 0; if (k > 1) k = 1;
         // 力度整体由滑杆 power 控制（0＝完全原图，1＝自动，1.6＝加强）
@@ -609,10 +615,9 @@
         }
 
         // ⑦ 修平滑（蒙尘与划痕）：软阈值收缩，结构区轻手
-        //    v10.1：①平坦面残留划痕再压一档（flat_suppress 0.45）
-        //           ②细节层锐化（USM）联动——修得越狠补得越多，但锐化按结构门控加权：
+        //    v10.2：①平坦面残留划痕再压一档（flat_suppress 0.45）
+        //           ②细节层锐化（USM）改为独立「锐化」滑杆控制，仍按结构门控加权：
         //             螺纹/轮廓/边缘满额，平坦面只 25%（否则会把麻点一起放大，越修越脏）
-        var usm = 0.25 + 0.40 * (smooth > 1 ? smooth - 1 : 0);
         var L = new Float32Array(n);
         for (var i4 = 0; i4 < n; i4++) {
             var tLoc = t0 * (1 - 0.85 * gate[i4]);
@@ -697,17 +702,20 @@
     function sliderParams() {
         var vC = parseInt($('slC').value, 10);
         var vS = parseInt($('slS').value, 10);
+        var vR = parseInt($('slR').value, 10);
         // 金属对比：0＝完全原图，50＝自动力度（power 1.0），100＝加强（1.6）
         var power = vC <= 50 ? vC / 50 : 1.0 + (vC - 50) / 50 * 0.6;
-        // 修平滑：0 → smooth 1.0（只微修）；100 → 2.4（狠修，锐化联动补回清晰度）
-        return { power: power, smooth: 1.0 + 1.4 * vS / 100 };
+        // 修平滑：0 → smooth 1.0（只微修）；100 → 2.4（狠修）
+        // 锐化：0 → 完全不锐；57（默认）→ 0.57（与上一版自动联动值一致）；100 → 1.8（明显更利）
+        var usm = vR <= 57 ? 0.57 * vR / 57 : 0.57 + (vR - 57) / 43 * 1.23;
+        return { power: power, smooth: 1.0 + 1.4 * vS / 100, usm: usm };
     }
 
     function applyToProxy() {
         if (!deco || !origProxyData) return;
         var p = sliderParams();
         var L0 = lumaArr(origProxyData.data);
-        var L = renderSteel(L0, deco, p.power, p.smooth);
+        var L = renderSteel(L0, deco, p.power, p.smooth, p.usm);
         var out = applyLumaToRGBA(origProxyData.data, L, neutralGains(origProxyData.data, deco.pm), deco.pm);
         ctxView.putImageData(new ImageData(out, pW, pH), 0, 0);
     }
@@ -807,10 +815,13 @@
 
         $('slC').value = DEF_C;
         $('slS').value = DEF_S;
+        $('slR').value = DEF_R;
         $('slCVal').textContent = DEF_C;
         $('slSVal').textContent = DEF_S;
+        $('slRVal').textContent = DEF_R;
         $('slC').disabled = false;
         $('slS').disabled = false;
+        $('slR').disabled = false;
         $('secAdj').classList.remove('off');
 
         applyToProxy();
@@ -832,6 +843,7 @@
     function onSlider() {
         $('slCVal').textContent = $('slC').value;
         $('slSVal').textContent = $('slS').value;
+        $('slRVal').textContent = $('slR').value;
         if (cmpOn) { cmpOn = false; $('cmpBadge').classList.remove('on'); }
         if (rafPending) return;      // rAF 合帧：拖得再快也不卡
         rafPending = true;
@@ -842,9 +854,11 @@
     }
     $('slC').addEventListener('input', onSlider);
     $('slS').addEventListener('input', onSlider);
+    $('slR').addEventListener('input', onSlider);
     $('btnReset').addEventListener('click', function () {
         $('slC').value = DEF_C;
         $('slS').value = DEF_S;
+        $('slR').value = DEF_R;
         onSlider();
     });
 
@@ -923,7 +937,7 @@
                 var L0f = lumaArr(fd.data);
                 var decoF = decompose(L0f, imgW, imgH);
                 var p = sliderParams();
-                var Lf = renderSteel(L0f, decoF, p.power, p.smooth);
+                var Lf = renderSteel(L0f, decoF, p.power, p.smooth, p.usm);
                 var outF = applyLumaToRGBA(fd.data, Lf, neutralGains(fd.data, decoF.pm), decoF.pm);
                 decoF = null; L0f = null; Lf = null;   // 释放大数组
                 var outImg = new ImageData(outF, imgW, imgH);
