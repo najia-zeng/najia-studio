@@ -286,6 +286,8 @@
             <div class="row">
                 <div class="row-h"><div class="row-l">边缘柔度</div><div class="row-v" id="v-feather">45</div></div>
                 <input type="range" id="p-feather" min="0" max="100" value="45">
+                <div class="row-h"><div class="row-l">抠图灵敏度<span style="font-size:11px;color:#a0a0b8"> 小=抠得全 大=更保守</span></div><div class="row-v" id="v-sens">4</div></div>
+                <input type="range" id="p-sens" min="2" max="14" value="4">
             </div>
         </div>
 
@@ -357,12 +359,12 @@ const state = {
     maxSide: 1200,    // 处理尺寸
     outSize: 1200,
     params: {
-        bg: 100, con: 55, sharp: 50, edge: 60, shadow: 55, feather: 45
+        bg: 100, con: 55, sharp: 50, edge: 60, shadow: 55, feather: 45, sens: 4
     }
 };
 
 const PRESETS = [
-    { name: '五金标准', bg: 100, con: 55, sharp: 50, edge: 60, shadow: 55, feather: 45 },
+    { name: '五金标准', bg: 100, con: 55, sharp: 50, edge: 60, shadow: 55, feather: 45, sens: 4 },
     { name: '强对比',   bg: 100, con: 85, sharp: 70, edge: 75, shadow: 65, feather: 30 },
     { name: '柔和',     bg: 95,  con: 32, sharp: 32, edge: 35, shadow: 45, feather: 65 }
 ];
@@ -582,7 +584,7 @@ function makeCurve(strength) {
     const lut = new Uint8Array(256);
     // 基准对比曲线
     const xp = [0, 60, 110, 150, 200, 240, 255];
-    const fp = [0, 40, 100, 148, 216, 252, 255];
+    const fp = [0, 44, 108, 158, 224, 254, 255];
     for (let v = 0; v < 256; v++) {
         // 找区间插值
         let out = v;
@@ -622,7 +624,7 @@ function processImage(img, P) {
     const bg = estimateBg(g, W, H);
 
     // 3. 阈值 → mask（0/255）
-    const T = 10;
+    const T = P.sens;
     let m = new Uint8Array(N);
     for (let i = 0; i < N; i++) m[i] = g[i] < bg - T ? 255 : 0;
 
@@ -637,7 +639,7 @@ function processImage(img, P) {
     const keep = new Uint8Array(N);
     const boxes = [];  // 每个保留连通域的 bbox
     for (let i = 1; i <= n; i++) {
-        if (sizes[i] < total * 0.03) continue;
+        if (sizes[i] < total * 0.08) continue;
         let x0 = W, y0 = H, x1 = 0, y1 = 0;
         for (let p = 0; p < N; p++) {
             if (lab[p] === i) {
@@ -712,7 +714,7 @@ function processImage(img, P) {
         const gap = new Uint8Array(N);
         for (let j = 0; j < N; j++) gap[j] = (closed[j] && !filled[j]) ? 255 : 0;
         const gl = label(gap, W, H);
-        const limit = total * 0.045;
+        const limit = total * 0.11;
         for (let i = 1; i <= gl.n; i++) {
             if (gl.sizes[i] > limit) continue;
             for (let p = 0; p < N; p++) if (gl.lab[p] === i) fillArr[p] = 255;
@@ -725,7 +727,25 @@ function processImage(img, P) {
     }
 
     // 10. 最终 mask
-    const mask = fillArr;
+    let mask = fillArr;
+    {
+        const ml = label(mask, W, H);
+        const mt = new Uint8Array(N);
+        let tot = 0; for (let j = 0; j < N; j++) if (mask[j]) tot++;
+        for (let i = 1; i <= ml.n; i++) {
+            if (ml.sizes[i] < tot * 0.05) continue;
+            for (let p = 0; p < N; p++) if (ml.lab[p] === i) mt[p] = 255;
+        }
+        mask = mt;
+    }
+    // 产品主体下沿：用明确暗部（< bg-40）定位，以下视为反光台倒影
+    let yBody = 0;
+    {
+        for (let j = 0; j < N; j++) {
+            if (g[j] < bg - 40) { const yy = (j / W) | 0; if (yy > yBody) yBody = yy; }
+        }
+        if (yBody < H * 0.2) yBody = H - 1; else yBody += 10;
+    }
 
     // 11. 距离场（向内）
     const distIn = distanceTransform(mask, W, H);
@@ -785,12 +805,12 @@ function processImage(img, P) {
     }
 
     // 15. 轮廓压边：骑在轮廓上的细暗线，吃掉原图边缘的白
-    const dil = dilate(mask, W, H, 2);
     const ero = erode(mask, W, H, 1);
-    const edgeAmp = P.edge / 100 * 0.6;
+    const ero4 = erode(mask, W, H, 4);
+    const edgeAmp = P.edge / 100 * 0.55;
     if (edgeAmp > 0.01) {
         const outline = new Float32Array(N);
-        for (let j = 0; j < N; j++) outline[j] = (dil[j] && !ero[j]) ? 1 : 0;
+        for (let j = 0; j < N; j++) outline[j] = (ero[j] && !ero4[j] && ((j / W) | 0) < yBody - 2) ? 1 : 0;
         const outlineB = gaussApprox(outline, W, H, 1);
         for (let j = 0; j < N; j++) {
             const k = 1 - outlineB[j] * edgeAmp;
@@ -818,10 +838,15 @@ function processImage(img, P) {
     const distOut = distanceTransform(invMask, W, H);
     const out = new Uint8ClampedArray(N * 4);
     const bgWhite = P.bg / 100;
+    const fadeBand = 20;
     for (let j = 0; j < N; j++) {
         let k;
         if (mask[j]) {
-            k = 1;
+            const yy = (j / W) | 0;
+            if (yy > yBody) {
+                const lum = g[j];
+                k = lum > bg - fadeBand ? Math.max(0, (bg - lum) / fadeBand) : 1;
+            } else k = 1;
         } else {
             const dOut = distOut[j];
             k = dOut < featherW ? (1 - dOut / featherW) * 0.9 : 0;
@@ -837,8 +862,13 @@ function processImage(img, P) {
     const shAmp = P.shadow / 100;
     if (shAmp > 0.01) {
         const mm = new Float32Array(N);
-        for (let j = 0; j < N; j++) mm[j] = mask[j] ? 1 : 0;
-        const shiftY = Math.max(2, Math.round(H * 0.004));
+        {
+            const sm = new Uint8Array(N);
+            for (let j = 0; j < N; j++) sm[j] = (mask[j] && g[j] < bg - 25) ? 255 : 0;
+            const sm2 = erode(dilate(sm, W, H, 8), W, H, 8);
+            for (let j = 0; j < N; j++) mm[j] = sm2[j] ? 1 : 0;
+        }
+        const shiftY = Math.max(3, Math.round(H * 0.006));
         const near = new Float32Array(N);
         for (let y = 0; y < H; y++) {
             const sy = y - shiftY;
@@ -846,12 +876,12 @@ function processImage(img, P) {
                 near[y * W + x] = (sy >= 0 && sy < H) ? mm[sy * W + x] : 0;
             }
         }
-        const nearB = gaussApprox(near, W, H, Math.max(2, Math.round(H * 0.004)));
-        const farB = gaussApprox(near, W, H, Math.max(6, Math.round(H * 0.018)));
+        const nearB = gaussApprox(near, W, H, Math.max(3, Math.round(H * 0.005)));
+        const farB = gaussApprox(near, W, H, Math.max(8, Math.round(H * 0.025)));
         for (let j = 0; j < N; j++) {
             if (mask[j]) continue;
-            const s = Math.min(1, nearB[j] * 0.24 + farB[j] * 0.08) * shAmp;
-            const k = 1 - s * 0.62;
+            const s = Math.min(1, nearB[j] * 0.36 + farB[j] * 0.16) * shAmp;
+            const k = 1 - s * 0.85;
             const i4 = j * 4;
             out[i4] *= k; out[i4 + 1] *= k; out[i4 + 2] *= k;
         }
@@ -901,7 +931,8 @@ function readParams() {
         sharp: +$('p-sharp').value,
         edge: +$('p-edge').value,
         shadow: +$('p-shadow').value,
-        feather: +$('p-feather').value
+        feather: +$('p-feather').value,
+        sens: +$('p-sens').value
     };
     $('v-bg').textContent = state.params.bg;
     $('v-con').textContent = state.params.con;
@@ -909,12 +940,14 @@ function readParams() {
     $('v-edge').textContent = state.params.edge;
     $('v-shadow').textContent = state.params.shadow;
     $('v-feather').textContent = state.params.feather;
+    $('v-sens').textContent = state.params.sens;
 }
 
 function applyPreset(p) {
     const P = PRESETS[p];
     $('p-bg').value = P.bg; $('p-con').value = P.con; $('p-sharp').value = P.sharp;
     $('p-edge').value = P.edge; $('p-shadow').value = P.shadow; $('p-feather').value = P.feather;
+    if (P.sens) $('p-sens').value = P.sens;
     $('presetName').textContent = P.name;
     document.querySelectorAll('#preset .seg-b').forEach(b => b.classList.toggle('on', +b.dataset.p === p));
     readParams();
@@ -1075,7 +1108,7 @@ $('file').onchange = e => { addFiles(e.target.files); e.target.value = ''; };
 });
 $('drop').addEventListener('drop', e => { if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
 
-['p-bg', 'p-con', 'p-sharp', 'p-edge', 'p-shadow', 'p-feather'].forEach(id => {
+['p-bg', 'p-con', 'p-sharp', 'p-edge', 'p-shadow', 'p-feather', 'p-sens'].forEach(id => {
     $(id).addEventListener('input', () => { readParams(); scheduleRender(); });
 });
 
