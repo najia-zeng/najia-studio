@@ -497,7 +497,7 @@ function isLicensed() {
 }
 
 /* 免费体验额度：内置 Key 期间每人 3 次，客户填了自己的 Key 则不限制 */
-const TEST_UNLIMITED = true; /* 测试阶段暂不限次；正式上线前改回 false */
+const TEST_UNLIMITED = false; /* 已恢复「每人免费体验 3 次」；测试期想临时放开就改回 true */
 const FREE_LIMIT = 3;
 const WECHAT_ID = 'najia9864';
 function getFreeUsed() {
