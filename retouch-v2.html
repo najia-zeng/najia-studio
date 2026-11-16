@@ -2143,6 +2143,20 @@
             }
         }
         var out = new Float32Array(fixed.length);
+        // 阴影只把「明暗」加回去，不把原图的划痕、脏点、灰纹一起带回来：
+        // 取两边的低频亮度差，投影的明暗全在这个差里，划痕这种高频在差里几乎为 0。
+        // 先在原尺寸上相减再模糊一次就够了（模糊是线性的，blur(a)-blur(b) 等于 blur(a-b)）。
+        var dLow = null;
+        if (kMin > 0) {
+            dLow = new Float32Array(n);
+            for (var lp = 0; lp < n; lp++) {
+                var lq = lp * 3;
+                dLow[lp] = ((orig[lq] + orig[lq + 1] + orig[lq + 2]) -
+                            (fixed[lq] + fixed[lq + 1] + fixed[lq + 2])) / 3;
+            }
+            // 半径要比划痕宽得多（把划痕彻底平均掉）、比投影窄得多（保住影子形状）
+            dLow = boxBlur1(dLow, w, h, Math.max(6, Math.round(Math.min(w, h) * 0.020)));
+        }
         var span = rOut - rIn;
         if (span < 1) span = 1;
         for (var p = 0; p < n; p++) {
@@ -2159,9 +2173,17 @@
             out[q] = fixed[q]; out[q + 1] = fixed[q + 1]; out[q + 2] = fixed[q + 2];
             if (undo <= 0.001) continue;
             var w0 = undo > 1 ? 1 : undo;
-            out[q]     = fixed[q]     * (1 - w0) + orig[q]     * w0;
-            out[q + 1] = fixed[q + 1] * (1 - w0) + orig[q + 1] * w0;
-            out[q + 2] = fixed[q + 2] * (1 - w0) + orig[q + 2] * w0;
+            if (dLow) {
+                // 只搬明暗：fixed 的高频（已修掉划痕）留着，低频按原图的阴影补回来
+                var dl = dLow[p] * w0;
+                out[q]     = fixed[q]     + dl;
+                out[q + 1] = fixed[q + 1] + dl;
+                out[q + 2] = fixed[q + 2] + dl;
+            } else {
+                out[q]     = fixed[q]     * (1 - w0) + orig[q]     * w0;
+                out[q + 1] = fixed[q + 1] * (1 - w0) + orig[q + 1] * w0;
+                out[q + 2] = fixed[q + 2] * (1 - w0) + orig[q + 2] * w0;
+            }
         }
         return out;
     }
@@ -2594,17 +2616,18 @@
         var sc = scale === undefined ? 1 : scale;
         if (isBg) {
             var r = parseInt($('slBg').value, 10);
-            // D&S 负责去掉点状瑕疵（半径封顶 20，再大算不动）
-            var dsR = Math.min(12, Math.max(1, Math.round(r * sc)));
-            // 力度 10 以上开始叠加整片柔化：D&S 抹不掉大片水渍、投影这种低频痕迹
-            var blurA = (r - 10) / 35;
+            // D&S 负责去掉点状瑕疵（半径封顶再大也算不动，长条划痕交给下面的整片柔化）
+            var dsR = Math.min(16, Math.max(1, Math.round(r * Math.sqrt(sc))));
+            // 力度 6 以上就开始叠加整片柔化：板面上的长条划痕、布纹、水渍都是低频，
+            // D&S 半径再大也吃不动。默认 20 档要给到 0.5 以上，客户不调也能清干净。
+            var blurA = (r - 4) / 18;
             if (blurA < 0) blurA = 0;
             if (blurA > 1) blurA = 1;
             return {
                 r: dsR,
                 t: Math.round(dsR * 1.2),
                 blurR: Math.max(1, Math.round(r * 0.85 * sc)),
-                blurF: 12 + (r / 50) * 22,
+                blurF: 14 + (r / 50) * 30,
                 blurA: blurA
             };
         }
@@ -2680,8 +2703,11 @@
             // 只按 feather 保留 → 阴影中段被提亮一半，看着像"暗影里一块发白"。
             var shadowIn = featherB;
             var shK = shadowOn ? shadowAmt / 100 : 0;
-            var shadowOut = Math.max(Math.round(featherB * 3),
-                Math.round(Math.min(pw, ph) * (0.16 + 0.20 * shK)));
+            // 范围收到贴着产品的一圈：产品脚边那条影子留住，再往外的灰晕按背景修掉。
+            // 放太宽（原来短边的 16~36%）会把产品四周一大圈浅灰全保下来，看着像一圈脏边。
+            var shadowOut = Math.max(Math.round(featherB * 1.6),
+                Math.round(Math.min(pw, ph) * (0.08 + 0.10 * shK)));
+            if (shadowOut < featherB + 6) shadowOut = featherB + 6;
             var bgY = rowBgLum(pd, pw, ph);
             var keepB = dilate(pmask, pw, ph, guardB);
             var regB = new Uint8Array(pw * ph);
@@ -2704,15 +2730,30 @@
             }
             // 距离图只算一次，投影保留和过渡带共用
             var dB = distMap(keepB, pw, ph);
-            resB = keepContactShadow(origB, resB, dB, pw * ph, pw, ph, shadowIn, shadowOut, shK, bgY, 6, 22);
+            resB = keepContactShadow(origB, resB, dB, pw * ph, pw, ph, shadowIn, shadowOut, shK, bgY, 10, 26);
             softB = softOutward(keepB, pw, ph, featherB, dB);
+            // 羽化区原来是把「原图」和「修好的」按 a1 线性混：贴边那几十像素 a1 接近 0，
+            // 原图的划痕、灰纹就原样留在产品脚边 —— 看着就是一圈没修干净的脏边。
+            // 改成只混「明暗」：低频按 a1 过渡（阴影、边缘暗部过渡都保住），
+            // 高频一律用修好的。贴边那圈的划痕能掉，又不会把产品边缘修出一条白边。
+            // 羽化区只混明暗：低频按 a1 过渡（阴影、边缘暗部过渡都保住），高频一律用修好的。
+            // 相减再模糊一次即可（模糊是线性的），比分别模糊两张图省一半时间。
+            var dLumB = new Float32Array(pw * ph);
+            for (var lu = 0; lu < pw * ph; lu++) {
+                var lu4 = lu * 4, lu3 = lu * 3;
+                dLumB[lu] = ((pd[lu4] + pd[lu4 + 1] + pd[lu4 + 2]) -
+                             (resB[lu3] + resB[lu3 + 1] + resB[lu3 + 2])) / 3;
+            }
+            dLumB = boxBlur1(dLumB, pw, ph, Math.max(4, Math.round(Math.min(pw, ph) * 0.010)));
             for (var p1 = 0; p1 < pw * ph; p1++) {
                 var a1 = softB[p1];
-                if (a1 <= 0.001) continue;
+                // a1=0：原图的明暗 + 修好的高频（划痕没了，影子还在）
+                // a1=1：整块用修好的
+                var dLum = dLumB[p1] * (1 - a1);
                 var q1 = p1 * 4, s1 = p1 * 3;
-                out[q1]     = out[q1]     * (1 - a1) + resB[s1]     * a1;
-                out[q1 + 1] = out[q1 + 1] * (1 - a1) + resB[s1 + 1] * a1;
-                out[q1 + 2] = out[q1 + 2] * (1 - a1) + resB[s1 + 2] * a1;
+                out[q1]     = resB[s1]     + dLum;
+                out[q1 + 1] = resB[s1 + 1] + dLum;
+                out[q1 + 2] = resB[s1 + 2] + dLum;
             }
         }
 
@@ -2912,8 +2953,9 @@
                     var shadowIn = featherB;
                     // 保护半径跟着力度走：拉满时圈到短边的 36%，淡影也进得来
                     var shK = shadowOn ? shadowAmt / 100 : 0;
-                    var shadowOut = Math.max(Math.round(featherB * 3),
-                        Math.round(Math.min(pw, ph) * (0.16 + 0.20 * shK)));
+                    var shadowOut = Math.max(Math.round(featherB * 1.6),
+                Math.round(Math.min(pw, ph) * (0.08 + 0.10 * shK)));
+                    if (shadowOut < featherB + 6) shadowOut = featherB + 6;
                     var bgY = rowBgLum(pd, pw, ph);
                     var keepB = dilate(pmask, pw, ph, guardB);
                     var reg = new Uint8Array(pw * ph);
@@ -2921,7 +2963,7 @@
                     function bgDone(res) {
                         try {
                             var dB = distMap(keepB, pw, ph);
-                            res = keepContactShadow(origA, res, dB, pw * ph, pw, ph, shadowIn, shadowOut, shK, bgY, 6, 22);
+                            res = keepContactShadow(origA, res, dB, pw * ph, pw, ph, shadowIn, shadowOut, shK, bgY, 10, 26);
                             softB = softOutward(keepB, pw, ph, featherB, dB);
                             mixIn(res, softB);
                             doProd();
