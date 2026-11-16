@@ -126,7 +126,14 @@
     .drop.mini .drop-t { font-size: 12px; font-weight: 600; }
 
     .sec-t { font-size: 13px; font-weight: 750; color: var(--ink); letter-spacing: .2px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .sec-t b { color: var(--ink); font-weight: 650; }
+    /* 选区显示：浮在画布左上角，不占侧栏高度 */
+    .sel-bar { position: absolute; left: 14px; top: 14px; z-index: 7; display: flex; gap: 2px;
+        background: rgba(255,255,255,.95); border: 1px solid var(--line); border-radius: 11px;
+        padding: 4px; box-shadow: 0 4px 14px rgba(30,20,70,.10); }
+    .sel-bar.off { display: none; }
+    .sel-bar button { border: 0; background: transparent; color: var(--muted); font-family: inherit;
+        font-size: 12px; font-weight: 650; padding: 5px 11px; border-radius: 8px; cursor: pointer; }
+    .sel-bar button.on { background: var(--blue); color: #fff; box-shadow: 0 2px 8px rgba(107,92,231,.30); }    .sec-t b { color: var(--ink); font-weight: 650; }
 
     .seg { display: flex; gap: 8px; margin-bottom: 10px; }
     .seg-b { flex: 1; padding: 8px 0; font-size: 13px; border: 1.5px solid #e6e2f5;
@@ -403,6 +410,16 @@
                 <div class="hint">板外发灰、板边有线、旁边有余物时用。产品与投影不动。</div>
             </div>
 
+            <div class="sec off" id="secShadow">
+                <div class="sec-t">阴影保护 <button class="sw on" id="btnShadow">开</button></div>
+                <div class="sld">
+                    <span class="sld-l">保留</span>
+                    <input type="range" id="slShadow" min="0" max="100" value="85" step="5">
+                    <b class="sld-v" id="slShadowVal">85</b>
+                </div>
+                <div class="hint">产品脚下的投影不跟着一起磨白，外沿渐变收口。0 = 阴影当背景修。</div>
+            </div>
+
             <div class="sec" id="secSharp" style="display:none;">
                 <div class="sec-t">锐化（可选）</div>
                 <div class="sld">
@@ -442,6 +459,11 @@
         <!-- ============ 画布 ============ -->
         <div class="stage-card">
             <div class="stage-wrap" id="stageWrap">
+                <div class="sel-bar off" id="secSel">
+                    <button type="button" data-selmode="on">显示选区</button>
+                    <button type="button" data-selmode="soft" class="on">淡化</button>
+                    <button type="button" data-selmode="off">隐藏</button>
+                </div>
                 <div class="empty" id="empty">
                     <div class="empty-ico">🖼</div>
                     <div class="empty-t">先上传一张产品图</div>
@@ -630,6 +652,13 @@
     var previewTimer = null;   // 拖滑块时的预览节流
     var previewSeq = 0;
     var previewShown = false;  // 预览层当前是否盖在画布上
+    /* v2·11-16：选区可视化三档 + 阴影保护 */
+    var selMode = 'soft';      // 'on' 显示 / 'soft' 淡化 / 'off' 隐藏
+    var selTmp = null;         // 选区小图离屏画布（降采样画完再放大，省算力又去锯齿）
+    var SEL_CAP = 900;         // 选区小图长边上限
+    var shadowOn = true;       // 阴影保护开关
+    var shadowAmt = 85;        // 阴影保留强度 0-100
+    var hiTimer = null;        // 松手后升高清预览的定时器
 
     /* ---------------- 上传 ---------------- */
 
@@ -761,6 +790,9 @@
             $('btnWhite').disabled = false;
             $('slWhite').disabled = !whitenOn;
             $('secWhite').classList.remove('off');
+            $('secShadow').classList.remove('off');
+            $('slShadow').disabled = !shadowOn;
+            $('secSel').classList.remove('off');
             $('slBgVal').textContent = $('slBg').value;
             $('slProdVal').textContent = $('slProd').value;
 
@@ -776,13 +808,15 @@
                 $('secBg').classList.add('off');
                 $('secProd').classList.add('off');
                 $('secWhite').classList.add('off');
+                $('secShadow').classList.add('off');
                 $('btnWhite').disabled = true;
                 $('slWhite').disabled = true;
+                $('slShadow').disabled = true;
                 whitenRamp = null;
             } else {
                 $('autoInfo').style.display = '';
-                $('autoInfo').textContent = '青色这块是产品，其余都能修。不准就按住拖一个框把产品框住。';
-                showRegion(2200);
+                $('autoInfo').textContent = '红色这块会被修掉，没红的是产品。不准就按住拖一个框把产品框住。';
+                showRegion();
             }
         }, 40);
     }
@@ -898,15 +932,35 @@
         this.classList.toggle('on', whitenOn);
         this.textContent = whitenOn ? '开' : '关';
         $('slWhite').disabled = !whitenOn;
-        if (previewTimer) clearTimeout(previewTimer);
-        previewTimer = setTimeout(doPreview, 60);
+        softPreview();
     });
     $('slWhite').addEventListener('input', function () {
         whitenAmt = parseInt(this.value, 10) || 0;
         $('slWhiteVal').textContent = this.value;
-        if (previewTimer) clearTimeout(previewTimer);
-        previewTimer = setTimeout(doPreview, 80);
+        softPreview();
     });
+
+    // 阴影保护：开关 + 保留强度
+    $('btnShadow').addEventListener('click', function () {
+        shadowOn = !shadowOn;
+        this.classList.toggle('on', shadowOn);
+        this.textContent = shadowOn ? '开' : '关';
+        $('slShadow').disabled = !shadowOn;
+        softPreview();
+    });
+    $('slShadow').addEventListener('input', function () {
+        shadowAmt = parseInt(this.value, 10) || 0;
+        $('slShadowVal').textContent = this.value;
+        softPreview();
+    });
+
+    // 先出低清（快、跟手），停手后再补一版高清
+    function softPreview() {
+        if (previewTimer) clearTimeout(previewTimer);
+        previewTimer = setTimeout(function () { doPreview(true); }, 70);
+        if (hiTimer) clearTimeout(hiTimer);
+        hiTimer = setTimeout(function () { doPreview(false); }, 520);
+    }
 
     // 锐化（步骤 3 才出现）：每次都从「提白后的基准」重算，不会越调越糊
     $('slSharp').addEventListener('input', function () {
@@ -947,6 +1001,9 @@
         $('btnWhite').disabled = false;
         $('slWhite').disabled = !whitenOn;
         $('secWhite').classList.remove('off');
+        $('secShadow').classList.remove('off');
+        $('slShadow').disabled = !shadowOn;
+        $('secSel').classList.remove('off');
     }
 
     /* ---------------- 涂抹产品：涂过的地方算产品，一个像素不动 ---------------- */
@@ -968,7 +1025,7 @@
                 : '已退出清理。青色就是现在的产品范围。');
             cvBase.style.cursor = 'crosshair';
             cvCursor.style.display = 'none';
-            if (prodMask) showRegion(0);
+            if (prodMask) showRegion();
             return;
         }
         brushMode = true;
@@ -979,6 +1036,22 @@
             : '把被当成产品的影子、杂物涂一遍——涂过的地方按背景修掉。');
         cvBase.style.cursor = 'cell';
     }
+
+    /* 选区显示三档 */
+    function setSelMode(m) {
+        selMode = m;
+        var bs = document.querySelectorAll('#secSel [data-selmode]');
+        for (var i = 0; i < bs.length; i++) {
+            bs[i].classList.toggle('on', bs[i].getAttribute('data-selmode') === m);
+        }
+        if (prodMask) showRegion(); else clearRegion();
+    }
+    (function () {
+        var bs = document.querySelectorAll('#secSel [data-selmode]');
+        for (var i = 0; i < bs.length; i++) {
+            bs[i].addEventListener('click', function () { setSelMode(this.getAttribute('data-selmode')); });
+        }
+    })();
 
     $('btnBrush').addEventListener('click', function () { enterBrush('add'); });
     $('btnBrushErase').addEventListener('click', function () { enterBrush('sub'); });
@@ -996,8 +1069,8 @@
         userPicked = false;
         say('已还原到系统自动识别的选区。');
         enableProd();
-        showRegion(0);
-        doPreview();
+        showRegion();
+        softPreview();
     });
 
     $('slBrush').addEventListener('input', function () {
@@ -1016,8 +1089,8 @@
         }
         userPicked = true;
         enableProd();
-        showRegion(0);
-        doPreview();
+        showRegion();
+        softPreview();
         if (announce) {
             var pct = n / (imgW * imgH) * 100;
             var last = prodStrokes.length ? prodStrokes[prodStrokes.length - 1] : null;
@@ -1105,9 +1178,13 @@
         if (!p) return;
         var last = brushDrag.pts[brushDrag.pts.length - 1];
         if (last.x === p.x && last.y === p.y) { e.preventDefault(); return; }
-        brushDrag.pts.push({ x: p.x, y: p.y });
-        stampSeg(prodMask, last.x, last.y, p.x, p.y, brushDrag.size, brushDrag.sub ? 0 : 1);
-        drawProdLine(last.x, last.y, p.x, p.y, brushDrag.size, brushDrag);
+        // 落点低通：鼠标/触控板的采样点会一跳一跳，直接照连会画出毛刺
+        var sx = last.x + (p.x - last.x) * 0.7;
+        var sy = last.y + (p.y - last.y) * 0.7;
+        if (sx === last.x && sy === last.y) { e.preventDefault(); return; }
+        brushDrag.pts.push({ x: sx, y: sy });
+        stampSeg(prodMask, last.x, last.y, sx, sy, brushDrag.size, brushDrag.sub ? 0 : 1);
+        drawProdLine(last.x, last.y, sx, sy, brushDrag.size, brushDrag);
         e.preventDefault();
     }
 
@@ -1139,13 +1216,13 @@
         var y0 = Math.min(b.y0, b.y1), y1 = Math.max(b.y0, b.y1);
         if (x1 - x0 < 12 || y1 - y0 < 12) {
             say('框太小了，把产品整个框进去再松手。');
-            if (prodMask) showRegion(0); else clearRegion();
+            if (prodMask) showRegion(); else clearRegion();
             return;
         }
         var boxPct = ((x1 - x0 + 1) * (y1 - y0 + 1)) / (imgW * imgH);
         if (boxPct > 0.92) {
             say('框太大了，几乎整个画面都被框进去了。只框住产品就好。');
-            if (prodMask) showRegion(0); else clearRegion();
+            if (prodMask) showRegion(); else clearRegion();
             return;
         }
         var m = new Uint8Array(imgW * imgH);
@@ -1158,8 +1235,8 @@
         enableProd();
         var pct = ((x1 - x0 + 1) * (y1 - y0 + 1)) / (imgW * imgH) * 100;
         say('已按你框的范围认定产品（占画面 ' + pct.toFixed(0) + '%）。框里的都不修，框外的照力度修。框得松松的，框里那圈背景就修不到。');
-        showRegion(0);
-        doPreview();
+        showRegion();
+        softPreview();
     }
 
     // 点一下：认这一块颜色相近的连通区
@@ -1187,8 +1264,8 @@
         var pct = 0;
         for (var j = 0; j < imgW * imgH; j++) if (prodMask[j]) pct++;
         say('已把点中的这块认成产品（占画面 ' + (pct / (imgW * imgH) * 100).toFixed(0) + '%）。有漏就在漏的地方再点一下，或者按住拖个框。');
-        showRegion(0);
-        doPreview();
+        showRegion();
+        softPreview();
     }
 
     cvBase.addEventListener('pointerdown', function (e) {
@@ -1233,7 +1310,7 @@
         var b = boxDrag;
         boxDrag = null;
         if (cvBase.releasePointerCapture) { try { cvBase.releasePointerCapture(b.id); } catch (err) { } }
-        if (cancelled) { if (prodMask) showRegion(0); else clearRegion(); return; }
+        if (cancelled) { if (prodMask) showRegion(); else clearRegion(); return; }
         if (b.moved) applyBox(b); else pickAt(b.x0, b.y0);
     }
 
@@ -1993,7 +2070,7 @@
     // 亮的污渍、发白的斑照旧修掉。再按离产品的距离平滑收回，影子就自然淡出去。
     // 注意：用户擦掉的区域也走同一套——「缩小选区」只是把这块划回背景，
     // 背景本来就该保留产品脚边的接触阴影，不能因为被擦过就把影子抹掉（否则暗影里会挖出一块白斑）。
-    function keepContactShadow(orig, fixed, d, n, w, h, rIn, rOut, kMin, bgY) {
+    function keepContactShadow(orig, fixed, d, n, w, h, rIn, rOut, kMin, bgY, loT, hiT) {
         var diff = new Float32Array(fixed.length);
         for (var i = 0; i < diff.length; i++) diff[i] = fixed[i] - orig[i];
         // 用「阴影强度」直接决定保留多少原图，而不是靠模糊出来的提亮量：
@@ -2003,6 +2080,10 @@
         // 只有成片偏暗的地方才算投影、才需要把提亮撤回；干净背景照旧修，
         // 否则把范围一放大会变成"整张图都不修"。
         var shade = null;
+        // 软阈值：比背景暗 lo 级以内算背景噪声（背景不匀、板面反光），hi 级以上算实心投影。
+        // 中间这一段线性过渡 —— 阴影边就是在这里化开的，所以边界天然没有硬台阶。
+        var lo = (loT === undefined) ? 6 : loT;
+        var hi = (hiT === undefined) ? 22 : hiT;
         if (bgY) {
             var dark = new Float32Array(n), p0, q0;
             for (p0 = 0; p0 < n; p0++) {
@@ -2014,8 +2095,8 @@
             var lowDark = boxBlur1(dark, w, h, Math.max(4, Math.round(Math.min(w, h) * 0.02)));
             shade = new Float32Array(n);
             for (p0 = 0; p0 < n; p0++) {
-                var sd = lowDark[p0] / 7;          // 比背景暗 14 级就算"实心阴影"
-                shade[p0] = sd > 1 ? 1 : sd;
+                var sd = (lowDark[p0] - lo) / (hi - lo);
+                shade[p0] = sd < 0 ? 0 : (sd > 1 ? 1 : sd);
             }
         }
         var out = new Float32Array(fixed.length);
@@ -2024,8 +2105,12 @@
         for (var p = 0; p < n; p++) {
             var t = (d[p] - rIn) / span;
             if (t <= 0) t = 0; else if (t >= 1) t = 1;
-            // kMin = 贴着产品要「撤回多少比例的修整」（= 影子保留强度），往外平滑收到 0
-            var undo = kMin * (1 - t * t * (3 - 2 * t));
+            // 距离只做兜底：rOut 以内基本不打折，越靠外越弱。
+            // 原来用 smoothstep 一路收到 0，阴影中段就被削掉一半，剩下半个影＋一条硬边；
+            // 换成 1-t² 之后内部几乎全保，真正的收口交给 shade 自己做。
+            var far = 1 - t * t;
+            // kMin = 阴影保留强度（滑杆）＝贴着产品要「撤回多少比例的修整」
+            var undo = kMin * far;
             if (shade) undo *= shade[p];
             var q = p * 3;
             out[q] = fixed[q]; out[q + 1] = fixed[q + 1]; out[q + 2] = fixed[q + 2];
@@ -2038,33 +2123,55 @@
         return out;
     }
 
-    // 把认出来的产品区画出来：青色边 + 淡淡填充，让人一眼看到分界
+    // 把选区画出来：红色盖"会被修掉的背景"，产品和保住的阴影保持干净。
+    // 做法：先把 mask 缩到长边 ≤ SEL_CAP 的小图，在小图上铺色描边，再整张放大回去。
+    // ① 逐像素循环从千万级降到百万级，涂完不再卡
+    // ② 放大时双线性插值顺手把 mask 的像素锯齿抹平，边不再是一格一格的毛刺
     var regionTimer = null;
-    function showRegion(ms) {
-        if (!imgW || !prodMask) return;
+    function showRegion() {
+        if (!imgW) return;
+        if (selMode === 'off' || !prodMask) { clearRegion(); return; }
         var w = imgW, h = imgH;
-        var od = ctxMask.createImageData(w, h);
-        var dd = od.data;
-        for (var y = 0; y < h; y++) {
-            for (var x = 0; x < w; x++) {
-                var i = y * w + x;
-                if (!prodMask[i]) continue;
+        var s = Math.min(1, SEL_CAP / Math.max(w, h));
+        var sw = Math.max(1, Math.round(w * s)), sh = Math.max(1, Math.round(h * s));
+
+        // mask 采样到小图（最近邻：选区是硬边，插值反而会把边界糊成半透明带）
+        var m = new Uint8Array(sw * sh);
+        for (var y = 0; y < sh; y++) {
+            var sy = Math.min(h - 1, Math.round(y / s));
+            var off = sy * w, o2 = y * sw;
+            for (var x = 0; x < sw; x++) {
+                m[o2 + x] = prodMask[off + Math.min(w - 1, Math.round(x / s))];
+            }
+        }
+
+        if (!selTmp) selTmp = document.createElement('canvas');
+        if (selTmp.width !== sw || selTmp.height !== sh) { selTmp.width = sw; selTmp.height = sh; }
+        var tctx = selTmp.getContext('2d');
+        var im = tctx.createImageData(sw, sh);
+        var d = im.data;
+        var alpha = selMode === 'on' ? 96 : 42;
+        for (var y3 = 0; y3 < sh; y3++) {
+            for (var x3 = 0; x3 < sw; x3++) {
+                var i = y3 * sw + x3;
+                if (m[i]) continue;                    // 产品 = 完全不遮挡
                 var q = i * 4;
-                var edge = (x === 0 || y === 0 || x === w - 1 || y === h - 1 ||
-                    !prodMask[i - 1] || !prodMask[i + 1] || !prodMask[i - w] || !prodMask[i + w]);
+                var edge = (x3 === 0 || y3 === 0 || x3 === sw - 1 || y3 === sh - 1 ||
+                    m[i - 1] || m[i + 1] || m[i - sw] || m[i + sw]);
                 if (edge) {
-                    dd[q] = 60; dd[q + 1] = 205; dd[q + 2] = 215; dd[q + 3] = 235;
-                    if (x + 1 < w) { var q2 = (i + 1) * 4; dd[q2] = 60; dd[q2 + 1] = 205; dd[q2 + 2] = 215; dd[q2 + 3] = 235; }
-                    if (y + 1 < h) { var q3 = (i + w) * 4; dd[q3] = 60; dd[q3 + 1] = 205; dd[q3 + 2] = 215; dd[q3 + 3] = 235; }
+                    d[q] = 16; d[q + 1] = 168; d[q + 2] = 178; d[q + 3] = 245;   // 贴着产品的青色描边
                 } else {
-                    dd[q] = 60; dd[q + 1] = 205; dd[q + 2] = 215; dd[q + 3] = 9;
+                    d[q] = 226; d[q + 1] = 62; d[q + 2] = 62; d[q + 3] = alpha;  // 要修的区域
                 }
             }
         }
+        tctx.putImageData(im, 0, 0);
+
         ctxMask.clearRect(0, 0, w, h);
-        ctxMask.putImageData(od, 0, 0);
+        ctxMask.imageSmoothingEnabled = true;
+        ctxMask.imageSmoothingQuality = 'high';
+        ctxMask.drawImage(selTmp, 0, 0, w, h);
         if (regionTimer) { clearTimeout(regionTimer); regionTimer = null; }
-        if (ms > 0) regionTimer = setTimeout(clearRegion, ms);
     }
 
     function clearRegion() {
@@ -2456,7 +2563,7 @@
     }
 
     // 拖滑块的快速预览：缩到 600px，背景和产品一起算，秒出
-    function doPreview() {
+    function doPreview(quick) {
         if (!imgW || !prodMask || !origCanvas) return;
         if (parseInt($('slBg').value, 10) <= 0 && parseInt($('slProd').value, 10) <= 0 && !whitenOn) {
             // 两个力度都是 0，没什么可预览的，直接回到原图
@@ -2468,8 +2575,9 @@
         var seq = ++previewSeq;
         var w = imgW, h = imgH;
         // 预览尽量按原尺寸算：缩得太狠再放大回去，背景会起雾、脏点周围出现假影
+        // 但拖动/涂笔刷时先给低清版（跟手），停手 520ms 后由 softPreview 补一版高清
         var bgNow = parseInt($('slBg').value, 10);
-        var pvCap = bgNow > 6 ? 3000 : 1400;
+        var pvCap = quick ? 1100 : (bgNow > 6 ? 2200 : 1600);
         var pscale = Math.min(1, pvCap / Math.max(w, h));
         var pw = Math.max(1, Math.round(w * pscale));
         var ph = Math.max(1, Math.round(h * pscale));
@@ -2519,7 +2627,9 @@
             // 接触阴影的范围比过渡带大得多：叉头压出来的投影能延伸出画面短边的 10-20%，
             // 只按 feather 保留 → 阴影中段被提亮一半，看着像"暗影里一块发白"。
             var shadowIn = featherB;
-            var shadowOut = Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.22));
+            var shK = shadowOn ? shadowAmt / 100 : 0;
+            var shadowOut = Math.max(Math.round(featherB * 3),
+                Math.round(Math.min(pw, ph) * (0.16 + 0.20 * shK)));
             var bgY = rowBgLum(pd, pw, ph);
             var keepB = dilate(pmask, pw, ph, guardB);
             var regB = new Uint8Array(pw * ph);
@@ -2542,7 +2652,7 @@
             }
             // 距离图只算一次，投影保留和过渡带共用
             var dB = distMap(keepB, pw, ph);
-            resB = keepContactShadow(origB, resB, dB, pw * ph, pw, ph, shadowIn, shadowOut, 1.0, bgY);
+            resB = keepContactShadow(origB, resB, dB, pw * ph, pw, ph, shadowIn, shadowOut, shK, bgY, 6, 22);
             softB = softOutward(keepB, pw, ph, featherB, dB);
             for (var p1 = 0; p1 < pw * ph; p1++) {
                 var a1 = softB[p1];
@@ -2621,8 +2731,7 @@
     function onSlide(isBg) {
         var val = isBg ? $('slBg').value : $('slProd').value;
         $(isBg ? 'slBgVal' : 'slProdVal').textContent = val;
-        if (previewTimer) clearTimeout(previewTimer);
-        previewTimer = setTimeout(doPreview, 90);
+        softPreview();
     }
 
     /* ---------------- 确定：按当前力度全分辨率跑一遍 ---------------- */
@@ -2749,7 +2858,10 @@
                         Math.round(Math.max(pr.blurR, pr.r) * 1.1));
                     if (featherB < guardB + 2) featherB = guardB + 2;
                     var shadowIn = featherB;
-                    var shadowOut = Math.max(Math.round(featherB * 3), Math.round(Math.min(pw, ph) * 0.22));
+                    // 保护半径跟着力度走：拉满时圈到短边的 36%，淡影也进得来
+                    var shK = shadowOn ? shadowAmt / 100 : 0;
+                    var shadowOut = Math.max(Math.round(featherB * 3),
+                        Math.round(Math.min(pw, ph) * (0.16 + 0.20 * shK)));
                     var bgY = rowBgLum(pd, pw, ph);
                     var keepB = dilate(pmask, pw, ph, guardB);
                     var reg = new Uint8Array(pw * ph);
@@ -2757,7 +2869,7 @@
                     function bgDone(res) {
                         try {
                             var dB = distMap(keepB, pw, ph);
-                            res = keepContactShadow(origA, res, dB, pw * ph, pw, ph, shadowIn, shadowOut, 1.0, bgY);
+                            res = keepContactShadow(origA, res, dB, pw * ph, pw, ph, shadowIn, shadowOut, shK, bgY, 6, 22);
                             softB = softOutward(keepB, pw, ph, featherB, dB);
                             mixIn(res, softB);
                             doProd();
