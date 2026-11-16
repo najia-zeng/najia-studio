@@ -460,9 +460,8 @@
         <div class="stage-card">
             <div class="stage-wrap" id="stageWrap">
                 <div class="sel-bar off" id="secSel">
-                    <button type="button" data-selmode="on">显示选区</button>
-                    <button type="button" data-selmode="soft" class="on">淡化</button>
-                    <button type="button" data-selmode="off">隐藏</button>
+                    <button type="button" data-selmode="soft" class="on">显示选区</button>
+                    <button type="button" data-selmode="off">隐藏选区</button>
                 </div>
                 <div class="empty" id="empty">
                     <div class="empty-ico">🖼</div>
@@ -653,7 +652,7 @@
     var previewSeq = 0;
     var previewShown = false;  // 预览层当前是否盖在画布上
     /* v2·11-16：选区可视化三档 + 阴影保护 */
-    var selMode = 'soft';      // 'on' 显示 / 'soft' 淡化 / 'off' 隐藏
+    var selMode = 'soft';      // 'soft' 显示选区 / 'off' 隐藏选区
     var selTmp = null;         // 选区小图离屏画布（降采样画完再放大，省算力又去锯齿）
     var SEL_CAP = 900;         // 选区小图长边上限
     var shadowOn = true;       // 阴影保护开关
@@ -2150,7 +2149,7 @@
         var tctx = selTmp.getContext('2d');
         var im = tctx.createImageData(sw, sh);
         var d = im.data;
-        var alpha = selMode === 'on' ? 96 : 42;
+        var alpha = 42;   // 「显示选区」的浓度：能看清哪块会被改，又不挡着看修复效果
         for (var y3 = 0; y3 < sh; y3++) {
             for (var x3 = 0; x3 < sw; x3++) {
                 var i = y3 * sw + x3;
