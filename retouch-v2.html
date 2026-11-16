@@ -134,6 +134,7 @@
     .sel-bar button { border: 0; background: transparent; color: var(--muted); font-family: inherit;
         font-size: 12px; font-weight: 650; padding: 5px 11px; border-radius: 8px; cursor: pointer; }
     .sel-bar button.on { background: var(--blue); color: #fff; box-shadow: 0 2px 8px rgba(107,92,231,.30); }    .sec-t b { color: var(--ink); font-weight: 650; }
+    .sec-sub { font-size: 11.5px; font-weight: 600; color: var(--muted); letter-spacing: 0; }
 
     .seg { display: flex; gap: 8px; margin-bottom: 10px; }
     .seg-b { flex: 1; padding: 8px 0; font-size: 13px; border: 1.5px solid #e6e2f5;
@@ -357,7 +358,7 @@
 
     <section class="hero">
         <h1>产品图<em>修瑕疵</em></h1>
-        <p class="hero-note">擦掉多余的倒影、背景杂物和产品表面浮尘，产品本身不变。</p>
+        <p class="hero-note">只修产品以外的背景：倒影、杂物、浮尘。产品被圈住，不变形也不掉细节。</p>
     </section>
 
     <div class="work">
@@ -431,10 +432,10 @@
             </div>
 
             <div class="sec" id="secBrush">
-                <div class="sec-t">微调选区（自动圈不准时用）</div>
+                <div class="sec-t">保护范围 <span class="sec-sub">圈住的不修</span></div>
                 <div class="brush-row">
-                    <button class="btn" id="btnBrush">扩大选区</button>
-                    <button class="btn" id="btnBrushErase">缩小选区</button>
+                    <button class="btn" id="btnBrush">多保护一些</button>
+                    <button class="btn" id="btnBrushErase">少保护一些</button>
                     <button class="btn" id="btnBrushClear">还原</button>
                 </div>
                 <div class="sld">
@@ -442,6 +443,7 @@
                     <input type="range" id="slBrush" min="12" max="220" value="60" step="2">
                     <b class="sld-v" id="slBrushVal">60</b>
                 </div>
+                <div class="hint">圈住的产品一律不动——不变形、不被抹平、不掉细节。圈多了挡住背景，那块就修不到。</div>
                 <div class="hint" id="autoInfo" style="display:none;"></div>
             </div>
             </div><!-- /side-scroll -->
@@ -460,8 +462,8 @@
         <div class="stage-card">
             <div class="stage-wrap" id="stageWrap">
                 <div class="sel-bar off" id="secSel">
-                    <button type="button" data-selmode="soft" class="on">显示选区</button>
-                    <button type="button" data-selmode="off">隐藏选区</button>
+                    <button type="button" data-selmode="soft">显示选区</button>
+                    <button type="button" data-selmode="off" class="on">隐藏选区</button>
                 </div>
                 <div class="empty" id="empty">
                     <div class="empty-ico">🖼</div>
@@ -652,7 +654,7 @@
     var previewSeq = 0;
     var previewShown = false;  // 预览层当前是否盖在画布上
     /* v2·11-16：选区可视化三档 + 阴影保护 */
-    var selMode = 'soft';      // 'soft' 显示选区 / 'off' 隐藏选区
+    var selMode = 'off';       // 默认不显示：要看保护范围时才点「显示选区」
     var selTmp = null;         // 选区小图离屏画布（降采样画完再放大，省算力又去锯齿）
     var SEL_CAP = 900;         // 选区小图长边上限
     var shadowOn = true;       // 阴影保护开关
@@ -797,7 +799,7 @@
 
             if (pct < 0.005 || pct > 0.92) {
                 // 没识别出来，或者几乎整幅都是产品
-                $('autoInfo').textContent = '背景和产品颜色太接近，自动分不干净。点左侧「扩大选区」，把产品涂一遍；或按住拖一个框把产品框住。';
+                $('autoInfo').textContent = '背景和产品颜色太接近，自动分不干净。点左边「多保护一些」，把产品涂一遍；或按住拖一个框把产品框住。';
                 $('autoInfo').style.display = '';
                 prodMask = null;
                 autoMask = null;
@@ -814,8 +816,9 @@
                 whitenRamp = null;
             } else {
                 $('autoInfo').style.display = '';
-                $('autoInfo').textContent = '红色这块会被修掉，没红的是产品。不准就按住拖一个框把产品框住。';
-                showRegion();
+                $('autoInfo').textContent = '产品已经圈住了，这块不会被修。默认不显示选区——想看清圈到哪，点左上「显示选区」。';
+                clearRegion();   // 默认不显示：选区是给用户查的时候才算，不是一进来就糊上去
+                autoFix();       // 进来先按「背景 20 / 产品 0」跑一版，直接看到修好的样子
             }
         }, 40);
     }
@@ -961,6 +964,22 @@
         hiTimer = setTimeout(function () { doPreview(false); }, 520);
     }
 
+    /* 拖进来就自动修一版：背景 20、产品 0。
+       用户一进来看到的是「已经修好」的样子，而不是原图 + 一堆滑杆。
+       这一版只进预览层，不扣体验次数——点「确定」才真出图。 */
+    function autoFix() {
+        if (!prodMask) return;
+        $('slBg').value = 20; $('slBgVal').textContent = '20';
+        $('slProd').value = 0; $('slProdVal').textContent = '0';
+        var bz = $('busy'), bt = $('busyTxt');
+        if (bt) bt.textContent = '正在自动修瑕疵…';
+        if (bz) bz.classList.add('on');
+        setTimeout(function () {
+            try { doPreview(false); } catch (e) { }
+            if (bz) bz.classList.remove('on');
+        }, 50);
+    }
+
     // 锐化（步骤 3 才出现）：每次都从「提白后的基准」重算，不会越调越糊
     $('slSharp').addEventListener('input', function () {
         sharpAmt = parseInt(this.value, 10) || 0;
@@ -1011,8 +1030,8 @@
         var b = $('btnBrush'), e = $('btnBrushErase');
         b.classList.toggle('on', brushMode && brushKind === 'add');
         e.classList.toggle('on', brushMode && brushKind === 'sub');
-        b.textContent = '扩大选区';
-        e.textContent = '缩小选区';
+        b.textContent = '多保护一些';
+        e.textContent = '少保护一些';
     }
 
     function enterBrush(kind) {
@@ -1020,8 +1039,8 @@
         if (brushMode && brushKind === kind) {      // 再点一次同一支笔 = 退出
             brushMode = false;
             setBrushUI();
-            say(kind === 'add' ? '已退出涂抹。青色就是现在的产品范围。'
-                : '已退出清理。青色就是现在的产品范围。');
+            say(kind === 'add' ? '已退出涂抹。绿色圈住的就是现在的保护范围。'
+                : '已退出清理。绿色圈住的就是现在的保护范围。');
             cvBase.style.cursor = 'crosshair';
             cvCursor.style.display = 'none';
             if (prodMask) showRegion();
@@ -2067,7 +2086,7 @@
     // 做法：把「修了多少」拆成粗、细两层。细的（灰尘、划痕）该修就修；
     // 粗的只撤「把暗处提亮」那一半——影子一定是暗的，所以撤掉提亮就等于把影子放回去；
     // 亮的污渍、发白的斑照旧修掉。再按离产品的距离平滑收回，影子就自然淡出去。
-    // 注意：用户擦掉的区域也走同一套——「缩小选区」只是把这块划回背景，
+    // 注意：用户擦掉的区域也走同一套——「少保护一些」只是把这块划回背景，
     // 背景本来就该保留产品脚边的接触阴影，不能因为被擦过就把影子抹掉（否则暗影里会挖出一块白斑）。
     function keepContactShadow(orig, fixed, d, n, w, h, rIn, rOut, kMin, bgY, loT, hiT) {
         var diff = new Float32Array(fixed.length);
@@ -2122,7 +2141,7 @@
         return out;
     }
 
-    // 把选区画出来：红色盖"会被修掉的背景"，产品和保住的阴影保持干净。
+    // 把「保护范围」画出来：绿色盖住产品——这块一律不修，其余才是要修的。
     // 做法：先把 mask 缩到长边 ≤ SEL_CAP 的小图，在小图上铺色描边，再整张放大回去。
     // ① 逐像素循环从千万级降到百万级，涂完不再卡
     // ② 放大时双线性插值顺手把 mask 的像素锯齿抹平，边不再是一格一格的毛刺
@@ -2149,18 +2168,18 @@
         var tctx = selTmp.getContext('2d');
         var im = tctx.createImageData(sw, sh);
         var d = im.data;
-        var alpha = 42;   // 「显示选区」的浓度：能看清哪块会被改，又不挡着看修复效果
+        var FILL = 38;   // 绿色填充浓度：看得见圈到哪，又不把产品糊住
         for (var y3 = 0; y3 < sh; y3++) {
             for (var x3 = 0; x3 < sw; x3++) {
                 var i = y3 * sw + x3;
-                if (m[i]) continue;                    // 产品 = 完全不遮挡
+                if (!m[i]) continue;                   // 背景 = 不遮挡，因为它才是要修的地方
                 var q = i * 4;
                 var edge = (x3 === 0 || y3 === 0 || x3 === sw - 1 || y3 === sh - 1 ||
-                    m[i - 1] || m[i + 1] || m[i - sw] || m[i + sw]);
+                    !m[i - 1] || !m[i + 1] || !m[i - sw] || !m[i + sw]);
                 if (edge) {
-                    d[q] = 16; d[q + 1] = 168; d[q + 2] = 178; d[q + 3] = 245;   // 贴着产品的青色描边
+                    d[q] = 18; d[q + 1] = 150; d[q + 2] = 82; d[q + 3] = 250;    // 绿色描边：圈住的边界
                 } else {
-                    d[q] = 226; d[q + 1] = 62; d[q + 2] = 62; d[q + 3] = alpha;  // 要修的区域
+                    d[q] = 66; d[q + 1] = 205; d[q + 2] = 110; d[q + 3] = FILL;  // 保护范围
                 }
             }
         }
