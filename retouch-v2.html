@@ -2188,10 +2188,10 @@
             }
         }
         // 轻微模糊一次：把笔刷落点之间残留的小台阶和采样锯齿一起抹平，
-        // 边界变成几个像素的渐变，放大回去自然没有"一格一格"的边
-        var blurR = Math.round(Math.max(sw, sh) * 0.0042);
+        // 模糊后的场只用来"找一条平滑的边界"，不用来画渐变（否则绿色会糊出白底上的雾）
+        var blurR = Math.round(Math.max(sw, sh) * 0.0035);
         if (blurR < 2) blurR = 2;
-        if (blurR > 5) blurR = 5;
+        if (blurR > 4) blurR = 4;
         var a = boxBlur1(m, sw, sh, blurR);
 
         if (!selTmp) selTmp = document.createElement('canvas');
@@ -2199,16 +2199,20 @@
         var tctx = selTmp.getContext('2d');
         var im = tctx.createImageData(sw, sh);
         var d = im.data;
-        var FILL = 40;   // 绿色填充浓度：看得见圈到哪，又不把产品糊住
-        var RIM = 14;    // 边界只加深一点点：够看出圈到哪，又不至于勾出一圈月牙
+        var FILL = 44;   // 绿色填充浓度：看得见圈到哪，又不把产品糊住
+        var RIM = 46;    // 边界那一道略深，宽度只有几个像素，不画异色描边
         for (var y3 = 0; y3 < sh; y3++) {
             for (var x3 = 0; x3 < sw; x3++) {
                 var i = y3 * sw + x3;
                 var av = a[i] / 255;
-                if (av <= 0.005) continue;             // 背景 = 不遮挡，因为它才是要修的地方
+                // 只在 0.5 等值线附近做很窄的过渡：0.5 就是真正的保护边界。
+                // 更外面（av<0.46）一点颜色都不给，白底上就不会有绿雾
+                var t = (av - 0.46) / 0.16;
+                if (t <= 0) continue;
+                if (t > 1) t = 1;
                 var q = i * 4;
-                var rim = 4 * av * (1 - av);           // 边界 0.5 时最大，往里往外都收干净
-                var al = FILL * av + RIM * rim;
+                var rim = 4 * t * (1 - t);             // 边界带峰值，只在这一两像素宽处
+                var al = FILL * t + RIM * rim;
                 d[q] = 66; d[q + 1] = 200; d[q + 2] = 118;
                 d[q + 3] = al > 255 ? 255 : Math.round(al);
             }
