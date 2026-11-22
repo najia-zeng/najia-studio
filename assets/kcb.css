@@ -308,6 +308,6 @@ box-shadow:0 2px 8px rgba(107,92,231,.22);}
 .style-btn:hover{border-color:var(--text-tri);color:var(--text)}
 .style-btn.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
 
-.up-row { display: flex; gap: 10px; }
-.up-row .up-area { flex: 1; padding: 20px 8px; min-height: 108px; position: relative; }
-.up-row .up-area .up-prev { max-height: 104px; }
+.up-row { display: flex; gap: 8px; }
+.up-row .up-area { flex: 1; padding: 14px 4px; min-height: 92px; position: relative; }
+.up-row .up-area .up-prev { max-height: 88px; }
