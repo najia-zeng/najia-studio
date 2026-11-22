@@ -311,3 +311,19 @@ box-shadow:0 2px 8px rgba(107,92,231,.22);}
 .up-row { display: flex; gap: 8px; }
 .up-row .up-area { flex: 1; padding: 14px 4px; min-height: 92px; position: relative; }
 .up-row .up-area .up-prev { max-height: 88px; }
+
+/* 读图分析块（不进提示词，仅供核对） */
+.ana-block {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  background: #f7f7f9;
+  border-left: 3px solid #d8d8e0;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #6b6b78;
+}
+.ana-block p { margin: 4px 0; }
+.ana-block strong { color: #4a4a56; font-weight: 600; }
+.ana-block ul, .ana-block ol { margin: 4px 0; padding-left: 18px; }
+.ana-block li { margin: 2px 0; }
