@@ -1,0 +1,50 @@
+/* 场景风格包 · 统一左栏样式（独立版 s2 专用，仅作用于 *-s2.html）
+   纯新增资源；用 nsrail 前缀隔离，不覆盖任何既有类名，也不改功能资源。 */
+body.has-scene-rail .page { margin-left: 220px; max-width: none; }
+
+.nsrail { position: fixed; left: 0; top: 70px; bottom: 0; width: 220px; z-index: 500;
+  background: #fff; box-shadow: inset -1px 0 0 rgba(58,42,120,.10);
+  display: flex; flex-direction: column;
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; }
+.nsrail-brand { display: flex; align-items: center; gap: 10px; padding: 15px 16px;
+  border-bottom: 1px solid #f0f0f5; }
+.nsrail-logo { width: 34px; height: 34px; border-radius: 10px; flex: none; object-fit: cover; }
+a.nsrail-logo-link { display: block; flex: none; line-height: 0; text-decoration: none; }
+.nsrail-name { font-size: 13.5px; font-weight: 750; color: #1b1b2f; line-height: 1.35; }
+.nsrail-sub { font-size: 9px; color: #a5a1bb; letter-spacing: .7px; margin-top: 2px; }
+.nsrail-label { padding: 13px 16px 8px; font-size: 10.5px; font-weight: 700;
+  color: #a5a1bb; letter-spacing: 1px; }
+.nsrail-list { flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 16px; padding: 0 16px 12px; }
+.nsrail-list::-webkit-scrollbar { width: 7px; }
+.nsrail-list::-webkit-scrollbar-thumb { background: #e2ddf0; border-radius: 8px; }
+.nsrail-card { position: relative; display: block; flex: none; aspect-ratio: 4 / 3;
+  border: 2px solid transparent; border-radius: 10px; overflow: hidden; background: #f2f1f8; }
+.nsrail-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.nsrail-card .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 6px 8px;
+  font-size: 12px; font-weight: 700; color: #fff; background: rgba(27,27,47,.55); text-align: center; }
+a.nsrail-card:hover { border-color: #c9c1f5; }
+.nsrail-card.on { border-color: #6b5ce7; box-shadow: 0 4px 14px rgba(107,92,231,.26); cursor: default; }
+.nsrail-card.soon { border: 2px dashed #d8d0fb; background: #faf8ff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; color: #a5a1bb; font-size: 11px; }
+.nsrail-card.soon .plus { font-size: 22px; line-height: 1; color: #b9aef0; font-weight: 400; }
+.nsrail-foot { flex: none; padding: 10px 16px; border-top: 1px solid #f0f0f5;
+  font-size: 10px; color: #a5a1bb; }
+
+@media (max-width:1100px) {
+  body.has-scene-rail .page { margin-left: 168px; }
+  .nsrail { width: 168px; }
+  .nsrail-list { gap: 10px; padding: 0 14px 12px; }
+  .nsrail-brand, .nsrail-label, .nsrail-foot { padding-left: 14px; padding-right: 14px; }
+}
+@media (max-width:900px) {
+  .nsrail { position: relative; top: 0; left: 0; bottom: auto; width: 100%; height: 78px;
+    flex-direction: row; align-items: center; box-shadow: inset 0 -1px 0 rgba(58,42,120,.10); }
+  .nsrail-brand, .nsrail-label, .nsrail-foot { display: none; }
+  .nsrail-list { flex-direction: row; overflow-x: auto; overflow-y: hidden;
+    gap: 10px; padding: 8px 10px; height: 100%; }
+  .nsrail-card { min-width: 110px; width: 110px; aspect-ratio: auto; height: 60px; }
+  .nsrail-card.soon { display: none; }
+  body.has-scene-rail .page { margin-left: 0; height: calc(100vh - 66px - 78px); }
+}
