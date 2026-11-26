@@ -17,6 +17,8 @@
     'scene-flower1.html': 'tools',
     'scene-gen1.html': 'tools',
     'kuociq.html': 'tools',
+    'sewen.html': 'tools',
+    'quhui.html': 'tools',
     'retouch.html': 'tools',
     'kuociq-chatsdk.html': 'tools',
     'remove-bg.html': 'tools',

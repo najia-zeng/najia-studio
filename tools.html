@@ -204,6 +204,18 @@
       </div>
     </a>
 
+    <a class="card" data-cat="tool" data-tool="wb" href="sewen.html">
+      <div class="cover">
+        <img src="img/cover-sewen.jpg" alt="白平衡校正 偏蓝与偏暖对比">
+        <span class="badge" data-badge="wb"></span>
+      </div>
+      <div class="c-body">
+        <h3>工具类 · 白平衡校正</h3>
+        <p>拍完发现颜色偏了？自动判断偏暖还是偏蓝，告诉你相机白平衡该往哪调、调到多少 K，图也顺手校回来。</p>
+        <div class="c-meta" data-meta="wb">查看详情 <span class="arrow">→</span></div>
+      </div>
+    </a>
+
   </div>
 
   <!-- 收口 -->
@@ -226,7 +238,7 @@
 <script>
 (function () {
   /* ===== 每张卡片实时显示解锁状态（和各工具页存的位置一一对应） ===== */
-  var FREE_LIMIT = { rt: 6, kc: 3, sg: 3, sf: 3, sl: 3, dg: 6 };  // 零成本工具（修瑕疵/去灰）6 次当钩子，其余 3 次
+  var FREE_LIMIT = { rt: 6, kc: 3, sg: 3, sf: 3, sl: 3, dg: 6, wb: 6 };  // 零成本工具（修瑕疵/去灰）6 次当钩子，其余 3 次
   /* 仍在测试期、工具页本身不限次的（与各工具页里的 TEST_UNLIMITED 保持一致，改回 false 时同步删掉这里） */
   var UNLIMITED = {};   /* 光影氛围(sl)已恢复 3 次免费体验，此处不再登记 */
   var KEYS = {
@@ -235,7 +247,8 @@
     sg: { lic: 'nj_lic_sg', used: 'nj_free_used_sg' },
     sf: { lic: 'nj_lic_sf', used: 'nj_free_used_sf' },
     sl: { lic: 'nj_lic_sl', used: 'nj_free_used_sl' },
-    dg: { lic: 'nj_lic_dg', used: 'nj_free_used_dg' }
+    dg: { lic: 'nj_lic_dg', used: 'nj_free_used_dg' },
+    wb: { lic: 'nj_lic_wb', used: 'nj_free_used_wb' }
   };
   function readLS(k) {
     try { return localStorage.getItem(k); } catch (e) { return null; }
