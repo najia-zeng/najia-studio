@@ -14,7 +14,8 @@
   var TOOLS = [
     { key: 'retouch', href: 'retouch.html', img: 'img/cover-retouch-lr3.jpg', label: '一键修瑕疵' },
     { key: 'quhui',   href: 'quhui.html',   img: 'img/cover-quhui.jpg',      label: '一键去灰' },
-    { key: 'ruihua',  href: 'ruihua.html',  img: 'img/cover-ruihua.jpg',     label: '一键补锐' }
+    { key: 'ruihua',  href: 'ruihua.html',  img: 'img/cover-ruihua.jpg',     label: '一键补锐' },
+    { key: 'sewen',   href: 'sewen.html',          img: 'img/cover-sewen-v6.jpg',   label: '一键校色温' }
   ];
 
   var page = (location.pathname.split('/').pop() || '').toLowerCase();
