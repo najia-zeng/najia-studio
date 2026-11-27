@@ -1,0 +1,148 @@
+/* 批量修瑕疵 · 独立版 b1 专用样式（纯新增，不覆盖任何既有类名/资源）
+   骨架对齐「修图工作室」：无全站顶栏、左栏 220 通高、浅紫底 + 两块 18px 圆角豆腐块。
+   类名统一用 pl-/nsrail- 前缀隔离。 */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body.pl-body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1a1a2e; background: #f7f5ff; min-height: 100vh;
+}
+#ns-topbar { display: none !important; }
+
+/* ---------- 左侧导航（与修图工作室 / 场景风格包同一套视觉） ---------- */
+.nsrail { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; z-index: 500;
+  background: #fff; box-shadow: inset -1px 0 0 rgba(58,42,120,.10);
+  display: flex; flex-direction: column;
+  font-size: 14.5px; color: #1a1a2e; }
+.nsrail-brand { display: flex; align-items: center; gap: 10px; padding: 15px 16px;
+  border-bottom: 1px solid #f0f0f5; }
+.nsrail-logo { width: 34px; height: 34px; border-radius: 10px; flex: none; object-fit: cover; }
+a.nsrail-logo-link { display: block; flex: none; line-height: 0; text-decoration: none; }
+.nsrail-name { font-size: 13.5px; font-weight: 750; color: #1a1a2e; line-height: 1.35; }
+.nsrail-sub { font-size: 9px; color: #a5a1bb; letter-spacing: .7px; margin-top: 2px; }
+.nsrail-label { padding: 13px 16px 8px; font-size: 10.5px; font-weight: 700;
+  color: #8a86a3; letter-spacing: 1.1px; }
+.nsrail-list { flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 16px; padding: 0 16px 12px; }
+.nsrail-list::-webkit-scrollbar { width: 7px; }
+.nsrail-list::-webkit-scrollbar-thumb { background: #e2ddf0; border-radius: 8px; }
+.nsrail-card { position: relative; display: block; flex: none; aspect-ratio: 4 / 3;
+  border: 2px solid transparent; border-radius: 10px; overflow: hidden; background: #f2effd; }
+.nsrail-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.nsrail-card .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 20px 10px 9px;
+  font-size: 16.5px; font-weight: 700; color: #fff; letter-spacing: .2px;
+  background: linear-gradient(180deg, rgba(20,14,50,0) 0%, rgba(20,14,50,.72) 100%); }
+a.nsrail-card:hover { border-color: #c9c1f5; }
+.nsrail-card.on { border-color: #6b5ce7; box-shadow: 0 4px 14px rgba(107,92,231,.26); cursor: default; }
+.nsrail-foot { flex: none; padding: 10px 16px; border-top: 1px solid #f0f0f5;
+  font-size: 10.5px; color: #b3aec8; }
+
+/* ---------- 右侧工作区 ---------- */
+.pl-page { margin-left: 220px; height: 100vh; display: flex; flex-direction: column;
+  background: linear-gradient(180deg, #ece8fb 0%, #f2effd 52%, #f7f5ff 100%); }
+.pl-hdr { flex: none; padding: 18px 24px 14px; }
+.pl-hdr h1 { margin: 0 0 6px; font-size: 27px; font-weight: 800; letter-spacing: -.6px; }
+.pl-hdr h1 em { font-style: normal; color: #6b5ce7; }
+.pl-hdr p { margin: 0; font-size: 13px; color: #6b6785; line-height: 1.6; }
+.pl-wrap { flex: 1 1 auto; min-height: 0; display: grid;
+  grid-template-columns: 380px minmax(0,1fr); gap: 14px; padding: 0 20px 20px; }
+.pl-card { background: #fff; border-radius: 18px; overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(58,42,120,.09), 0 2px 6px rgba(58,42,120,.05); }
+.pl-card::-webkit-scrollbar { width: 9px; }
+.pl-card::-webkit-scrollbar-thumb { background: #e2ddf0; border-radius: 8px; border: 2px solid #fff; }
+.pl-func { padding: 20px; }
+.pl-side { padding: 20px; }
+.pl-sec-t { font-size: 11px; font-weight: 750; color: #8a86a3; letter-spacing: 1px;
+  margin: 0 0 10px; }
+.pl-sec + .pl-sec { margin-top: 22px; padding-top: 20px; border-top: 1px solid #f0f0f5; }
+
+/* 浏览器提醒（按娜家要求：放在功能前面） */
+.pl-note { background: #fff8e8; border: 1px solid #f3dfae; border-radius: 12px;
+  padding: 12px 14px; font-size: 12px; line-height: 1.7; color: #7a5b16; margin-bottom: 20px; }
+.pl-note b { color: #a06a00; }
+.pl-note.bad { background: #fff0f0; border-color: #f3b9b9; color: #a33; }
+.pl-note.bad b { color: #a33; }
+
+/* 选择框 */
+.pl-pick { width: 100%; display: flex; align-items: center; gap: 12px;
+  border: 2px dashed #d8d0fb; border-radius: 14px; background: #fbfaff;
+  padding: 14px; cursor: pointer; text-align: left; font-family: inherit;
+  transition: border-color .15s, background .15s; }
+.pl-pick:hover { border-color: #b9aef0; background: #f7f4ff; }
+.pl-pick.on { border-style: solid; border-color: #6b5ce7; background: #f4f1ff; }
+.pl-pick-ico { width: 36px; height: 36px; flex: none; border-radius: 10px;
+  background: #ece7ff; color: #6b5ce7; font-size: 19px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; }
+.pl-pick-t { font-size: 13.5px; font-weight: 650; color: #1a1a2e; line-height: 1.4; }
+.pl-pick-s { font-size: 11px; color: #9a95b0; margin-top: 3px; line-height: 1.5;
+  word-break: break-all; }
+.pl-pick input { display: none; }
+
+/* 力度滑块 */
+.pl-sld-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.pl-sld-row label { font-size: 12.5px; color: #4b4763; flex: none; width: 62px; }
+.pl-sld-row input[type=range] { flex: 1; -webkit-appearance: none; height: 4px;
+  border-radius: 2px; background: #e8e4fa; outline: none; }
+.pl-sld-row input[type=range]::-webkit-slider-thumb { -webkit-appearance: none;
+  width: 16px; height: 16px; border-radius: 50%; background: #6b5ce7;
+  box-shadow: 0 1px 4px rgba(107,92,231,.4); cursor: pointer; border: none; }
+.pl-sld-v { font-size: 12px; font-weight: 700; color: #6b5ce7; width: 30px; text-align: right; }
+.pl-hint { font-size: 11px; color: #9a95b0; line-height: 1.65; margin: 10px 0 0; }
+
+/* 主按钮 */
+.pl-go { width: 100%; margin-top: 22px; padding: 14px; border: none; border-radius: 12px;
+  background: linear-gradient(135deg,#6b5ce7 0%,#4a7cf7 100%); color: #fff;
+  font-size: 15px; font-weight: 650; font-family: inherit; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(107,92,231,.3); }
+.pl-go:disabled { background: #f3f2f8; color: #b8b5cc; box-shadow: none; cursor: not-allowed; }
+.pl-go:not(:disabled):hover { box-shadow: 0 7px 18px rgba(107,92,231,.36); }
+
+/* 进度 / 结果 */
+.pl-stat { display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+.pl-stat b { font-size: 30px; font-weight: 800; color: #6b5ce7; line-height: 1; }
+.pl-stat span { font-size: 12px; color: #9a95b0; }
+.pl-bar { height: 8px; border-radius: 999px; background: #f0eefb; overflow: hidden; margin-bottom: 16px; }
+.pl-bar > i { display: block; height: 100%; width: 0; border-radius: 999px;
+  background: linear-gradient(90deg,#6b5ce7,#4a7cf7); transition: width .25s; }
+.pl-now { font-size: 12px; color: #6b6785; margin-bottom: 14px; min-height: 18px;
+  word-break: break-all; }
+.pl-empty { text-align: center; color: #a9a4bd; font-size: 12.5px; line-height: 1.8;
+  padding: 60px 20px; }
+.pl-list { display: flex; flex-direction: column; gap: 8px; }
+.pl-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  border-radius: 10px; background: #faf9ff; border: 1px solid #f0eefb; }
+.pl-item img { width: 44px; height: 44px; flex: none; object-fit: cover;
+  border-radius: 7px; background: #f0eefb; }
+.pl-item .n { flex: 1; min-width: 0; font-size: 12px; color: #4b4763;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-item .s { flex: none; font-size: 11px; font-weight: 650; }
+.pl-item .s.ok { color: #2a9d6f; }
+.pl-item .s.no { color: #c2704a; }
+.pl-item .s.run { color: #6b5ce7; }
+
+/* 隐藏的算法引擎 iframe（离屏，不 display:none，保证布局计算正常） */
+#pl-engine { position: fixed; left: -20000px; top: 0; width: 1200px; height: 900px;
+  border: 0; opacity: 0; pointer-events: none; }
+
+@media (max-width:1100px) {
+  .pl-page { margin-left: 168px; }
+  .nsrail { width: 168px; }
+  .nsrail-list { gap: 10px; padding: 0 14px 12px; }
+  .nsrail-brand, .nsrail-label, .nsrail-foot { padding-left: 14px; padding-right: 14px; }
+  .pl-wrap { grid-template-columns: 320px minmax(0,1fr); }
+}
+@media (max-width:900px) {
+  .nsrail { position: relative; top: 0; left: 0; bottom: auto; width: 100%; height: 78px;
+    flex-direction: row; align-items: center; box-shadow: inset 0 -1px 0 rgba(58,42,120,.10); }
+  .nsrail-brand, .nsrail-label, .nsrail-foot { display: none; }
+  .nsrail-list { flex-direction: row; overflow-x: auto; overflow-y: hidden;
+    gap: 10px; padding: 8px 10px; height: 100%; }
+  .nsrail-card { min-width: 110px; width: 110px; aspect-ratio: auto; height: 60px; }
+  .nsrail-card .cap { padding: 6px 8px; font-size: 12px; letter-spacing: normal;
+    background: rgba(27,27,47,.55); text-align: center; }
+  .pl-page { margin-left: 0; height: calc(100vh - 78px); }
+  .pl-wrap { grid-template-columns: 1fr; grid-template-rows: auto minmax(0,1fr);
+    padding: 0 12px 16px; gap: 12px; overflow-y: auto; }
+  .pl-hdr { padding: 14px 14px 12px; }
+  .pl-hdr h1 { font-size: 22px; }
+}

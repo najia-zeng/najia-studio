@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>批量修瑕疵 · NaStudio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="img/icon-rt-192.png" type="image/png">
+<link rel="stylesheet" href="assets/pl.6f2a1c83.css">
+</head>
+<body class="pl-body">
+
+<aside class="nsrail" id="ns-rail"></aside>
+
+<main class="pl-page">
+  <div class="pl-hdr">
+    <h1>产品图<em>批量修瑕疵</em></h1>
+    <p>选一个文件夹，自动把里面的图一张张修好，直接存进你指定的另一个文件夹。不用一张张点，也不用重复上传。</p>
+  </div>
+
+  <div class="pl-wrap">
+
+    <section class="pl-card pl-func">
+      <div class="pl-note" id="plNote">
+        <b>用之前先看一句：</b>本工具需要用 <b>Edge 或 Chrome</b> 打开（网址以 https 开头）。<br>
+        第一次点「选择保存文件夹」时，浏览器会弹出一个文件夹授权窗口，<b>请点「允许」</b>，不然没法把修好的图写进去。<br>
+        所有图片只在你自己电脑里处理，不上传、不联网、不限次。
+      </div>
+
+      <div class="pl-sec">
+        <div class="pl-sec-t">① 选择要修的图片</div>
+        <label class="pl-pick" id="plPickIn">
+          <div class="pl-pick-ico">＋</div>
+          <div>
+            <div class="pl-pick-t">选择文件夹</div>
+            <div class="pl-pick-s" id="plInSub">文件夹里的 JPG / PNG 会自动排好队</div>
+          </div>
+          <input type="file" id="plInput" webkitdirectory directory multiple accept="image/*">
+        </label>
+        <p class="pl-hint">一次选整个文件夹，里面所有图片会自动排队；非图片文件会跳过。也可以把文件夹直接拖进来。</p>
+      </div>
+
+      <div class="pl-sec">
+        <div class="pl-sec-t">② 选择修完保存到哪里</div>
+        <button type="button" class="pl-pick" id="plPickOut">
+          <div class="pl-pick-ico">⌂</div>
+          <div>
+            <div class="pl-pick-t" id="plOutT">选择保存文件夹</div>
+            <div class="pl-pick-s" id="plOutSub">建议新建一个空文件夹，别和原图放一起</div>
+          </div>
+        </button>
+      </div>
+
+      <div class="pl-sec">
+        <div class="pl-sec-t">修图力度（整批统一用这一组）</div>
+        <div class="pl-sld-row">
+          <label for="plBgSld">背景</label>
+          <input type="range" id="plBgSld" min="0" max="50" value="8" step="1">
+          <span class="pl-sld-v" id="plBgVal">8</span>
+        </div>
+        <div class="pl-sld-row">
+          <label for="plProdSld">产品</label>
+          <input type="range" id="plProdSld" min="0" max="6" value="2" step="1">
+          <span class="pl-sld-v" id="plProdVal">2</span>
+        </div>
+        <p class="pl-hint">跟「一键修瑕疵」里那两根滑杆是同一套力度：小力度清灰尘杂物，拉大了整片背景会柔化。效果不放心，先拿一两张试，再跑整批。</p>
+      </div>
+
+      <button type="button" class="pl-go" id="plGo" disabled>开始批量修</button>
+    </section>
+
+    <section class="pl-card pl-side">
+      <div class="pl-stat"><b id="plDone">0</b><span id="plTotal">/ 0 张已完成</span></div>
+      <div class="pl-bar"><i id="plBar"></i></div>
+      <div class="pl-now" id="plNow">还没开始。选好两个文件夹后点「开始批量修」。</div>
+      <div class="pl-list" id="plList">
+        <div class="pl-empty">修好的图会一张张出现在这里。<br>进度和每张的尺寸也能看到。</div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- 离屏算法引擎：直接跑现有「一键修瑕疵」页，功能资源一字节不改 -->
+<iframe id="pl-engine" src="retouch.html" title="修图引擎"></iframe>
+
+<script src="rail-pl.js"></script>
+<script src="assets/pl.6f2a1c83.js"></script>
+</body>
+</html>
