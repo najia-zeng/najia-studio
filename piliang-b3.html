@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>批量修瑕疵 · NaStudio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="img/icon-rt-192.png" type="image/png">
+<link rel="stylesheet" href="assets/pl3.2b7f5d91.css">
+</head>
+<body class="pl-body">
+
+<aside class="nsrail" id="ns-rail"></aside>
+
+<main class="pl-page">
+  <div class="pl-hdr">
+    <h1>产品图<em>批量修瑕疵</em></h1>
+    <p>挑几张图，或选整个文件夹，自动一张张修好，直接存进你指定的另一个文件夹。不用一张张点，也不用重复上传。</p>
+  </div>
+
+  <div class="pl-wrap">
+
+    <section class="pl-card pl-func">
+      <div class="pl-note" id="plNote">
+        本工具仅支持 <b>Edge 和 Chrome</b> 浏览器。<br>
+        若弹出授权窗口，请点击<b>「允许」</b>。
+      </div>
+
+      <div class="pl-sec">
+        <div class="pl-sec-t">① 选择要修的图片</div>
+        <div class="pl-picks">
+          <label class="pl-pick" id="plPickIn">
+            <div class="pl-pick-ico">＋</div>
+            <div>
+              <div class="pl-pick-t">选择图片（可多选）</div>
+              <div class="pl-pick-s" id="plInSub">按住 Ctrl 可挑多张，Ctrl+A 全选</div>
+            </div>
+            <input type="file" id="plInput" multiple accept=".jpg,.jpeg,.png,.webp,.bmp,image/jpeg,image/png,image/webp,image/bmp">
+          </label>
+          <label class="pl-dir-btn">
+            <span class="ico">⌂</span>
+            <span>或选整个文件夹</span>
+            <span class="sub">里面所有图片自动排好队</span>
+            <input type="file" id="plDirInput" webkitdirectory directory multiple>
+          </label>
+        </div>
+        <p class="pl-hint" id="plFmtHint">仅支持 JPG、PNG、WebP、BMP</p>
+        <div class="pl-queue">
+          <div class="pl-qhead">
+            <span class="cnt" id="plQCount">还没选图片</span>
+            <span class="pl-qacts">
+              <button type="button" id="plSelAll">全选</button>
+              <button type="button" id="plSelNone">全不选</button>
+            </span>
+          </div>
+          <div class="pl-qlist" id="plQList">
+            <div class="pl-qempty">选好的图片会在这里显示缩略图，<br>默认全部勾上；不想修的把勾去掉就行。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pl-sec">
+        <div class="pl-sec-t">② 选择修完保存到哪里</div>
+        <button type="button" class="pl-pick" id="plPickOut">
+          <div class="pl-pick-ico">⌂</div>
+          <div>
+            <div class="pl-pick-t" id="plOutT">选择保存文件夹</div>
+            <div class="pl-pick-s" id="plOutSub">建议新建一个空文件夹，别和原图放一起</div>
+          </div>
+        </button>
+      </div>
+
+      <button type="button" class="pl-go" id="plGo" disabled>开始批量修</button>
+    </section>
+
+    <section class="pl-card pl-side">
+      <div class="pl-stat"><b id="plDone">0</b><span id="plTotal">/ 0 张</span></div>
+      <div class="pl-bar"><i id="plBar"></i></div>
+      <div class="pl-now" id="plNow">还没开始。选好图片和保存位置后点「开始批量修」。</div>
+      <div class="pl-list" id="plList">
+        <div class="pl-empty">修好的图会一张张出现在这里。<br>进度和每张的尺寸也能看到。</div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<!-- 离屏算法引擎：直接跑现有「一键修瑕疵」页，功能资源一字节不改 -->
+<iframe id="pl-engine" src="retouch.html" title="修图引擎"></iframe>
+
+<script src="rail-pl.js"></script>
+<script src="assets/pl3.2b7f5d91.js"></script>
+</body>
+</html>
