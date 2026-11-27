@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 工具 · 娜家视觉 NaStudio</title>
+<style>
+  @font-face{
+    font-family:"Space Grotesk";
+    src:url("fonts/sg-var.woff2") format("woff2");
+    font-weight:300 700;font-style:normal;font-display:swap;
+  }
+  :root{
+    --font:"Space Grotesk","Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+    --blue:#6b5ce7; --ink:#1a1a2e; --muted:#6a6483; --line:#e8e8ed;
+    --bg:#f7f7fa; --card:#ffffff; --teal:#00b8a9; --green:#0d9a72;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;-webkit-font-smoothing:antialiased;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--font);color:var(--ink);background:var(--bg);
+    line-height:1.6;font-size:14.5px;display:flex;flex-direction:column;min-height:100vh;}
+
+  main.content{flex:1;padding:40px 44px 80px;max-width:1120px;width:100%;margin:0 auto;}
+
+  /* ===== 页头 ===== */
+  .hero{text-align:center;padding:22px 0 8px;}
+  .hero .eyebrow{font-size:14px;color:#8a86a3;letter-spacing:.3px;margin-bottom:16px;}
+  .hero h1{margin:0 0 8px;font-size:48px;font-weight:800;line-height:1.22;
+    letter-spacing:-.8px;color:var(--ink);}
+  .hero h1 em{font-style:normal;color:var(--blue);}
+  .hero .lede{font-size:17px;color:#4a4660;line-height:1.75;max-width:640px;margin:0 auto 10px;}
+  .hero .hero-note{font-size:16.5px;color:#56526e;line-height:1.7;font-weight:550;}
+
+  /* ===== 分类切换 ===== */
+  .tabs{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    margin:34px 0 26px;padding-bottom:18px;border-bottom:1px solid var(--line);}
+  .tab{font-size:14.5px;font-weight:650;color:#56526e;background:#fff;
+    border:1px solid #e6e2f5;border-radius:999px;padding:9px 22px;
+    cursor:pointer;transition:all .15s;font-family:inherit;}
+  .tab:hover{border-color:#c9c1f5;color:var(--blue);}
+  .tab.on{background:var(--ink);border-color:var(--ink);color:#fff;}
+  .tab.on:hover{color:#fff;}
+  .tabs .count{margin-left:auto;font-size:13px;color:#a5a1bb;}
+
+  /* ===== 卡片网格 ===== */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-bottom:52px;}
+  .card{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);
+    border-radius:16px;overflow:hidden;text-decoration:none;color:inherit;
+    transition:transform .18s,box-shadow .18s,border-color .18s;}
+  .card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(45,35,110,.10);border-color:#d8d0fb;}
+  .card.hide{display:none;}
+  .card .cover{position:relative;aspect-ratio:4/3;background:#f2f1f8;overflow:hidden;}
+  .card .cover img{width:100%;height:100%;object-fit:cover;display:block;
+    transition:transform .35s;}
+  .card:hover .cover img{transform:scale(1.035);}
+  .card .cover .badge{position:absolute;top:12px;left:12px;font-size:12px;font-weight:700;
+    color:#fff;background:rgba(26,26,46,.62);backdrop-filter:blur(4px);
+    border-radius:999px;padding:4px 12px;letter-spacing:.5px;}
+  .card .cover .badge.on{background:var(--green);}
+  .card .c-body{padding:16px 17px 18px;display:flex;flex-direction:column;flex:1;}
+  .card h3{font-size:16.5px;font-weight:750;margin:0 0 7px;line-height:1.4;letter-spacing:-.2px;}
+  .card p{margin:0;font-size:13px;color:#6a6483;line-height:1.7;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .card .c-meta{margin-top:auto;padding-top:14px;display:flex;align-items:center;
+    font-size:12.5px;color:var(--blue);font-weight:650;}
+  .card .c-meta .arrow{margin-left:auto;font-size:15px;transition:transform .15s;}
+  .card:hover .c-meta .arrow{transform:translateX(3px);}
+  .card .c-meta.free{color:var(--green);}
+  .card .c-meta.used{color:#a5a1bb;}
+
+  /* ===== 收口 ===== */
+  .catch{background:linear-gradient(135deg,#faf8ff,#f1ecff);border:1px solid #e2dbfb;
+    border-radius:22px;padding:36px 38px;}
+  .catch .c-h{font-size:23px;font-weight:800;margin:0 0 10px;letter-spacing:-.3px;}
+  .catch .c-sub{font-size:14.5px;color:#56526e;line-height:1.8;margin:0 0 18px;max-width:660px;}
+  .catch .c-sub b{color:var(--ink);}
+  .catch .c-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .cta-btn{display:inline-block;font-size:15px;font-weight:700;color:#fff;background:var(--blue);
+    border-radius:999px;padding:13px 32px;box-shadow:0 4px 14px rgba(107,92,231,.3);
+    transition:all .15s;text-decoration:none;line-height:1.2;}
+  .cta-btn:hover{transform:translateY(-2px);box-shadow:0 7px 18px rgba(107,92,231,.36);}
+  .catch .c-note{font-size:12.5px;color:#8a86a3;}
+
+  footer.site-foot{background:#fff;border-top:1px solid var(--line);padding:24px 28px;text-align:center;}
+  footer.site-foot .f1{font-size:13px;color:#5f5b76;font-weight:600;}
+  footer.site-foot .f2{font-size:11.5px;color:#a5a1bb;margin-top:6px;}
+
+  @media (max-width:960px){
+    .grid{grid-template-columns:repeat(2,1fr);gap:20px;}
+  }
+  @media (max-width:780px){
+    main.content{padding:18px 14px 50px;}
+    .hero h1{font-size:34px;}
+    .hero .lede{font-size:15.5px;}
+    .hero .hero-note{font-size:15px;}
+    .tabs{margin-top:26px;}
+    .tab{font-size:13.5px;padding:8px 18px;}
+    .catch{padding:26px 20px;}
+  }
+  @media (max-width:560px){
+    .grid{grid-template-columns:1fr;gap:18px;}
+    .card .cover{aspect-ratio:16/10;}
+  }
+</style>
+<link rel="stylesheet" href="topbar.css">
+<link rel="icon" href="/img/icon-192.png" type="image/png">
+</head>
+<body>
+
+<div id="ns-topbar"></div>
+<script src="topbar.js"></script>
+
+<main class="content">
+
+  <section class="hero">
+    <h1>AI <em>提效</em>工具</h1>
+    <p class="hero-note">先免费体验（修瑕疵、去灰各 6 次，其余工具 3 次）；想长期使用，微信解锁。</p>
+  </section>
+
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-cat="all">全部</button>
+    <button class="tab" data-cat="pack">风格包</button>
+    <button class="tab" data-cat="tool">工具</button>
+    <span class="count" id="count">共 6 个</span>
+  </div>
+
+  <div class="grid" id="grid">
+
+    <!-- 风格包 · 科研医美风 -->
+    <a class="card" data-cat="pack" data-tool="sg" href="scene-gen.html">
+      <div class="cover">
+        <img src="img/cover-scene.jpg" alt="科研医美风 场景样张">
+        <span class="badge" data-badge="sg"></span>
+      </div>
+      <div class="c-body">
+        <h3>风格包 · 科研医美风</h3>
+        <p>护肤、精华、医美类产品。上传白底图，一次出四张成套场景图。</p>
+        <div class="c-meta" data-meta="sg">查看详情 <span class="arrow">→</span></div>
+      </div>
+    </a>
+
+    <!-- 风格包 · 鲜花氛围风 -->
+    <a class="card" data-cat="pack" data-tool="sf" href="scene-flower.html">
+      <div class="cover">
+        <img src="img/cover-flower.jpg" alt="鲜花氛围风 场景样张">
+        <span class="badge" data-badge="sf"></span>
+      </div>
+      <div class="c-body">
+        <h3>风格包 · 鲜花氛围场景</h3>
+        <p>香氛、精油、香水类产品。花种可选，玫瑰精油配玫瑰，柑橘调配柑橘花。</p>
+        <div class="c-meta" data-meta="sf">查看详情 <span class="arrow">→</span></div>
+      </div>
+    </a>
+
+    <!-- 风格包 · 光影氛围风 -->
+    <a class="card" data-cat="pack" data-tool="sl" href="scene-light.html">
+      <div class="cover">
+        <img src="img/cover-light.jpg" alt="光影氛围风 白底图与场景图对比">
+        <span class="badge" data-badge="sl"></span>
+      </div>
+      <div class="c-body">
+        <h3>风格包 · 光影氛围</h3>
+        <p>美妆、个护、礼盒类产品。窗边/树叶/朦胧/渐变四种光影任选，一次出两张，产品用原图回贴。</p>
+        <div class="c-meta" data-meta="sl">查看详情 <span class="arrow">→</span></div>
+      </div>
+    </a>
+
+    <!-- 工具 · 提示词生成器 -->
+    <a class="card" data-cat="tool" data-tool="kc" href="kuociq.html">
+      <div class="cover">
+        <img src="img/cover-kuociq.jpg" alt="提示词生成器 界面">
+        <span class="badge" data-badge="kc"></span>
+      </div>
+      <div class="c-body">
+        <h3>工具类 · 提示词生成器</h3>
+        <p>上传产品图，生成一段专业摄影提示词：光怎么打、背景怎么配、镜头怎么选。</p>
+        <div class="c-meta" data-meta="kc">查看详情 <span class="arrow">→</span></div>
+      </div>
+    </a>
+
+    <!-- 工具 · 批量修瑕疵 -->
+    <a class="card" data-cat="tool" data-tool="pl" href="piliang.html">
+      <div class="cover">
+        <img src="img/cover-piliang.jpg" alt="批量修瑕疵 多张一起处理">
+      </div>
+      <div class="c-body">
+        <h3>工具类 · 批量修瑕疵</h3>
+        <p>挑几张图或整个文件夹，自动一张张修好，直接存进你指定的文件夹。</p>
+        <div class="c-meta free">免费 · 不限次 <span class="arrow">→</span></div>
+      </div>
+    </a>
+
+    <!-- 工具 · 产品图修补 -->
+    <a class="card" data-cat="tool" data-tool="rt" href="retouch.html">
+      <div class="cover">
+        <img src="img/cover-retouch.jpg" alt="产品图修补 前后对比">
+        <span class="badge" data-badge="rt"></span>
+      </div>
+      <div class="c-body">
+        <h3>工具类 · 一键修瑕疵</h3>
+        <p>倒影、灰尘、多余杂物、台面小瑕疵。涂哪儿修哪儿，渐变背景接得上，产品本体一个像素都不动。</p>
+        <div class="c-meta" data-meta="rt">查看详情 <span class="arrow">→</span></div>
+      </div>
+    </a>
+
+    <!-- 工具 · 一键去灰 -->
+    <a class="card" data-cat="tool" data-tool="dg" href="quhui.html">
+      <div class="cover">
+        <img src="img/cover-quhui.jpg" alt="一键去灰 前后对比">
+        <span class="badge" data-badge="dg"></span>
+      </div>
+      <div class="c-body">
+        <h3>工具类 · 一键去灰</h3>
+        <p>相机直出偏灰不通透？一键拉开对比，亮的更亮、暗的更暗，还能自己再调亮度和对比。</p>
+        <div class="c-meta" data-meta="dg">查看详情 <span class="arrow">→</span></div>
+      </div>
+    </a>
+
+    <!-- 工具 · 清晰锐化 -->
+    <a class="card" data-cat="tool" data-tool="rh" href="ruihua.html">
+      <div class="cover">
+        <img src="img/cover-ruihua.jpg" alt="清晰锐化 前后对比">
+      </div>
+      <div class="c-body">
+        <h3>工具类 · 清晰锐化</h3>
+        <p>相机直出锐度不够？一键把边缘细节补回来，标签文字更清楚，产品颜色和明暗一点不改。</p>
+        <div class="c-meta free">免费 · 不限次 <span class="arrow">→</span></div>
+      </div>
+    </a>
+
+    <!-- 工具 · 调色工具 -->
+    <a class="card" data-cat="tool" data-tool="sewen" href="sewen.html">
+      <div class="cover">
+        <img src="img/cover-sewen-v6.jpg" alt="调色工具 前后对比">
+      </div>
+      <div class="c-body">
+        <h3>工具类 · 调色工具</h3>
+        <p>相机色温没调准、白底发黄发蓝？上传自动回正到中性，也能一根滑块自己微调；只动红蓝，明暗层次一点不改。</p>
+        <div class="c-meta free">免费 · 不限次 <span class="arrow">→</span></div>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- 收口 -->
+  <div class="catch">
+    <div class="c-h">工具能出图，但决定哪张能用的是你</div>
+    <p class="c-sub">AI 出的图不会张张能用：瓶子歪了、颜色断层、logo 变形、文字糊掉——这些工具修不了，得靠判断和手法。<b>《实拍+AI实操手册》讲的就是这一段</b>：哪张能上架、哪里出了问题、怎么一步步修回来。</p>
+    <div class="c-row">
+      <a class="cta-btn" href="member.html">看手册里有什么 →</a>
+      <span class="c-note">199 元 · 一次买断 · 只含内容，不含工具</span>
+    </div>
+  </div>
+
+</main>
+
+<footer class="site-foot">
+  <div class="f1">娜家视觉 · 视觉生产流水线</div>
+  <div class="f2">© 2026 NaStudio. All rights reserved.</div>
+</footer>
+
+<script>
+(function () {
+  /* ===== 每张卡片实时显示解锁状态（和各工具页存的位置一一对应） ===== */
+  var FREE_LIMIT = { rt: 6, kc: 3, sg: 3, sf: 3, sl: 3, dg: 6 };  // 零成本工具（修瑕疵/去灰）6 次当钩子，其余 3 次
+  /* 仍在测试期、工具页本身不限次的（与各工具页里的 TEST_UNLIMITED 保持一致，改回 false 时同步删掉这里） */
+  var UNLIMITED = {};   /* 光影氛围(sl)已恢复 3 次免费体验，此处不再登记 */
+  var KEYS = {
+    rt: { lic: 'nj_lic_rt', used: 'nj_free_used_rt' },
+    kc: { lic: 'nj_lic_kc', used: 'nj_free_used_kc' },
+    sg: { lic: 'nj_lic_sg', used: 'nj_free_used_sg' },
+    sf: { lic: 'nj_lic_sf', used: 'nj_free_used_sf' },
+    sl: { lic: 'nj_lic_sl', used: 'nj_free_used_sl' },
+    dg: { lic: 'nj_lic_dg', used: 'nj_free_used_dg' }
+  };
+  function readLS(k) {
+    try { return localStorage.getItem(k); } catch (e) { return null; }
+  }
+  function renderStatus() {
+    Object.keys(KEYS).forEach(function (t) {
+      var meta = document.querySelector('[data-meta="' + t + '"]');
+      var badge = document.querySelector('[data-badge="' + t + '"]');
+      if (!meta) return;
+      var licensed = readLS(KEYS[t].lic) === '1';
+      var used = parseInt(readLS(KEYS[t].used) || '0', 10) || 0;
+      var left = Math.max(0, FREE_LIMIT[t] - used);
+      if (UNLIMITED[t]) {
+        meta.className = 'c-meta free';
+        meta.innerHTML = '测试阶段 · 不限次 <span class="arrow">→</span>';
+        if (badge) { badge.className = 'badge on'; badge.textContent = '内测中'; }
+      } else if (licensed) {
+        meta.className = 'c-meta free';
+        meta.innerHTML = '已解锁 · 不限次 <span class="arrow">→</span>';
+        if (badge) { badge.className = 'badge on'; badge.textContent = '已解锁'; }
+      } else if (left > 0) {
+        meta.className = 'c-meta';
+        meta.innerHTML = '免费体验剩 ' + left + ' 次 <span class="arrow">→</span>';
+        if (badge) { badge.className = 'badge'; badge.textContent = '体验中'; }
+      } else {
+        meta.className = 'c-meta used';
+        meta.innerHTML = '体验已用完 · 微信解锁 <span class="arrow">→</span>';
+        if (badge) { badge.className = 'badge'; badge.textContent = ''; badge.hidden = true; }
+      }
+    });
+  }
+  renderStatus();
+  // 从工具页输完激活码返回本页时，状态自动刷新
+  window.addEventListener('pageshow', renderStatus);
+  window.addEventListener('focus', renderStatus);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) renderStatus();
+  });
+
+  /* ===== 分类切换 ===== */
+  var tabs = document.querySelectorAll('#tabs .tab');
+  var cards = document.querySelectorAll('#grid .card');
+  var count = document.getElementById('count');
+
+  function apply(cat) {
+    var n = 0;
+    cards.forEach(function (c) {
+      var ok = (cat === 'all' || c.dataset.cat === cat);
+      c.classList.toggle('hide', !ok);
+      if (ok) n++;
+    });
+    count.textContent = '共 ' + n + ' 个';
+  }
+
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () {
+      tabs.forEach(function (x) { x.classList.remove('on'); });
+      t.classList.add('on');
+      apply(t.dataset.cat);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
