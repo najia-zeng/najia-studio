@@ -1,0 +1,206 @@
+/* ============================================================================
+   u1 · 统一外壳主题（修图工作室 + 场景风格包 + 批量修瑕疵 共用唯一一份）
+   ----------------------------------------------------------------------------
+   纯新增资源，不改动任何功能 CSS / JS / 算法文件。
+   全部外观值集中在下面 :root 变量里；以后想换黑白、换主色，只改这一段。
+   三种骨架的选择器分别列出，但取值都引用同一组变量，所以「改一处全变」。
+
+   骨架差异（本文件负责抹平）：
+     修图 4 页  .content / .content-area / .func / .canvas / .rail-*
+     风格包 3 页 .page / .wrap / .left / .right / .nsrail-*（s5.css 供左栏）
+     批量页     .pl-page / .pl-wrap / .pl-card / .pl-hdr
+   ============================================================================ */
+
+:root {
+  --u1-purple:  #6b5ce7;
+  --u1-ink:     #1a1a2e;
+  --u1-sub:     #6b6785;
+  --u1-grad:    linear-gradient(180deg, #ece8fb 0%, #f2effd 52%, #f7f5ff 100%);
+  --u1-card:    #ffffff;
+  --u1-radius:  18px;
+  --u1-shadow:  0 10px 30px rgba(58,42,120,.09), 0 2px 6px rgba(58,42,120,.05);
+  --u1-gap:     14px;
+  --u1-pad:     20px;
+  --u1-rail:    220px;
+}
+
+/* 顶部全站栏：两条线都不要（s5 / 修图页原本各自已隐藏，这里兜底） */
+#ns-topbar { display: none !important; }
+
+/* ---------------------------------------------------------------------------
+   A. 修图工作室 4 页 —— 标题提到豆腐块外面、横跨整个工作区
+   --------------------------------------------------------------------------- */
+main.content {
+  background: var(--u1-grad) !important;
+  padding: 0 !important;   /* 留白统一交给 .content-area，标题与豆腐块左右对齐批量页 */
+}
+
+/* 标题提出来后，工作区变成「标题一行 + 豆腐块一行」 */
+.content-area.u1-lift {
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  gap: var(--u1-gap) !important;
+  padding: 0 var(--u1-pad) var(--u1-pad) !important;
+}
+.content-area.u1-lift > .func-head {
+  grid-column: 1 / -1 !important;
+  grid-row: 1 !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 18px 4px 14px !important;
+}
+.content-area.u1-lift > .func  { grid-row: 2 !important; grid-column: 1 !important; }
+.content-area.u1-lift > .canvas { grid-row: 2 !important; grid-column: 2 !important; }
+
+/* 标题字号与强调色，跟批量页 / 风格包对齐 */
+.content-area.u1-lift > .func-head h1 {
+  margin: 0 0 6px !important;
+  font-size: 27px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.6px !important;
+  color: var(--u1-ink) !important;
+}
+.content-area.u1-lift > .func-head h1 em {
+  font-style: normal !important;
+  color: var(--u1-purple) !important;
+}
+.content-area.u1-lift > .func-head p {
+  margin: 0 !important;
+  font-size: 13px !important;
+  color: var(--u1-sub) !important;
+}
+
+/* 两块圆角豆腐块：白底、18px 圆角、统一阴影 */
+.func, .canvas {
+  background: var(--u1-card) !important;
+  border-radius: var(--u1-radius) !important;
+  box-shadow: var(--u1-shadow) !important;
+  border: 0 !important;
+}
+/* 左块里的 side 不再画自己的分隔线与白底（父块已经是白豆腐块） */
+.func > .side {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+.func > .side > .side-quota { background: transparent !important; }
+
+/* ---------------------------------------------------------------------------
+   B. 场景风格包 3 页 —— 外壳取值换成同一组变量（换色时一起变）
+   --------------------------------------------------------------------------- */
+body.has-scene-rail .page {
+  background: var(--u1-grad) !important;
+  /* 光影氛围页功能 CSS 里写死了 width:100%，撞上左栏 220px 会横向溢出 220px。
+     这里只收宽度、不动功能资源；小屏（<=900px）左栏变横条时恢复铺满。 */
+  width: auto !important;
+}
+body.has-scene-rail .hdr {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 18px 24px 14px !important;
+}
+body.has-scene-rail .hdr::after { display: none !important; }
+body.has-scene-rail .hdr-title,
+body.has-scene-rail .hdr .hdr-title {
+  font-size: 27px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.6px !important;
+  color: var(--u1-ink) !important;
+}
+body.has-scene-rail .hdr .hdr-sub {
+  font-size: 13px !important;
+  color: var(--u1-sub) !important;
+}
+body.has-scene-rail .page .wrap {
+  gap: var(--u1-gap) !important;
+  padding: 0 var(--u1-pad) var(--u1-pad) !important;
+}
+body.has-scene-rail .page .left,
+body.has-scene-rail .page .right {
+  background: var(--u1-card) !important;
+  border: 0 !important;
+  border-radius: var(--u1-radius) !important;
+  box-shadow: var(--u1-shadow) !important;
+}
+/* 左栏紫色也走变量，以后换主色一并生效 */
+.nsrail-card.on { border-color: var(--u1-purple) !important; }
+.nsrail-name { color: var(--u1-ink) !important; }
+
+/* ---------------------------------------------------------------------------
+   C. 批量修瑕疵 —— 外壳取值换成同一组变量
+   --------------------------------------------------------------------------- */
+.pl-page { background: var(--u1-grad) !important; }
+.pl-hdr h1 em { color: var(--u1-purple) !important; }
+.pl-hdr h1 { color: var(--u1-ink) !important; }
+.pl-hdr p { color: var(--u1-sub) !important; }
+.pl-wrap {
+  gap: var(--u1-gap) !important;
+  padding: 0 var(--u1-pad) var(--u1-pad) !important;
+}
+.pl-card {
+  background: var(--u1-card) !important;
+  border-radius: var(--u1-radius) !important;
+  box-shadow: var(--u1-shadow) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   D. 修图线左栏卡片（.rail-*）—— 一份样式同时供 4 个修图页和批量页使用
+      批量页外壳化后左栏容器仍是 .nsrail，但卡片类名与修图线一致，故在此统一。
+      取值与线上 rail.js 的 220 / 16 / 16 口径一致。
+   --------------------------------------------------------------------------- */
+.rail-brand { display: flex; align-items: center; gap: 10px; padding: 15px 16px;
+  border-bottom: 1px solid #f0f0f5; flex: none; }
+.rail-logo { width: 34px; height: 34px; border-radius: 10px; flex: none; object-fit: cover; display: block; }
+a.rail-logo-link { display: block; flex: none; line-height: 0; text-decoration: none; }
+.rail-name { font-size: 13.5px; font-weight: 750; color: var(--u1-ink); line-height: 1.35; }
+.rail-sub { font-size: 9px; color: #a5a1bb; letter-spacing: .7px; margin-top: 2px; }
+.rail-label { padding: 13px 16px 8px; font-size: 10.5px; font-weight: 700;
+  color: #8a86a3; letter-spacing: 1.1px; flex: none; }
+.rail-list { flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 16px; padding: 0 16px 12px; }
+.rail-list::-webkit-scrollbar { width: 7px; }
+.rail-list::-webkit-scrollbar-thumb { background: #e2ddf0; border-radius: 8px; }
+.rail-card { position: relative; display: block; flex: none; aspect-ratio: 4 / 3;
+  border: 2px solid transparent; border-radius: 10px; overflow: hidden;
+  background: #f2effd; text-decoration: none; }
+.rail-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rail-card .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 20px 10px 9px;
+  font-size: 16.5px; font-weight: 700; color: #fff; letter-spacing: .2px;
+  background: linear-gradient(180deg, rgba(20,14,50,0) 0%, rgba(20,14,50,.72) 100%); }
+a.rail-card:hover { border-color: #c9c1f5; }
+.rail-card.on { border-color: var(--u1-purple) !important;
+  box-shadow: 0 4px 14px rgba(107,92,231,.26); cursor: default; }
+.rail-foot { flex: none; padding: 10px 16px; border-top: 1px solid #f0f0f5;
+  font-size: 10.5px; color: #b3aec8; }
+
+/* ---------------------------------------------------------------------------
+   E. 响应式（与线上既有断点一致，只把取值换成变量）
+   --------------------------------------------------------------------------- */
+@media (min-width: 1101px) {
+  .workspace { grid-template-columns: var(--u1-rail) minmax(0, 1fr) !important; }
+}
+@media (max-width: 1100px) {
+  .rail-list { gap: 10px !important; padding: 0 14px 12px !important; }
+  .rail-brand, .rail-label, .rail-foot { padding-left: 14px !important; padding-right: 14px !important; }
+  .content-area.u1-lift { grid-template-columns: 272px minmax(0, 1fr) !important; gap: 11px !important; }
+}
+@media (max-width: 900px) {
+  .content-area.u1-lift { grid-template-rows: auto auto minmax(0, 1fr) !important; gap: 12px !important;
+    padding: 0 12px 16px !important; }
+  .content-area.u1-lift > .func-head { grid-column: 1 / -1 !important; grid-row: 1 !important; }
+  .content-area.u1-lift > .func { grid-row: 2 !important; }
+  .content-area.u1-lift > .canvas { grid-row: 3 !important; }
+  .func, .canvas { border-radius: var(--u1-radius) !important; box-shadow: var(--u1-shadow) !important; }
+}
+
+/* ============================================================================
+   u2 修复 · 光影氛围页右侧留白
+   ----------------------------------------------------------------------------
+   本文件 = assets/u1.theme.css 全文（逐字节未改） + 下面这一条规则。
+   根因：光影页 sl.7e59b47c.css 的 .page 是 display:flex / flex:1 1 0% /
+   width:100% / margin:0 auto，且它的 body 是 flex 容器（另两页 body 是 block）。
+   u1 用 width:auto 收掉原来的 220px 横向溢出后，flex 容器把剩余空间算成
+   margin-right（1440 下 438px），.page 缩到 782px、出图区只剩 388px。
+   右 margin 归零后 flex-grow 自动撑满，天然适配左栏 220 / 168 / 0 三档断点。
+   实测：1440 -> 1220/826，1000 -> 832/438，另两页数值一点不变，无横向溢出。
+   ============================================================================ */
+body.has-scene-rail .page { margin-right: 0 !important; }
